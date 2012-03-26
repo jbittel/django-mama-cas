@@ -1,4 +1,5 @@
 from django.http import HttpResponse
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
 
 from mama_cas.forms import LoginForm
@@ -27,7 +28,13 @@ def login(request, success_url=None,
     are present, ``renew`` should take precedence.
 
     """
-    form = form_class()
+    if request.POST:
+        form = form_class(request.POST.copy())
+
+        if form.is_valid():
+            pass
+    else:
+        form = form_class()
 
     return render(request, template_name,
                   {'form': form})
@@ -38,6 +45,7 @@ def logout(request,
         success_url=None, extra_content=None):
     """
     Destroy a client's single sign-on CAS session.
+
     """
     return HttpResponse(content='Not Implemented', content_type='text/plain', status=501)
 
@@ -45,6 +53,7 @@ def logout(request,
 def validate(request):
     """
     Check the validity of a service ticket. [CAS 1.0]
+
     """
     return HttpResponse(content='Not Implemented', content_type='text/plain', status=501)
 
@@ -52,6 +61,7 @@ def validate(request):
 def service_validate(request):
     """
     Check the validity of a service ticket. [CAS 2.0]
+
     """
     return HttpResponse(content='Not Implemented', content_type='text/plain', status=501)
 
@@ -60,6 +70,7 @@ def proxy_validate(request):
     """
     Check the validity of a service ticket and additionally
     validate proxy tickets. [CAS 2.0]
+
     """
     return HttpResponse(content='Not Implemented', content_type='text/plain', status=501)
 
@@ -68,5 +79,6 @@ def proxy(request):
     """
     Provide proxy tickets to services that have acquired proxy-
     granting tickets. [CAS 2.0]
+
     """
     return HttpResponse(content='Not Implemented', content_type='text/plain', status=501)

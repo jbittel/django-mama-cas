@@ -1,9 +1,12 @@
 from datetime import datetime
+from datetime import timedelta
 import hashlib
 import os
 import time
 
 from django.db import models
+from django.conf import settings
+from django.utils.timezone import utc
 
 
 class Ticket(models.Model):
@@ -15,10 +18,11 @@ class Ticket(models.Model):
         abstract = True
 
     def __unicode__(self):
-        return u'%s' % unicode(ticket)
+        return u'%s' % unicode(self.ticket)
 
     def save(self, *args, **kwargs):
-        self.created_on = datetime.now()
+        if not self.id:
+            self.created_on = datetime.now()
         super(Ticket, self).save(*args, **kwargs)
 
     def generate_ticket(self, prefix=''):
@@ -39,6 +43,17 @@ class Ticket(models.Model):
         """
         self.consumed = datetime.now()
 
+    def is_consumed(self):
+        if self.consumed:
+            return True
+        return False
+
+    def is_expired(self):
+        now = datetime.utcnow().replace(tzinfo=utc)
+        if self.created_on + timedelta(minutes=1) < now:
+            return True
+        return False
+
 class LoginTicketManager(models.Manager):
     """
     Create a new ``LoginTicket``, populate ``ticket`` with a new ticket
@@ -48,7 +63,9 @@ class LoginTicketManager(models.Manager):
     """
     def create_login_ticket(self):
         login_ticket = LoginTicket()
+        login_ticket.generate_ticket(prefix=LoginTicket.TICKET_PREFIX)
         login_ticket.save()
+        print "ticket created: %s" % login_ticket.ticket
         return login_ticket.ticket
 
 class LoginTicket(Ticket):
@@ -67,10 +84,6 @@ class LoginTicket(Ticket):
 
     objects = LoginTicketManager()
 
-    def save(self, *args, **kwargs):
-        self.generate_ticket(prefix=TICKET_PREFIX)
-        super(LoginTicket, self).save(*args, **kwargs)
-
 class ServiceTicket(Ticket):
-    service = models.CharField(max_length=256)
-    username = models.CharField(max_length=256)
+    service = models.CharField(max_length=255)
+    username = models.CharField(max_length=255)
