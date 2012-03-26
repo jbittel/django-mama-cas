@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>{% block title %}{% endblock title %}</title>
+</head>
+<body>
+    <h1>Log In</h1>
+    <form method="post" action="">
+        <ul>
+            {{ form.as_ul }}
+            <li><input type="submit" name="submit_login" value="Login" /></li>
+        </ul>
+    </form>
+</body>
+</html>

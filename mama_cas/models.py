@@ -7,10 +7,12 @@ from django.db import models
 
 
 class Ticket(models.Model):
-    ticket = models.CharField(max_length=256, unique=True)
+    ticket = models.CharField(max_length=255, unique=True)
     created_on = models.DateTimeField()
-    consumed = models.DateTimeField()
-    client_hostname = models.CharField(max_length=256)
+    consumed = models.DateTimeField(null=True)
+
+    class Meta:
+        abstract = True
 
     def __unicode__(self):
         return u'%s' % unicode(ticket)
@@ -19,13 +21,13 @@ class Ticket(models.Model):
         self.created_on = datetime.now()
         super(Ticket, self).save(*args, **kwargs)
 
-    def generate_ticket(self, prefix=''):
+    def generate_ticket_id(self, prefix=''):
         """
         Create a sufficiently opaque ticket string using random data
         to ensure a ``Ticket`` is not guessable. An optional prefix string
         can be provided that is prepended to the ticket string.
         """
-        self.ticket = "%s%d-%s" % (prefix, int(time.time()), hashlib.sha1(os.urandom(512)).hexdigest())
+        self.ticket = "%s-%d-%s" % (prefix, int(time.time()), hashlib.sha1(os.urandom(512)).hexdigest())
 
     def consume(self):
         """
@@ -35,8 +37,22 @@ class Ticket(models.Model):
         """
         self.consumed = datetime.now()
 
+class LoginTicketManager(models.Manager):
+    """
+    Create a new ``LoginTicket``, populate ``ticket`` with a new ticket
+    id and save the ``LoginTicket`` to the database. Return the generated
+    ticket ID.
+    """
+    def create_login_ticket(self):
+        lt = LoginTicket()
+        lt.generate_ticket_id(prefix='LT')
+        lt.save()
+
+        return lt.ticket
+
 class LoginTicket(Ticket):
-    pass
+    objects = LoginTicketManager()
+
 
 class ServiceTicket(Ticket):
     service = models.CharField(max_length=256)

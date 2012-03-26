@@ -1,10 +1,13 @@
 from django.http import HttpResponse
+from django.shortcuts import render
+
+from mama_cas.forms import LoginForm
 
 
 # 2.1 and 2.2
-def login(request,
-        template_name='mama_cas/login.html',
-        success_url=None, extra_content=None):
+def login(request, success_url=None,
+        form_class=LoginForm,
+        template_name='mama_cas/login.html'):
     """
     Credential requestor and acceptor.
 
@@ -24,16 +27,10 @@ def login(request,
     are present, ``renew`` should take precedence.
 
     """
-    service = request.GET.get('service', None)
-    renew = request.GET.get('renew', None)
-    gateway = request.GET.get('gateway', None)
-
-    if renew and gateway:
-        gateway = None
+    form = form_class()
 
     return render(request, template_name,
-                  kwargs,
-                  context_instance=context)
+                  {'form': form})
 
 # 2.3
 def logout(request,
