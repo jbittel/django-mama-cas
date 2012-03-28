@@ -1,4 +1,5 @@
 from django import forms
+from django.utils.http import urlunquote
 
 from mama_cas.models import LoginTicket
 
@@ -6,20 +7,18 @@ from mama_cas.models import LoginTicket
 class LoginForm(forms.Form):
     username = forms.CharField()
     password = forms.CharField(widget=forms.PasswordInput)
-#    lt = forms.CharField(widget=forms.HiddenInput, initial=LoginTicket.objects.create_login_ticket())
-#    lt = forms.CharField(initial=LoginTicket.objects.create_login_ticket())
     lt = forms.CharField(widget=forms.HiddenInput)
+    service = forms.CharField(widget=forms.HiddenInput, required=False)
 
     def __init__(self, *args, **kwargs):
         super(LoginForm, self).__init__(*args, **kwargs)
         if not self.is_bound:
-            self.fields['lt'].initial = LoginTicket.objects.create_login_ticket()
+            self.fields['lt'].initial = LoginTicket.objects.create_ticket()
 
     def clean_lt(self):
         """
         Verify the specified login ticket exists and check
         that it is not consumed.
-
         """
         lt = self.cleaned_data.get('lt', None)
 
@@ -39,11 +38,24 @@ class LoginForm(forms.Form):
         """
         Whether or not the authentication is successful, consume the
         ``LoginTicket`` so it cannot be used again.
-
         """
         login_ticket.consume()
         login_ticket.save()
 
-        self.data['lt'] = LoginTicket.objects.create_login_ticket()
+        """
+        Generate a new login ticket and store it in the form. If we need
+        to redisplay the form for any reason, this prepares for the next
+        authentication attempt. We can modify data because we're using a
+        copy of request.POST.
+        """
+        self.data['lt'] = LoginTicket.objects.create_ticket()
 
         return lt
+
+    def clean_service(self):
+        service = self.cleaned_data.get('service')
+        return urlunquote(service)
+
+#    def clean(self):
+#        pass
+    # TODO authenticate username/password

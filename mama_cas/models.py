@@ -25,12 +25,11 @@ class Ticket(models.Model):
             self.created_on = datetime.now()
         super(Ticket, self).save(*args, **kwargs)
 
-    def generate_ticket(self, prefix=''):
+    def generate(self, prefix=''):
         """
         Create a sufficiently opaque ticket string using random data
         to ensure a ``Ticket`` is not guessable. An optional prefix string
         can be provided that is prepended to the ticket string.
-
         """
         self.ticket = "%s-%d-%s" % (prefix, int(time.time()), hashlib.sha1(os.urandom(512)).hexdigest())
 
@@ -39,7 +38,6 @@ class Ticket(models.Model):
         A ``Ticket`` is consumed by when it is used by populating the
         ``consumed`` field with the current datetime. A consumed ``Ticket``
         is no longer valid for any future authentication attempts.
-
         """
         self.consumed = datetime.now()
 
@@ -61,12 +59,11 @@ class LoginTicketManager(models.Manager):
     generated ticket ID.
 
     """
-    def create_login_ticket(self):
-        login_ticket = LoginTicket()
-        login_ticket.generate_ticket(prefix=LoginTicket.TICKET_PREFIX)
-        login_ticket.save()
-        print "ticket created: %s" % login_ticket.ticket
-        return login_ticket.ticket
+    def create_ticket(self):
+        lt = LoginTicket()
+        lt.generate(prefix=LoginTicket.TICKET_PREFIX)
+        lt.save()
+        return lt.ticket
 
 class LoginTicket(Ticket):
     """
@@ -84,6 +81,41 @@ class LoginTicket(Ticket):
 
     objects = LoginTicketManager()
 
+class ServiceTicketManager(models.Manager):
+    def create_ticket(self, service, username):
+        st = ServiceTicket(service=service, username=username)
+        st.generate(prefix=ServiceTicket.TICKET_PREFIX)
+        st.consume()
+        st.save()
+        return st.ticket
+
+    def validate_ticket(self, service, ticket, renew):
+        # TODO if renew is set, only validate if the service ticket was issued
+        # from the presentation of the user's primary credentials
+        service_ticket = ServiceTicket.objects.get(service=service, ticket=ticket)
+        if service_ticket:
+            return service_ticket.username
+        return None
+
 class ServiceTicket(Ticket):
+    TICKET_PREFIX = u"ST"
+
     service = models.CharField(max_length=255)
     username = models.CharField(max_length=255)
+
+    objects = ServiceTicketManager()
+
+class TicketGrantingTicketManager(models.Manager):
+    def create_ticket(self, username):
+        tgt = TicketGrantingTicket(username=username)
+        tgt.generate(prefix=TicketGrantingTicket.TICKET_PREFIX)
+        tgt.consume()
+        tgt.save()
+        return tgt.ticket
+
+class TicketGrantingTicket(Ticket):
+    TICKET_PREFIX = u"TGC"
+
+    username = models.CharField(max_length=255)
+
+    objects = TicketGrantingTicketManager()
