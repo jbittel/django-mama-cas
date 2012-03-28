@@ -20,6 +20,10 @@ class Ticket(models.Model):
     def __unicode__(self):
         return u'%s' % unicode(self.ticket)
 
+    def __init__(self, *args, **kwargs):
+        super(Ticket, self).__init__(*args, **kwargs)
+        self.generate(prefix=self.TICKET_PREFIX)
+
     def save(self, *args, **kwargs):
         if not self.id:
             self.created_on = datetime.now()
@@ -35,9 +39,9 @@ class Ticket(models.Model):
 
     def consume(self):
         """
-        A ``Ticket`` is consumed by when it is used by populating the
-        ``consumed`` field with the current datetime. A consumed ``Ticket``
-        is no longer valid for any future authentication attempts.
+        A ``Ticket`` is consumed by populating the ``consumed`` field with
+        the current datetime. A consumed ``Ticket`` is no longer valid for
+        any future authentication attempts.
         """
         self.consumed = datetime.now()
 
@@ -54,14 +58,11 @@ class Ticket(models.Model):
 
 class LoginTicketManager(models.Manager):
     """
-    Create a new ``LoginTicket``, populate ``ticket`` with a new ticket
-    string and save the ``LoginTicket`` to the database. Return the
-    generated ticket ID.
-
+    Create a new ``LoginTicket`` and save the ``LoginTicket`` to the database.
+    Return the generated ticket string.
     """
     def create_ticket(self):
         lt = LoginTicket()
-        lt.generate(prefix=LoginTicket.TICKET_PREFIX)
         lt.save()
         return lt.ticket
 
@@ -84,7 +85,6 @@ class LoginTicket(Ticket):
 class ServiceTicketManager(models.Manager):
     def create_ticket(self, service, username):
         st = ServiceTicket(service=service, username=username)
-        st.generate(prefix=ServiceTicket.TICKET_PREFIX)
         st.consume()
         st.save()
         return st.ticket
@@ -108,10 +108,15 @@ class ServiceTicket(Ticket):
 class TicketGrantingTicketManager(models.Manager):
     def create_ticket(self, username):
         tgt = TicketGrantingTicket(username=username)
-        tgt.generate(prefix=TicketGrantingTicket.TICKET_PREFIX)
         tgt.consume()
         tgt.save()
         return tgt.ticket
+
+    def validate_ticket(self, tgc):
+        tgt = TicketGrantingTicket.objects.get(ticket=tgc)
+        if tgt:
+            return True
+        return False
 
 class TicketGrantingTicket(Ticket):
     TICKET_PREFIX = u"TGC"

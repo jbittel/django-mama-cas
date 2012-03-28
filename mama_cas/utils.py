@@ -5,6 +5,9 @@ from django.utils.http import urlquote
 
 
 def add_query_params(url, params):
+    for k in params.keys():
+        if params[k] == '':
+            del params[k]
     url_parts = list(urlparse.urlparse(url))
     query = dict(urlparse.parse_qs(url_parts[4]))
     query.update(params)

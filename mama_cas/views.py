@@ -2,6 +2,7 @@ from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.utils.http import urlquote
+from django.core.urlresolvers import reverse
 
 from mama_cas.forms import LoginForm
 from mama_cas.models import ServiceTicket
@@ -39,20 +40,25 @@ def login(request, success_url=None,
         if form.is_valid():
             service = form.cleaned_data.get('service')
             username = form.cleaned_data.get('username')
-            cookie = TicketGrantingTicket.objects.create_ticket(username)
-            # TODO set_signed_cookie('tgc', cookie)
+            url = add_query_params(reverse('cas_login'), {'service': service, 'username': username, 'renew': 'true'})
+            response = HttpResponseRedirect(url)
+            response.set_signed_cookie('tgc', TicketGrantingTicket.objects.create_ticket(username))
+            return response
+    else:
+        service = url_encode(request.GET.get('service', ''))
+        # TODO implement renew
+        # TODO implement gateway
+
+        tgc = request.get_signed_cookie('tgc', False)
+        if tgc and TicketGrantingTicket.objects.validate_ticket(tgc):
             if service:
                 ticket = ServiceTicket.objects.create_ticket(service, username)
                 service = add_query_params(service, {'ticket': ticket})
                 return HttpResponseRedirect(service)
             else:
+                # TODO display logged in message on login form
                 pass
-                # TODO redisplay form and indicate successful login
-    else:
-        service = url_encode(request.GET.get('service', ''))
-        # TODO implement renew
-        # TODO implement gateway
-        # TODO check for ticket granting cookie
+
         form = form_class(initial={'service': service})
 
     return render(request, template_name,
@@ -65,7 +71,10 @@ def logout(request,
     """
     Destroy a client's single sign-on CAS session.
     """
-    return HttpResponse(content='Not Implemented', content_type='text/plain', status=501)
+    # TODO display message and URL on form when successfully logged out
+    response = HttpResponseRedirect(reverse('cas_login'))
+    response.delete_cookie('tgc')
+    return response
 
 # 2.4
 def validate(request):
