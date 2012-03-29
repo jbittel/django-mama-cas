@@ -7,6 +7,7 @@ import time
 from django.db import models
 from django.conf import settings
 from django.utils.timezone import utc
+from django.utils.crypto import get_random_string
 
 
 class Ticket(models.Model):
@@ -35,7 +36,7 @@ class Ticket(models.Model):
         to ensure a ``Ticket`` is not guessable. An optional prefix string
         can be provided that is prepended to the ticket string.
         """
-        self.ticket = "%s-%d-%s" % (prefix, int(time.time()), hashlib.sha1(os.urandom(512)).hexdigest())
+        self.ticket = "%s-%d-%s" % (prefix, int(time.time()), get_random_string(length=32))
 
     def consume(self):
         """
@@ -83,7 +84,8 @@ class LoginTicket(Ticket):
     objects = LoginTicketManager()
 
 class ServiceTicketManager(models.Manager):
-    def create_ticket(self, service, username):
+    def create_ticket(self, service, username='test'):
+        # TODO encode service URL?
         st = ServiceTicket(service=service, username=username)
         st.consume()
         st.save()

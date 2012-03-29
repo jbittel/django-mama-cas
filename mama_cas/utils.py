@@ -15,4 +15,6 @@ def add_query_params(url, params):
     return urlparse.urlunparse(url_parts)
 
 def url_encode(url):
+    if not url:
+        return None
     return urlquote(url, safe='')

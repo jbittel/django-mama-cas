@@ -39,25 +39,59 @@ def login(request, success_url=None,
 
         if form.is_valid():
             service = form.cleaned_data.get('service')
+            # TODO implement warn
             username = form.cleaned_data.get('username')
-            url = add_query_params(reverse('cas_login'), {'service': service, 'username': username, 'renew': 'true'})
+            url = add_query_params(reverse('cas_login'), {'service': service, 'primary': 'true'})
             response = HttpResponseRedirect(url)
             response.set_signed_cookie('tgc', TicketGrantingTicket.objects.create_ticket(username))
             return response
     else:
-        service = url_encode(request.GET.get('service', ''))
-        # TODO implement renew
-        # TODO implement gateway
+        service = request.GET.get('service')
+        renew = request.GET.get('renew')
+        gateway = request.GET.get('gateway')
 
-        tgc = request.get_signed_cookie('tgc', False)
-        if tgc and TicketGrantingTicket.objects.validate_ticket(tgc):
-            if service:
-                ticket = ServiceTicket.objects.create_ticket(service, username)
+        if renew and gateway:
+            gateway = None
+        if gateway and not service:
+            gateway = None
+
+        #
+        # 2.1.1 parameters - renew
+        #
+#        if renew:
+#            if service:
+#                form = form_class(initial={'service': service})
+#            else:
+#                form = form_class()
+#            return render(request, template_name,
+#                          {'form': form})
+
+        #
+        # 2.1.1 parameters - gateway
+        #
+        if gateway:
+            tgc = request.get_signed_cookie('tgc', False)
+            if tgc and TicketGrantingTicket.objects.validate_ticket(tgc):
+                ticket = ServiceTicket.objects.create_ticket(service)
                 service = add_query_params(service, {'ticket': ticket})
                 return HttpResponseRedirect(service)
             else:
-                # TODO display logged in message on login form
-                pass
+                return HttpResponseRedirect(service)
+
+        #
+        # 2.1 /login as credential requestor
+        #
+        if not renew:
+            tgc = request.get_signed_cookie('tgc', False)
+            if tgc and TicketGrantingTicket.objects.validate_ticket(tgc):
+                if service:
+                    print service
+                    ticket = ServiceTicket.objects.create_ticket(service)
+                    service = add_query_params(service, {'ticket': ticket})
+                    return HttpResponseRedirect(service)
+                else:
+                    # TODO display 'logged in' message
+                    pass
 
         form = form_class(initial={'service': service})
 
@@ -71,8 +105,8 @@ def logout(request,
     """
     Destroy a client's single sign-on CAS session.
     """
-    # TODO display message and URL on form when successfully logged out
-    response = HttpResponseRedirect(reverse('cas_login'))
+    url = request.GET.get('url', None)
+    response = render(request, template_name, {'url': url})
     response.delete_cookie('tgc')
     return response
 
@@ -82,7 +116,7 @@ def validate(request):
     Check the validity of a service ticket. [CAS 1.0]
     """
     if request.GET:
-        service = url_encode(request.GET.get('service', ''))
+        service = url_encode(request.GET.get('service'))
         ticket = request.GET.get('ticket')
         renew = request.GET.get('renew')
 
