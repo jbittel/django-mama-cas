@@ -56,6 +56,6 @@ class LoginForm(forms.Form):
         service = self.cleaned_data.get('service')
         return urlunquote(service)
 
-#    def clean(self):
-#        pass
-    # TODO authenticate username/password
+    def clean(self):
+        # TODO authenticate username/password
+        return self.cleaned_data

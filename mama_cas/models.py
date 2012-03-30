@@ -1,13 +1,12 @@
 from datetime import datetime
 from datetime import timedelta
-import hashlib
-import os
 import time
 
 from django.db import models
 from django.conf import settings
-from django.utils.timezone import utc
+from django.utils.timezone import now
 from django.utils.crypto import get_random_string
+from django.utils.http import same_origin
 
 
 class Ticket(models.Model):
@@ -27,7 +26,7 @@ class Ticket(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.id:
-            self.created_on = datetime.now()
+            self.created_on = now()
         super(Ticket, self).save(*args, **kwargs)
 
     def generate(self, prefix=''):
@@ -44,7 +43,7 @@ class Ticket(models.Model):
         the current datetime. A consumed ``Ticket`` is no longer valid for
         any future authentication attempts.
         """
-        self.consumed = datetime.now()
+        self.consumed = now()
 
     def is_consumed(self):
         if self.consumed:
@@ -52,8 +51,7 @@ class Ticket(models.Model):
         return False
 
     def is_expired(self):
-        now = datetime.utcnow().replace(tzinfo=utc)
-        if self.created_on + timedelta(minutes=1) < now:
+        if self.created_on + timedelta(minutes=self.TICKET_EXPIRE) <= now():
             return True
         return False
 
@@ -65,7 +63,7 @@ class LoginTicketManager(models.Manager):
     def create_ticket(self):
         lt = LoginTicket()
         lt.save()
-        return lt.ticket
+        return lt
 
 class LoginTicket(Ticket):
     """
@@ -80,49 +78,70 @@ class LoginTicket(Ticket):
 
     """
     TICKET_PREFIX = u"LT"
+    TICKET_EXPIRE = getattr(settings, 'CAS_LOGIN_TICKET_EXPIRE', 20)
 
     objects = LoginTicketManager()
 
 class ServiceTicketManager(models.Manager):
-    def create_ticket(self, service, username='test'):
+    def create_ticket(self, service, tgt):
         # TODO encode service URL?
-        st = ServiceTicket(service=service, username=username)
-        st.consume()
+        # TODO clean service URL?
+        st = ServiceTicket(service=service)
+        st.granted_by_tgt = tgt
         st.save()
-        return st.ticket
+        return st
 
     def validate_ticket(self, service, ticket, renew):
         # TODO if renew is set, only validate if the service ticket was issued
-        # from the presentation of the user's primary credentials
-        service_ticket = ServiceTicket.objects.get(service=service, ticket=ticket)
-        if service_ticket:
-            return service_ticket.username
-        return None
+        #      from the presentation of the user's primary credentials
+        try:
+            st = self.get(service=service, ticket=ticket)
+        except self.model.DoesNotExist:
+            return False
+
+        # TODO this doesn't appear to be consuming service tickets
+        if st.is_consumed():
+            return False
+        st.consume()
+        st.save()
+
+        if st.is_expired() or not same_origin(st.service, service):
+            return False
+
+        return st
 
 class ServiceTicket(Ticket):
     TICKET_PREFIX = u"ST"
+    TICKET_EXPIRE = getattr(settings, 'CAS_SERVICE_TICKET_EXPIRE', 5)
 
     service = models.CharField(max_length=255)
-    username = models.CharField(max_length=255)
+    granted_by_tgt = models.ForeignKey('TicketGrantingTicket')
 
     objects = ServiceTicketManager()
 
 class TicketGrantingTicketManager(models.Manager):
-    def create_ticket(self, username):
-        tgt = TicketGrantingTicket(username=username)
+    def create_ticket(self, username, ip):
+        tgt = TicketGrantingTicket(username=username, client_ip=ip)
         tgt.consume()
         tgt.save()
-        return tgt.ticket
+        return tgt
 
     def validate_ticket(self, tgc):
-        tgt = TicketGrantingTicket.objects.get(ticket=tgc)
-        if tgt:
-            return True
-        return False
+        try:
+            tgt = TicketGrantingTicket.objects.get(ticket=tgc)
+        except self.model.DoesNotExist:
+            return False
+
+        if tgt.is_expired():
+            return False
+
+        return tgt
 
 class TicketGrantingTicket(Ticket):
     TICKET_PREFIX = u"TGC"
+    TICKET_EXPIRE = getattr(settings, 'CAS_LOGIN_EXPIRE', 60)
 
     username = models.CharField(max_length=255)
+    client_ip = models.CharField(max_length=64)
 
     objects = TicketGrantingTicketManager()

@@ -9,6 +9,7 @@ from mama_cas.models import ServiceTicket
 from mama_cas.models import TicketGrantingTicket
 from mama_cas.utils import add_query_params
 from mama_cas.utils import url_encode
+from mama_cas.utils import get_client_ip
 
 
 # 2.1 and 2.2
@@ -41,9 +42,10 @@ def login(request, success_url=None,
             service = form.cleaned_data.get('service')
             # TODO implement warn
             username = form.cleaned_data.get('username')
+            tgt = TicketGrantingTicket.objects.create_ticket(username, get_client_ip(request))
             url = add_query_params(reverse('cas_login'), {'service': service, 'primary': 'true'})
             response = HttpResponseRedirect(url)
-            response.set_signed_cookie('tgc', TicketGrantingTicket.objects.create_ticket(username))
+            response.set_signed_cookie('tgc', tgt)
             return response
     else:
         service = request.GET.get('service')
@@ -71,27 +73,32 @@ def login(request, success_url=None,
         #
         if gateway:
             tgc = request.get_signed_cookie('tgc', False)
-            if tgc and TicketGrantingTicket.objects.validate_ticket(tgc):
-                ticket = ServiceTicket.objects.create_ticket(service)
-                service = add_query_params(service, {'ticket': ticket})
-                return HttpResponseRedirect(service)
-            else:
-                return HttpResponseRedirect(service)
+            tgt = TicketGrantingTicket.objects.validate_ticket(tgc)
+            if tgt:
+                st = ServiceTicket.objects.create_ticket(service, tgt)
+                service = add_query_params(service, {'ticket': st.ticket})
+
+            return HttpResponseRedirect(service)
 
         #
         # 2.1 /login as credential requestor
         #
         if not renew:
             tgc = request.get_signed_cookie('tgc', False)
-            if tgc and TicketGrantingTicket.objects.validate_ticket(tgc):
+            tgt = TicketGrantingTicket.objects.validate_ticket(tgc)
+            if tgt:
                 if service:
-                    print service
-                    ticket = ServiceTicket.objects.create_ticket(service)
-                    service = add_query_params(service, {'ticket': ticket})
+                    st = ServiceTicket.objects.create_ticket(service, tgt)
+                    service = add_query_params(service, {'ticket': st.ticket})
                     return HttpResponseRedirect(service)
                 else:
                     # TODO display 'logged in' message
+                    print "logged in as %s" % tgt.username
                     pass
+            else:
+                # TODO display error message
+                print "invalid tgt provided"
+                pass
 
         form = form_class(initial={'service': service})
 
@@ -106,6 +113,10 @@ def logout(request,
     Destroy a client's single sign-on CAS session.
     """
     url = request.GET.get('url', None)
+    tgc = request.get_signed_cookie('tgc', False)
+    if tgc:
+        # TODO delete ticket granting ticket and related service tickets
+        pass
     response = render(request, template_name, {'url': url})
     response.delete_cookie('tgc')
     return response
@@ -115,15 +126,14 @@ def validate(request):
     """
     Check the validity of a service ticket. [CAS 1.0]
     """
-    if request.GET:
-        service = url_encode(request.GET.get('service'))
-        ticket = request.GET.get('ticket')
-        renew = request.GET.get('renew')
+    service = request.GET.get('service', None)
+    ticket = request.GET.get('ticket', None)
+    renew = request.GET.get('renew', None)
 
-        if service and ticket:
-            username = ServiceTicket.objects.validate_ticket(service, ticket, renew)
-            if username:
-                return HttpResponse(content="yes\n%s\n" % username, content_type='text/plain')
+    if service and ticket:
+        st = ServiceTicket.objects.validate_ticket(service, ticket, renew)
+        if st:
+            return HttpResponse(content="yes\n%s\n" % username, content_type='text/plain')
 
     return HttpResponse(content="no\n\n", content_type='text/plain')
 
