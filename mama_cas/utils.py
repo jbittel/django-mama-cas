@@ -1,32 +1,23 @@
 import urllib
 import urlparse
 
-from django.utils.http import urlquote
-
 
 def add_query_params(url, params):
-    for k in params.keys():
-        if params[k] == '':
-            del params[k]
+    """
+    Inject additional query parameters into an existing URL. If
+    existing parameters already exist with the same name, they
+    will be overwritten.
+
+    Return the modified URL as a string.
+    """
+    # If any of the additional parameters have empty values,
+    # ignore them
+    params = dict([(k, v) for k, v in params.items() if v])
 
     parts = list(urlparse.urlparse(url))
-    query = urlparse.parse_qs(parts[4])
+    query = dict(urlparse.parse_qsl(parts[4]))
     query.update(params)
     parts[4] = urllib.urlencode(query)
-    return urlparse.urlunparse(parts)
+    url = urlparse.urlunparse(parts)
 
-#def clean_query(query, params):
-#    for param in query.keys():
-#        if param in params:
-#            del query[param]
-#    return query
-
-#def get_remote_host(request):
-#    return request.META.get('HTTP_X_FORWARDED_FOR') or
-#           request.META.get('REMOTE_HOST') or
-#           request.META.get('REMOTE_ADDR')
-
-def url_encode(url):
-    if not url:
-        return None
-    return urlquote(url, safe='')
+    return url

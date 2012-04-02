@@ -1,7 +1,7 @@
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
-from django.utils.http import urlquote
+from django.utils.http import urlquote_plus
 from django.core.urlresolvers import reverse
 
 from mama_cas.forms import LoginForm
@@ -10,12 +10,10 @@ from mama_cas.models import TicketGrantingTicket
 from mama_cas.utils import add_query_params
 
 
-# 2.1 and 2.2
-def login(request, success_url=None,
-        form_class=LoginForm,
-        template_name='mama_cas/login.html'):
+def login(request, form_class=LoginForm,
+          template_name='mama_cas/login.html'):
     """
-    Credential requestor and acceptor.
+    (2.1 and 2.2) Credential requestor and acceptor.
 
     This URI operates in two modes: a credential requestor when a GET request
     is received, and a credential acceptor for POST requests.
@@ -25,25 +23,34 @@ def login(request, success_url=None,
     1. service - the identifier of the application the client is accessing. In
        most cases this will be a URL.
     2. renew - if set, a client must present credentials regardless of any
-       existing single sign-on session. If set, its value should be ``true``.
+       existing single sign-on session. If set, its value should be "true".
     3. gateway - if set, the client will not be prompted for credentials. If
-       set, its value should be ``true``.
+       set, its value should be "true".
 
-    The ``renew`` and ``gateway`` parameters are mutually exclusive; if both
-    are present, ``renew`` should take precedence.
+    As a credential acceptor, it takes three required parameters:
 
+    1. username - the username provided by the client
+    2. password - the password provided by the client
+    3. lt - a ``LoginTicket`` created as part of the login form
+
+    If authentication is successful, a ``TicketGrantingTicket`` is created and
+    the user is redirected back to the login page so that a corresponding
+    ``ServiceTicket`` may be created.
+
+    If authentication fails, the login form is redisplayed with an appropriate
+    error message displayed indicating the reason for failure.
     """
     if request.POST:
         form = form_class(request.POST.copy())
 
         if form.is_valid():
-            service = form.cleaned_data.get('service')
             # TODO implement warn
+            service = form.cleaned_data.get('service')
             username = form.cleaned_data.get('username')
             tgt = TicketGrantingTicket.objects.create_ticket(username, request.get_host())
             url = add_query_params(reverse('cas_login'), {'service': service})
             response = HttpResponseRedirect(url)
-            response.set_signed_cookie('tgc', tgt)
+            response.set_signed_cookie('tgc', tgt.ticket)
             return response
     else:
         service = request.GET.get('service')
@@ -55,35 +62,20 @@ def login(request, success_url=None,
         if gateway and not service:
             gateway = None
 
-        #
-        # 2.1.1 parameters - renew
-        #
-#        if renew:
-#            if service:
-#                form = form_class(initial={'service': service})
-#            else:
-#                form = form_class()
-#            return render(request, template_name,
-#                          {'form': form})
+        tgc = request.get_signed_cookie('tgc', False)
+        tgt = TicketGrantingTicket.objects.validate_ticket(tgc)
 
-        #
-        # 2.1.1 parameters - gateway
-        #
         if gateway:
-            tgc = request.get_signed_cookie('tgc', False)
-            tgt = TicketGrantingTicket.objects.validate_ticket(tgc)
             if tgt:
                 st = ServiceTicket.objects.create_ticket(service, tgt)
                 service = add_query_params(service, {'ticket': st.ticket})
-
             return HttpResponseRedirect(service)
 
-        #
-        # 2.1 /login as credential requestor
-        #
+        if renew:
+            if tgt:
+                TicketGrantingTicket.objects.consume_ticket(tgc)
+
         if not renew:
-            tgc = request.get_signed_cookie('tgc', False)
-            tgt = TicketGrantingTicket.objects.validate_ticket(tgc)
             if tgt:
                 if service:
                     st = ServiceTicket.objects.create_ticket(service, tgt)
@@ -98,17 +90,22 @@ def login(request, success_url=None,
                 print "invalid tgt provided"
                 pass
 
-        form = form_class(initial={'service': service})
+        form = form_class(initial={'service': urlquote_plus(service)})
 
     return render(request, template_name,
                   {'form': form})
 
-# 2.3
 def logout(request,
-        template_name='mama_cas/logout.html',
-        success_url=None, extra_content=None):
+           template_name='mama_cas/logout.html'):
     """
-    Destroy a client's single sign-on CAS session.
+    (2.3) End a client's single sign-on CAS session.
+
+    When this URI is accessed, any existing ``TicketGrantingTicket`` is
+    consumed, rendering it invalid for future authentication attempts and
+    requiring a new single sign-on session to be established.
+
+    If a URL is specified, it will be displayed on the page as a suggested
+    link to follow.
     """
     url = request.GET.get('url', None)
     tgc = request.get_signed_cookie('tgc', False)
@@ -116,12 +113,21 @@ def logout(request,
         TicketGrantingTicket.objects.consume_ticket(tgc)
     response = render(request, template_name, {'url': url})
     response.delete_cookie('tgc')
+
     return response
 
-# 2.4
 def validate(request):
     """
-    Check the validity of a service ticket. [CAS 1.0]
+    (2.4) Check the validity of a service ticket. [CAS 1.0]
+
+    When both ``service`` and ``ticket`` are provided, this URI responds with
+    a ``ServiceTicket`` validation success or failure. Whether or not the
+    validation succeeds, the ``ServiceTicket`` is consumed, rendering it
+    invalid for future authentication attempts.
+
+    If ``renew`` is specified, validation will only succeed if the
+    ``ServiceTicket`` was issued from the presentation of the user's primary
+    credentials (i.e. not from an existing single sign-on session).
     """
     service = request.GET.get('service', None)
     ticket = request.GET.get('ticket', None)
@@ -136,28 +142,22 @@ def validate(request):
     return HttpResponse(content="no\n\n",
                         content_type='text/plain')
 
-# 2.5
 def service_validate(request):
     """
-    Check the validity of a service ticket. [CAS 2.0]
-
+    (2.5) Check the validity of a service ticket. [CAS 2.0]
     """
     return HttpResponse(content='Not Implemented', content_type='text/plain', status=501)
 
-# 2.6
 def proxy_validate(request):
     """
-    Check the validity of a service ticket and additionally
+    (2.6) Check the validity of a service ticket, and additionally
     validate proxy tickets. [CAS 2.0]
-
     """
     return HttpResponse(content='Not Implemented', content_type='text/plain', status=501)
 
-# 2.7
 def proxy(request):
     """
-    Provide proxy tickets to services that have acquired proxy-
+    (2.7) Provide proxy tickets to services that have acquired proxy-
     granting tickets. [CAS 2.0]
-
     """
     return HttpResponse(content='Not Implemented', content_type='text/plain', status=501)

@@ -1,5 +1,5 @@
 from django import forms
-from django.utils.http import urlunquote
+from django.utils.http import urlunquote_plus
 
 from mama_cas.models import LoginTicket
 
@@ -54,7 +54,7 @@ class LoginForm(forms.Form):
 
     def clean_service(self):
         service = self.cleaned_data.get('service')
-        return urlunquote(service)
+        return urlunquote_plus(service)
 
     def clean(self):
         # TODO authenticate username/password
