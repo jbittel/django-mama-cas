@@ -3,8 +3,8 @@ URLconf for CAS server URIs as described in the CAS protocol.
 """
 
 
-from django.conf.urls.defaults import patterns
-from django.conf.urls.defaults import url
+from django.conf.urls import patterns
+from django.conf.urls import url
 from django.views.decorators.cache import never_cache
 
 from mama_cas.views import login
