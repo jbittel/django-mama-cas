@@ -65,6 +65,11 @@ class LoginTicketManager(models.Manager):
         lt.save()
         return lt
 
+    def delete_invalid_tickets(self):
+        for ticket in self.all():
+            if ticket.is_consumed() or ticket.is_expired():
+                ticket.delete()
+
 class LoginTicket(Ticket):
     """
     A string that is saved to the DB and passed to /login as a credential
@@ -95,11 +100,10 @@ class ServiceTicketManager(models.Manager):
         # TODO if renew is set, only validate if the service ticket was issued
         #      from the presentation of the user's primary credentials
         try:
-            st = self.get(service=service, ticket=ticket)
+            st = self.select_related().get(service=service, ticket=ticket)
         except self.model.DoesNotExist:
             return False
 
-        # TODO this doesn't appear to be consuming service tickets
         if st.is_consumed():
             return False
         st.consume()
@@ -120,9 +124,8 @@ class ServiceTicket(Ticket):
     objects = ServiceTicketManager()
 
 class TicketGrantingTicketManager(models.Manager):
-    def create_ticket(self, username, ip):
-        tgt = TicketGrantingTicket(username=username, client_ip=ip)
-        tgt.consume()
+    def create_ticket(self, username, host):
+        tgt = TicketGrantingTicket(username=username, host=host)
         tgt.save()
         return tgt
 
@@ -132,16 +135,32 @@ class TicketGrantingTicketManager(models.Manager):
         except self.model.DoesNotExist:
             return False
 
-        if tgt.is_expired():
+        if tgt.is_consumed() or tgt.is_expired():
             return False
 
         return tgt
 
+    def consume_ticket(self, tgc):
+        try:
+            tgt = TicketGrantingTicket.objects.get(ticket=tgc)
+        except self.model.DoesNotExist:
+            return False
+
+        tgt.consume()
+        tgt.save()
+
+        return tgt
+
+    def delete_invalid_tickets(self):
+        for ticket in self.all():
+            if ticket.is_consumed() or ticket.is_expired():
+                ticket.delete()
+
 class TicketGrantingTicket(Ticket):
     TICKET_PREFIX = u"TGC"
-    TICKET_EXPIRE = getattr(settings, 'CAS_LOGIN_EXPIRE', 60)
+    TICKET_EXPIRE = getattr(settings, 'CAS_LOGIN_EXPIRE', 1440)
 
     username = models.CharField(max_length=255)
-    client_ip = models.CharField(max_length=64)
+    host = models.CharField(max_length=64)
 
     objects = TicketGrantingTicketManager()

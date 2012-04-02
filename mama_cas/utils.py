@@ -21,13 +21,10 @@ def add_query_params(url, params):
 #            del query[param]
 #    return query
 
-def get_client_ip(request):
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
-    else:
-        ip = request.META.get('REMOTE_ADDR')
-    return ip
+#def get_remote_host(request):
+#    return request.META.get('HTTP_X_FORWARDED_FOR') or
+#           request.META.get('REMOTE_HOST') or
+#           request.META.get('REMOTE_ADDR')
 
 def url_encode(url):
     if not url:

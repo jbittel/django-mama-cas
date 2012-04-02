@@ -8,8 +8,6 @@ from mama_cas.forms import LoginForm
 from mama_cas.models import ServiceTicket
 from mama_cas.models import TicketGrantingTicket
 from mama_cas.utils import add_query_params
-from mama_cas.utils import url_encode
-from mama_cas.utils import get_client_ip
 
 
 # 2.1 and 2.2
@@ -42,8 +40,8 @@ def login(request, success_url=None,
             service = form.cleaned_data.get('service')
             # TODO implement warn
             username = form.cleaned_data.get('username')
-            tgt = TicketGrantingTicket.objects.create_ticket(username, get_client_ip(request))
-            url = add_query_params(reverse('cas_login'), {'service': service, 'primary': 'true'})
+            tgt = TicketGrantingTicket.objects.create_ticket(username, request.get_host())
+            url = add_query_params(reverse('cas_login'), {'service': service})
             response = HttpResponseRedirect(url)
             response.set_signed_cookie('tgc', tgt)
             return response
@@ -115,8 +113,7 @@ def logout(request,
     url = request.GET.get('url', None)
     tgc = request.get_signed_cookie('tgc', False)
     if tgc:
-        # TODO delete ticket granting ticket and related service tickets
-        pass
+        TicketGrantingTicket.objects.consume_ticket(tgc)
     response = render(request, template_name, {'url': url})
     response.delete_cookie('tgc')
     return response
@@ -133,9 +130,11 @@ def validate(request):
     if service and ticket:
         st = ServiceTicket.objects.validate_ticket(service, ticket, renew)
         if st:
-            return HttpResponse(content="yes\n%s\n" % username, content_type='text/plain')
+            return HttpResponse(content="yes\n%s\n" % st.granted_by_tgt.username,
+                                content_type='text/plain')
 
-    return HttpResponse(content="no\n\n", content_type='text/plain')
+    return HttpResponse(content="no\n\n",
+                        content_type='text/plain')
 
 # 2.5
 def service_validate(request):
