@@ -74,21 +74,15 @@ def login(request, form_class=LoginForm,
         if renew:
             if tgt:
                 TicketGrantingTicket.objects.consume_ticket(tgc)
-
-        if not renew:
+        else:
             if tgt:
                 if service:
                     st = ServiceTicket.objects.create_ticket(service, tgt)
                     service = add_query_params(service, {'ticket': st.ticket})
                     return HttpResponseRedirect(service)
                 else:
-                    # TODO display 'logged in' message
+                    # TODO display 'logged in' message on template
                     print "logged in as %s" % tgt.username
-                    pass
-            else:
-                # TODO display error message
-                print "invalid tgt provided"
-                pass
 
         form = form_class(initial={'service': urlquote_plus(service)})
 

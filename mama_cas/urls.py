@@ -2,7 +2,6 @@
 URLconf for CAS server URIs as described in the CAS protocol.
 """
 
-
 from django.conf.urls import patterns
 from django.conf.urls import url
 from django.views.decorators.cache import never_cache
