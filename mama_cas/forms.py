@@ -14,14 +14,7 @@ logger = logging.getLogger(__name__)
 class LoginForm(forms.Form):
     username = forms.CharField()
     password = forms.CharField(widget=forms.PasswordInput)
-    lt = forms.CharField(widget=forms.HiddenInput)
     service = forms.CharField(widget=forms.HiddenInput, required=False)
-
-    def __init__(self, *args, **kwargs):
-        super(LoginForm, self).__init__(*args, **kwargs)
-        # Don't create a spurious LoginTicket if the form is bound
-        if not self.is_bound:
-            self.fields['lt'].initial = LoginTicket.objects.create_ticket().ticket
 
     def clean_username(self):
         """
@@ -29,25 +22,6 @@ class LoginForm(forms.Form):
         """
         username = self.cleaned_data.get('username')
         return lower(username)
-
-    def clean_lt(self):
-        """
-        Verify the provided login ticket. As the validation process will
-        consume the login ticket, generate a new login ticket and store
-        it in the form.
-
-        If we need to redisplay the form for any reason, this prepares
-        for the next authentication attempt. We can modify data because
-        we're using a copy of request.POST.
-        """
-        lt = self.cleaned_data.get('lt')
-
-        if not LoginTicket.objects.validate_ticket(lt):
-            raise forms.ValidationError("Invalid login ticket provided")
-
-        self.data['lt'] = LoginTicket.objects.create_ticket().ticket
-
-        return lt
 
     def clean_service(self):
         """
@@ -70,6 +44,34 @@ class LoginForm(forms.Form):
                 raise forms.ValidationError("Could not authenticate user")
 
         return self.cleaned_data
+
+class LoginFormLT(LoginForm):
+    lt = forms.CharField(widget=forms.HiddenInput)
+
+    def __init__(self, *args, **kwargs):
+        super(LoginForm, self).__init__(*args, **kwargs)
+        # Don't create a spurious LoginTicket if the form is bound
+        if not self.is_bound:
+            self.fields['lt'].initial = LoginTicket.objects.create_ticket().ticket
+
+    def clean_lt(self):
+        """
+        Verify the provided login ticket. As the validation process will
+        consume the login ticket, generate a new login ticket and store
+        it in the form.
+
+        If we need to redisplay the form for any reason, this prepares
+        for the next authentication attempt. We can modify data because
+        we're using a copy of request.POST.
+        """
+        lt = self.cleaned_data.get('lt')
+
+        if not LoginTicket.objects.validate_ticket(lt):
+            raise forms.ValidationError("Invalid login ticket provided")
+
+        self.data['lt'] = LoginTicket.objects.create_ticket().ticket
+
+        return lt
 
 class LoginFormWarn(LoginForm):
     warn = forms.BooleanField(required=False)
