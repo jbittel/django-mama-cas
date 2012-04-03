@@ -193,7 +193,7 @@ class ServiceTicketManager(models.Manager):
             logger.info("Cannot validate service ticket: ticket is expired or service does not match")
             return False
 
-        logger.info("Validated service ticket %s" % st.ticket)
+        logger.info("Validated service ticket %s for service %s" % (st.ticket, service))
         return st
 
 class ServiceTicket(Ticket):

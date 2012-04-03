@@ -5,6 +5,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.utils.http import urlquote_plus
 from django.core.urlresolvers import reverse
+from django.contrib import messages
 
 from mama_cas.forms import LoginForm
 from mama_cas.models import ServiceTicket
@@ -13,6 +14,7 @@ from mama_cas.utils import add_query_params
 
 
 logger = logging.getLogger(__name__)
+
 
 def login(request, form_class=LoginForm,
           template_name='mama_cas/login.html'):
@@ -61,23 +63,17 @@ def login(request, form_class=LoginForm,
         renew = request.GET.get('renew')
         gateway = request.GET.get('gateway')
 
-        if renew and gateway:
-            gateway = None
-        if gateway and not service:
-            gateway = None
-
         tgc = request.get_signed_cookie('tgc', False)
         tgt = TicketGrantingTicket.objects.validate_ticket(tgc)
-
-        if gateway:
-            if tgt:
-                st = ServiceTicket.objects.create_ticket(service, tgt)
-                service = add_query_params(service, {'ticket': st.ticket})
-            return HttpResponseRedirect(service)
 
         if renew:
             if tgt:
                 TicketGrantingTicket.objects.consume_ticket(tgc)
+        elif gateway and service:
+            if tgt:
+                st = ServiceTicket.objects.create_ticket(service, tgt)
+                service = add_query_params(service, {'ticket': st.ticket})
+            return HttpResponseRedirect(service)
         else:
             if tgt:
                 if service:
@@ -85,7 +81,7 @@ def login(request, form_class=LoginForm,
                     service = add_query_params(service, {'ticket': st.ticket})
                     return HttpResponseRedirect(service)
                 else:
-                    # TODO display 'logged in' message on template
+                    messages.success(request, "You are logged in as %s" % tgt.username)
                     logger.info("User logged in as %s using ticket %s" % (tgt.username, tgt.ticket))
             else:
                 logger.debug("No ticket granting ticket provided")
@@ -139,11 +135,9 @@ def validate(request):
     if service and ticket:
         st = ServiceTicket.objects.validate_ticket(service, ticket, renew)
         if st:
-            logger.info("Valid request for service ticket %s by service %s" % (ticket, service))
             return HttpResponse(content="yes\n%s\n" % st.granted_by_tgt.username,
                                 content_type='text/plain')
 
-    logger.info("Invalid request for service ticket %s by service %s" % (ticket, service))
     return HttpResponse(content="no\n\n",
                         content_type='text/plain')
 
