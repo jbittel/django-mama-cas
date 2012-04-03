@@ -1,7 +1,14 @@
+from string import lower
+import logging
+
 from django import forms
 from django.utils.http import urlunquote_plus
+from django.contrib.auth import authenticate
 
 from mama_cas.models import LoginTicket
+
+
+logger = logging.getLogger(__name__)
 
 
 class LoginForm(forms.Form):
@@ -12,50 +19,57 @@ class LoginForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(LoginForm, self).__init__(*args, **kwargs)
+        # Don't create a spurious LoginTicket if the form is bound
         if not self.is_bound:
-            self.fields['lt'].initial = LoginTicket.objects.create_ticket()
+            self.fields['lt'].initial = LoginTicket.objects.create_ticket().ticket
+
+    def clean_username(self):
+        """
+        Lowercase the username for consistency.
+        """
+        username = self.cleaned_data.get('username')
+        return lower(username)
 
     def clean_lt(self):
         """
-        Verify the specified login ticket exists and check
-        that it is not consumed.
+        Verify the provided login ticket. As the validation process will
+        consume the login ticket, generate a new login ticket and store
+        it in the form.
+
+        If we need to redisplay the form for any reason, this prepares
+        for the next authentication attempt. We can modify data because
+        we're using a copy of request.POST.
         """
-        lt = self.cleaned_data.get('lt', None)
+        lt = self.cleaned_data.get('lt')
 
-        if not lt:
-            raise forms.ValidationError("No login ticket provided")
-
-        try:
-            login_ticket = LoginTicket.objects.get(ticket=lt)
-        except LoginTicket.DoesNotExist:
+        if not LoginTicket.objects.validate_ticket(lt):
             raise forms.ValidationError("Invalid login ticket provided")
-        else:
-            if login_ticket.is_consumed():
-                raise forms.ValidationError("Consumed login ticket provided")
-            if login_ticket.is_expired():
-                raise forms.ValidationError("Expired login ticket provided")
 
-        """
-        Whether or not the authentication is successful, consume the
-        ``LoginTicket`` so it cannot be used again.
-        """
-        login_ticket.consume()
-        login_ticket.save()
-
-        """
-        Generate a new login ticket and store it in the form. If we need
-        to redisplay the form for any reason, this prepares for the next
-        authentication attempt. We can modify data because we're using a
-        copy of request.POST.
-        """
-        self.data['lt'] = LoginTicket.objects.create_ticket()
+        self.data['lt'] = LoginTicket.objects.create_ticket().ticket
 
         return lt
 
     def clean_service(self):
+        """
+        Remove any HTML percent encoding in the service URL.
+        """
         service = self.cleaned_data.get('service')
         return urlunquote_plus(service)
 
     def clean(self):
-        # TODO authenticate username/password
+        """
+        Pass the provided username and password to the currently
+        configured authentication backends.
+        """
+        username = self.cleaned_data.get('username')
+        password = self.cleaned_data.get('password')
+
+        if username and password:
+            if not authenticate(username=username, password=password):
+                logger.warn("Error authenticating user %s" % username)
+                raise forms.ValidationError("Could not authenticate user")
+
         return self.cleaned_data
+
+class LoginFormWarn(LoginForm):
+    warn = forms.BooleanField(required=False)

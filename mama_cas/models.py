@@ -1,11 +1,19 @@
 from datetime import timedelta
 import time
+import logging
+import re
 
 from django.db import models
 from django.conf import settings
 from django.utils.timezone import now
 from django.utils.crypto import get_random_string
 from django.utils.http import same_origin
+
+
+logger = logging.getLogger(__name__)
+
+TICKET_RAND_LEN = getattr(settings, 'CAS_TICKET_RAND_LEN', 32)
+TICKET_RE = re.compile("^[A-Z]{2,3}-[0-9]{10,}-[a-zA-Z0-9]{%d}$" % TICKET_RAND_LEN)
 
 
 class Ticket(models.Model):
@@ -39,7 +47,7 @@ class Ticket(models.Model):
         to ensure a ``Ticket`` is not guessable. An optional prefix string
         can be provided that is prepended to the ticket string.
         """
-        self.ticket = "%s-%d-%s" % (prefix, int(time.time()), get_random_string(length=32))
+        self.ticket = "%s-%d-%s" % (prefix, int(time.time()), get_random_string(length=TICKET_RAND_LEN))
 
     def consume(self):
         """
@@ -75,6 +83,41 @@ class LoginTicketManager(models.Manager):
         """
         lt = LoginTicket()
         lt.save()
+        logger.debug("Created login ticket %s" % lt.ticket)
+        return lt
+
+    def validate_ticket(self, ticket):
+        """
+        Validate a ``LoginTicket`` by checking both its consumed and
+        expired states, returning the ``LoginTicket``.
+
+        If the ``LoginTicket`` is not consumed, consume it as part of
+        the validation process.
+
+        If the ``LoginTicket`` does not exist or is invalid, return
+        ``False``.
+        """
+        if ticket and not TICKET_RE.match(ticket):
+            logger.info("Cannot validate login ticket: invalid ticket string provided")
+            return False
+
+        try:
+            lt = self.get(ticket=ticket)
+        except self.model.DoesNotExist:
+            logger.info("Cannot validate login ticket: ticket does not exist")
+            return False
+
+        if lt.is_consumed():
+            logger.info("Cannot validate login ticket: ticket is consumed")
+            return False
+        lt.consume()
+        lt.save()
+
+        if lt.is_expired():
+            logger.info("Cannot validate login ticket: ticket is expired")
+            return False
+
+        logger.info("Validated login ticket %s" % lt.ticket)
         return lt
 
     def delete_invalid_tickets(self):
@@ -113,6 +156,7 @@ class ServiceTicketManager(models.Manager):
         st = ServiceTicket(service=service)
         st.granted_by_tgt = tgt
         st.save()
+        logger.debug("Created service ticket %s from ticket granting ticket %s" % (st.ticket, tgt.ticket))
         return st
 
     def validate_ticket(self, service, ticket, renew):
@@ -128,19 +172,28 @@ class ServiceTicketManager(models.Manager):
         """
         # TODO if renew is set, only validate if the service ticket was issued
         #      from the presentation of the user's primary credentials
+
+        if ticket and not TICKET_RE.match(ticket):
+            logger.info("Cannot validate service ticket: invalid ticket string provided")
+            return False
+
         try:
             st = self.select_related().get(service=service, ticket=ticket)
         except self.model.DoesNotExist:
+            logger.info("Cannot validate service ticket: ticket does not exist")
             return False
 
         if st.is_consumed():
+            logger.info("Cannot validate service ticket: ticket is consumed")
             return False
         st.consume()
         st.save()
 
         if st.is_expired() or not same_origin(st.service, service):
+            logger.info("Cannot validate service ticket: ticket is expired or service does not match")
             return False
 
+        logger.info("Validated service ticket %s" % st.ticket)
         return st
 
 class ServiceTicket(Ticket):
@@ -169,6 +222,7 @@ class TicketGrantingTicketManager(models.Manager):
         """
         tgt = TicketGrantingTicket(username=username, host=host)
         tgt.save()
+        logger.debug("Created ticket granting ticket %s" % tgt.ticket)
         return tgt
 
     def validate_ticket(self, tgc):
@@ -179,17 +233,21 @@ class TicketGrantingTicketManager(models.Manager):
         If the provided ticket granting cookie string is invalid,
         return ``False``.
         """
-        if not tgc:
+        if tgc and not TICKET_RE.match(tgc):
+            logger.info("Cannot validate ticket granting ticket: invalid ticket string provided")
             return False
 
         try:
-            tgt = TicketGrantingTicket.objects.get(ticket=tgc)
+            tgt = self.get(ticket=tgc)
         except self.model.DoesNotExist:
+            logger.info("Cannot validate ticket granting ticket: ticket does not exist")
             return False
 
         if tgt.is_consumed() or tgt.is_expired():
+            logger.info("Cannot validate ticket granting ticket: ticket is consumed or expired")
             return False
 
+        logger.info("Validated ticket granting ticket %s" % tgt.ticket)
         return tgt
 
     def consume_ticket(self, tgc):
@@ -200,17 +258,20 @@ class TicketGrantingTicketManager(models.Manager):
         If the provided ticket granting cookie string is invalid,
         return ``False``.
         """
-        if not tgc:
+        if tgc and not TICKET_RE.match(tgc):
+            logger.info("Cannot consume ticket granting ticket: invalid ticket string provided")
             return False
 
         try:
-            tgt = TicketGrantingTicket.objects.get(ticket=tgc)
+            tgt = self.get(ticket=tgc)
         except self.model.DoesNotExist:
+            logger.info("Cannot consume ticket granting ticket: ticket does not exist")
             return False
 
         tgt.consume()
         tgt.save()
 
+        logger.info("Consumed ticket granting ticket %s" % tgt.ticket)
         return tgt
 
     def delete_invalid_tickets(self):

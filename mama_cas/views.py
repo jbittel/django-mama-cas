@@ -1,3 +1,5 @@
+import logging
+
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
@@ -9,6 +11,8 @@ from mama_cas.models import ServiceTicket
 from mama_cas.models import TicketGrantingTicket
 from mama_cas.utils import add_query_params
 
+
+logger = logging.getLogger(__name__)
 
 def login(request, form_class=LoginForm,
           template_name='mama_cas/login.html'):
@@ -82,9 +86,14 @@ def login(request, form_class=LoginForm,
                     return HttpResponseRedirect(service)
                 else:
                     # TODO display 'logged in' message on template
-                    print "logged in as %s" % tgt.username
+                    logger.info("User logged in as %s using ticket %s" % (tgt.username, tgt.ticket))
+            else:
+                logger.debug("No ticket granting ticket provided")
 
-        form = form_class(initial={'service': urlquote_plus(service)})
+        if service:
+            form = form_class(initial={'service': urlquote_plus(service)})
+        else:
+            form = form_class()
 
     return render(request, template_name,
                   {'form': form})
@@ -130,9 +139,11 @@ def validate(request):
     if service and ticket:
         st = ServiceTicket.objects.validate_ticket(service, ticket, renew)
         if st:
+            logger.info("Valid request for service ticket %s by service %s" % (ticket, service))
             return HttpResponse(content="yes\n%s\n" % st.granted_by_tgt.username,
                                 content_type='text/plain')
 
+    logger.info("Invalid request for service ticket %s by service %s" % (ticket, service))
     return HttpResponse(content="no\n\n",
                         content_type='text/plain')
 
