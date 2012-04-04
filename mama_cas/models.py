@@ -10,7 +10,7 @@ from django.utils.crypto import get_random_string
 from django.utils.http import same_origin
 
 
-logger = logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
 
 TICKET_RAND_LEN = getattr(settings, 'CAS_TICKET_RAND_LEN', 32)
 TICKET_RE = re.compile("^[A-Z]{2,3}-[0-9]{10,}-[a-zA-Z0-9]{%d}$" % TICKET_RAND_LEN)
@@ -34,7 +34,8 @@ class Ticket(models.Model):
 
     def __init__(self, *args, **kwargs):
         super(Ticket, self).__init__(*args, **kwargs)
-        self.generate(prefix=self.TICKET_PREFIX)
+        if not self.ticket:
+            self.generate(prefix=self.TICKET_PREFIX)
 
     def save(self, *args, **kwargs):
         if not self.id:
@@ -56,6 +57,7 @@ class Ticket(models.Model):
         any future authentication attempts.
         """
         self.consumed = now()
+        self.save()
 
     def is_consumed(self):
         """
@@ -78,12 +80,11 @@ class Ticket(models.Model):
 class LoginTicketManager(models.Manager):
     def create_ticket(self):
         """
-        Create a new ``LoginTicket`` and save the ``LoginTicket`` to the database.
-        Return the newly created ``LoginTicket``.
+        Create a new ``LoginTicket``, returning the newly created
+        ``LoginTicket``.
         """
-        lt = LoginTicket()
-        lt.save()
-        logger.debug("Created login ticket '%s'" % lt.ticket)
+        lt = self.create()
+        LOG.debug("Created login ticket '%s'" % lt.ticket)
         return lt
 
     def validate_ticket(self, ticket):
@@ -97,27 +98,30 @@ class LoginTicketManager(models.Manager):
         If the ``LoginTicket`` does not exist or is invalid, return
         ``False``.
         """
-        if ticket and not TICKET_RE.match(ticket):
-            logger.warn("Invalid login ticket string provided: %s" % ticket)
+        if not ticket:
+            LOG.warn("No login ticket string provided")
+            return False
+
+        if not TICKET_RE.match(ticket):
+            LOG.warn("Invalid login ticket string provided: %s" % ticket)
             return False
 
         try:
             lt = self.get(ticket=ticket)
         except self.model.DoesNotExist:
-            logger.warn("Login ticket '%s' does not exist" % ticket)
+            LOG.warn("Login ticket '%s' does not exist" % ticket)
             return False
 
         if lt.is_consumed():
-            logger.warn("Login ticket '%s' has already been used" % ticket)
+            LOG.warn("Login ticket '%s' has already been used" % ticket)
             return False
         lt.consume()
-        lt.save()
 
         if lt.is_expired():
-            logger.warn("Login ticket '%s' has expired" % ticket)
+            LOG.warn("Login ticket '%s' has expired" % ticket)
             return False
 
-        logger.info("Validated login ticket '%s'" % ticket)
+        LOG.info("Validated login ticket '%s'" % ticket)
         return lt
 
     def delete_invalid_tickets(self):
@@ -151,15 +155,13 @@ class ServiceTicketManager(models.Manager):
         """
         Create a new ``ServiceTicket`` and create a relationship to the
         ``TicketGrantingTicket`` that authorized this ``ServiceTicket``.
-        Returns the new ``ServiceTicket``.
+        Return the new ``ServiceTicket``.
         """
-        st = ServiceTicket(service=service)
-        st.granted_by_tgt = tgt
-        st.save()
-        logger.debug("Created service ticket '%s' from ticket granting ticket '%s'" % (st.ticket, tgt.ticket))
+        st = self.create(service=service, granted_by_tgt=tgt)
+        LOG.debug("Created ticket '%s' from ticket '%s' for service '%s'" % (st.ticket, tgt.ticket, service))
         return st
 
-    def validate_ticket(self, service, ticket, renew):
+    def validate_ticket(self, ticket, service, renew):
         """
         Validate a ``ServiceTicket`` by checking both its consumed and
         expired states, returning the ``ServiceTicket``.
@@ -173,31 +175,40 @@ class ServiceTicketManager(models.Manager):
         # TODO if renew is set, only validate if the service ticket was issued
         #      from the presentation of the user's primary credentials
 
-        if ticket and not TICKET_RE.match(ticket):
-            logger.warn("Invalid service ticket string provided: %s" % ticket)
+        if not ticket:
+            LOG.warn("No service ticket string provided")
+            return False
+
+        if not service:
+            LOG.warn("No service provided")
+            return False
+
+        if not TICKET_RE.match(ticket):
+            LOG.warn("Invalid service ticket string provided: %s" % ticket)
             return False
 
         try:
+            # Perform a select_related() lookup here so we have access to the
+            # TGT fields in the view without incurring additional DB lookups
             st = self.select_related().get(service=service, ticket=ticket)
         except self.model.DoesNotExist:
-            logger.warn("Service ticket '%s' does not exist" % ticket)
+            LOG.warn("Service ticket '%s' does not exist" % ticket)
             return False
 
         if st.is_consumed():
-            logger.warn("Service ticket '%s' has already been used" % ticket)
+            LOG.warn("Service ticket '%s' has already been used" % ticket)
             return False
         st.consume()
-        st.save()
 
         if st.is_expired():
-            logger.warn("Service ticket '%s' is expired" % ticket)
+            LOG.warn("Service ticket '%s' is expired" % ticket)
             return False
 
-        if same_origin(st.service, service):
-            logger.warn("Service ticket '%s' for service '%s' does not match the requested service '%s'" % (ticket, st.service, service))
+        if not same_origin(st.service, service):
+            LOG.warn("Service ticket '%s' for service '%s' is invalid for service '%s'" % (ticket, st.service, service))
             return False
 
-        logger.info("Validated service ticket '%s' for service '%s'" % (ticket, service))
+        LOG.info("Validated service ticket '%s' for service '%s'" % (ticket, service))
         return st
 
 class ServiceTicket(Ticket):
@@ -219,14 +230,13 @@ class ServiceTicket(Ticket):
     objects = ServiceTicketManager()
 
 class TicketGrantingTicketManager(models.Manager):
-    def create_ticket(self, username, host):
+    def create_ticket(self, username, ip):
         """
         Create a new ``TicketGrantingTicket``, returning the new
         ``TicketGrantingTicket.
         """
-        tgt = TicketGrantingTicket(username=username, host=host)
-        tgt.save()
-        logger.debug("Created ticket granting ticket %s" % tgt.ticket)
+        tgt = self.create(username=username, client_ip=ip)
+        LOG.debug("Created ticket granting ticket %s" % tgt.ticket)
         return tgt
 
     def validate_ticket(self, tgc):
@@ -237,49 +247,57 @@ class TicketGrantingTicketManager(models.Manager):
         If the provided ticket granting cookie string is invalid,
         return ``False``.
         """
-        if tgc and not TICKET_RE.match(tgc):
-            logger.warn("Invalid ticket granting ticket string provided: %s" % tgc)
+        if not tgc:
+            LOG.warn("No ticket granting cookie string provided")
+            return False
+
+        if not TICKET_RE.match(tgc):
+            LOG.warn("Invalid ticket granting cookie string provided: %s" % tgc)
             return False
 
         try:
             tgt = self.get(ticket=tgc)
         except self.model.DoesNotExist:
-            logger.warn("Ticket granting ticket '%s' does not exist" % tgc)
+            LOG.warn("Ticket granting ticket '%s' does not exist" % tgc)
             return False
 
         if tgt.is_consumed():
-            logger.warn("Ticket granting ticket '%s' has been used up" % tgc)
+            LOG.warn("Ticket granting ticket '%s' has been used up" % tgc)
             return False
 
         if tgt.is_expired():
-            logger.warn("Ticket granting ticket '%s' is expired" % tgc)
+            LOG.warn("Ticket granting ticket '%s' is expired" % tgc)
             return False
 
-        logger.info("Validated ticket granting ticket '%s'" % tgc)
+        LOG.info("Validated ticket granting ticket '%s'" % tgc)
         return tgt
 
     def consume_ticket(self, tgc):
         """
-        Consume a ``TicketGrantingTicket`` to render it invalid for
-        future authentication attempts, returning the ``TicketGrantingTicket``.
+        Given a ticket-granting cookie string, consume the matching
+        ``TicketGrantingTicket`` to render it invalid for future
+        authentication attempts, returning the ``TicketGrantingTicket``.
 
         If the provided ticket granting cookie string is invalid,
         return ``False``.
         """
-        if tgc and not TICKET_RE.match(tgc):
-            logger.warn("Invalid ticket granting ticket string provided: %s" % tgc)
+        if not tgc:
+            LOG.warn("No ticket granting cookie string provided")
+            return False
+
+        if not TICKET_RE.match(tgc):
+            LOG.warn("Invalid ticket granting ticket string provided: %s" % tgc)
             return False
 
         try:
             tgt = self.get(ticket=tgc)
         except self.model.DoesNotExist:
-            logger.warn("Ticket granting ticket '%s' does not exist" % tgc)
+            LOG.warn("Ticket granting ticket '%s' does not exist" % tgc)
             return False
 
         tgt.consume()
-        tgt.save()
 
-        logger.info("Consumed ticket granting ticket '%s'" % tgt.ticket)
+        LOG.info("Consumed ticket granting ticket '%s'" % tgt.ticket)
         return tgt
 
     def delete_invalid_tickets(self):
@@ -295,9 +313,9 @@ class TicketGrantingTicketManager(models.Manager):
 class TicketGrantingTicket(Ticket):
     """
     (2.1 and 3.6) A ``TicketGrantingTicket`` is created when valid credentials
-    are provided to /login as a credential acceptor. A corresponding cookie
-    is created on the client's machine and can be presented in lieu of primary
-    credentials to obtain ``ServiceTicket``s.
+    are provided to /login as a credential acceptor. A corresponding
+    ticket-granting cookie is created on the client's machine and can be
+    presented in lieu of primary credentials to obtain ``ServiceTicket``s.
 
     You shouldn't need to interact directly with this model. Instead,
     ``TicketGrantingTicketManager`` provides methods for creating, validating
@@ -307,6 +325,7 @@ class TicketGrantingTicket(Ticket):
     TICKET_EXPIRE = getattr(settings, 'CAS_LOGIN_EXPIRE', 1440)
 
     username = models.CharField(max_length=255)
-    host = models.CharField(max_length=64)
+    client_ip = models.CharField(max_length=64)
+    warn = models.BooleanField()
 
     objects = TicketGrantingTicketManager()

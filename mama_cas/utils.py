@@ -21,3 +21,8 @@ def add_query_params(url, params):
     url = urlparse.urlunparse(parts)
 
     return url
+
+def get_client_ip(request):
+    return request.META.get('HTTP_X_FORWARDED_FOR') or \
+           request.META.get('REMOTE_HOST') or \
+           request.META.get('REMOTE_ADDR')

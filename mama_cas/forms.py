@@ -8,7 +8,7 @@ from django.contrib.auth import authenticate
 from mama_cas.models import LoginTicket
 
 
-logger = logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
 
 
 class LoginForm(forms.Form):
@@ -40,7 +40,7 @@ class LoginForm(forms.Form):
 
         if username and password:
             if not authenticate(username=username, password=password):
-                logger.warn("Error authenticating user %s" % username)
+                LOG.warn("Error authenticating user %s" % username)
                 raise forms.ValidationError("Could not authenticate user")
 
         return self.cleaned_data

@@ -11,9 +11,10 @@ from mama_cas.forms import LoginForm
 from mama_cas.models import ServiceTicket
 from mama_cas.models import TicketGrantingTicket
 from mama_cas.utils import add_query_params
+from mama_cas.utils import get_client_ip
 
 
-logger = logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
 
 
 def login(request, form_class=LoginForm,
@@ -53,7 +54,7 @@ def login(request, form_class=LoginForm,
             # TODO implement warn
             service = form.cleaned_data.get('service')
             username = form.cleaned_data.get('username')
-            tgt = TicketGrantingTicket.objects.create_ticket(username, request.get_host())
+            tgt = TicketGrantingTicket.objects.create_ticket(username, get_client_ip(request))
             url = add_query_params(reverse('cas_login'), {'service': service})
             response = HttpResponseRedirect(url)
             response.set_signed_cookie('tgc', tgt.ticket)
@@ -67,24 +68,27 @@ def login(request, form_class=LoginForm,
         tgt = TicketGrantingTicket.objects.validate_ticket(tgc)
 
         if renew:
-            if tgt:
-                TicketGrantingTicket.objects.consume_ticket(tgc)
+            LOG.debug("Renew request received by credential requestor")
+            TicketGrantingTicket.objects.consume_ticket(tgc)
         elif gateway and service:
+            LOG.debug("Gateway request received by credential requestor")
             if tgt:
                 st = ServiceTicket.objects.create_ticket(service, tgt)
                 service = add_query_params(service, {'ticket': st.ticket})
             return HttpResponseRedirect(service)
         else:
             if tgt:
+                LOG.debug("Ticket granting ticket '%s' provided" % tgt.ticket)
                 if service:
+                    LOG.debug("Creating service ticket for '%s'" % service)
                     st = ServiceTicket.objects.create_ticket(service, tgt)
                     service = add_query_params(service, {'ticket': st.ticket})
                     return HttpResponseRedirect(service)
                 else:
                     messages.success(request, "You are logged in as %s" % tgt.username)
-                    logger.info("User logged in as %s using ticket %s" % (tgt.username, tgt.ticket))
+                    LOG.info("User logged in as '%s' using ticket '%s'" % (tgt.username, tgt.ticket))
             else:
-                logger.debug("No ticket granting ticket provided")
+                LOG.debug("No ticket granting ticket provided")
 
         if service:
             form = form_class(initial={'service': urlquote_plus(service)})
@@ -133,7 +137,7 @@ def validate(request):
     renew = request.GET.get('renew', None)
 
     if service and ticket:
-        st = ServiceTicket.objects.validate_ticket(service, ticket, renew)
+        st = ServiceTicket.objects.validate_ticket(ticket, service, renew)
         if st:
             return HttpResponse(content="yes\n%s\n" % st.granted_by_tgt.username,
                                 content_type='text/plain')
