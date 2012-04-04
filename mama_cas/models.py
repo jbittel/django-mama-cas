@@ -83,7 +83,7 @@ class LoginTicketManager(models.Manager):
         """
         lt = LoginTicket()
         lt.save()
-        logger.debug("Created login ticket %s" % lt.ticket)
+        logger.debug("Created login ticket '%s'" % lt.ticket)
         return lt
 
     def validate_ticket(self, ticket):
@@ -98,26 +98,26 @@ class LoginTicketManager(models.Manager):
         ``False``.
         """
         if ticket and not TICKET_RE.match(ticket):
-            logger.info("Cannot validate login ticket: invalid ticket string provided")
+            logger.warn("Invalid login ticket string provided: %s" % ticket)
             return False
 
         try:
             lt = self.get(ticket=ticket)
         except self.model.DoesNotExist:
-            logger.info("Cannot validate login ticket: ticket does not exist")
+            logger.warn("Login ticket '%s' does not exist" % ticket)
             return False
 
         if lt.is_consumed():
-            logger.info("Cannot validate login ticket: ticket is consumed")
+            logger.warn("Login ticket '%s' has already been used" % ticket)
             return False
         lt.consume()
         lt.save()
 
         if lt.is_expired():
-            logger.info("Cannot validate login ticket: ticket is expired")
+            logger.warn("Login ticket '%s' has expired" % ticket)
             return False
 
-        logger.info("Validated login ticket %s" % lt.ticket)
+        logger.info("Validated login ticket '%s'" % ticket)
         return lt
 
     def delete_invalid_tickets(self):
@@ -156,7 +156,7 @@ class ServiceTicketManager(models.Manager):
         st = ServiceTicket(service=service)
         st.granted_by_tgt = tgt
         st.save()
-        logger.debug("Created service ticket %s from ticket granting ticket %s" % (st.ticket, tgt.ticket))
+        logger.debug("Created service ticket '%s' from ticket granting ticket '%s'" % (st.ticket, tgt.ticket))
         return st
 
     def validate_ticket(self, service, ticket, renew):
@@ -174,26 +174,30 @@ class ServiceTicketManager(models.Manager):
         #      from the presentation of the user's primary credentials
 
         if ticket and not TICKET_RE.match(ticket):
-            logger.info("Cannot validate service ticket: invalid ticket string provided")
+            logger.warn("Invalid service ticket string provided: %s" % ticket)
             return False
 
         try:
             st = self.select_related().get(service=service, ticket=ticket)
         except self.model.DoesNotExist:
-            logger.info("Cannot validate service ticket: ticket does not exist")
+            logger.warn("Service ticket '%s' does not exist" % ticket)
             return False
 
         if st.is_consumed():
-            logger.info("Cannot validate service ticket: ticket is consumed")
+            logger.warn("Service ticket '%s' has already been used" % ticket)
             return False
         st.consume()
         st.save()
 
-        if st.is_expired() or not same_origin(st.service, service):
-            logger.info("Cannot validate service ticket: ticket is expired or service does not match")
+        if st.is_expired():
+            logger.warn("Service ticket '%s' is expired" % ticket)
             return False
 
-        logger.info("Validated service ticket %s for service %s" % (st.ticket, service))
+        if same_origin(st.service, service):
+            logger.warn("Service ticket '%s' for service '%s' does not match the requested service '%s'" % (ticket, st.service, service))
+            return False
+
+        logger.info("Validated service ticket '%s' for service '%s'" % (ticket, service))
         return st
 
 class ServiceTicket(Ticket):
@@ -234,20 +238,24 @@ class TicketGrantingTicketManager(models.Manager):
         return ``False``.
         """
         if tgc and not TICKET_RE.match(tgc):
-            logger.info("Cannot validate ticket granting ticket: invalid ticket string provided")
+            logger.warn("Invalid ticket granting ticket string provided: %s" % tgc)
             return False
 
         try:
             tgt = self.get(ticket=tgc)
         except self.model.DoesNotExist:
-            logger.info("Cannot validate ticket granting ticket: ticket does not exist")
+            logger.warn("Ticket granting ticket '%s' does not exist" % tgc)
             return False
 
-        if tgt.is_consumed() or tgt.is_expired():
-            logger.info("Cannot validate ticket granting ticket: ticket is consumed or expired")
+        if tgt.is_consumed():
+            logger.warn("Ticket granting ticket '%s' has been used up" % tgc)
             return False
 
-        logger.info("Validated ticket granting ticket %s" % tgt.ticket)
+        if tgt.is_expired():
+            logger.warn("Ticket granting ticket '%s' is expired" % tgc)
+            return False
+
+        logger.info("Validated ticket granting ticket '%s'" % tgc)
         return tgt
 
     def consume_ticket(self, tgc):
@@ -259,19 +267,19 @@ class TicketGrantingTicketManager(models.Manager):
         return ``False``.
         """
         if tgc and not TICKET_RE.match(tgc):
-            logger.info("Cannot consume ticket granting ticket: invalid ticket string provided")
+            logger.warn("Invalid ticket granting ticket string provided: %s" % tgc)
             return False
 
         try:
             tgt = self.get(ticket=tgc)
         except self.model.DoesNotExist:
-            logger.info("Cannot consume ticket granting ticket: ticket does not exist")
+            logger.warn("Ticket granting ticket '%s' does not exist" % tgc)
             return False
 
         tgt.consume()
         tgt.save()
 
-        logger.info("Consumed ticket granting ticket %s" % tgt.ticket)
+        logger.info("Consumed ticket granting ticket '%s'" % tgt.ticket)
         return tgt
 
     def delete_invalid_tickets(self):
