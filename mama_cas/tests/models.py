@@ -21,6 +21,7 @@ class LoginTicketTests(TestCase):
         """
         A new ``LoginTicket`` ought to exist in the database with a valid
         ticket string, and be neither consumed or expired.
+
         """
         lt = LoginTicket.objects.create_ticket()
 
@@ -35,6 +36,7 @@ class LoginTicketTests(TestCase):
         ticket string that exists in the database, and when it is neither
         expired or consumed. The validation process ought to consume the
         ``LoginTicket``.
+
         """
         lt = LoginTicket.objects.create_ticket()
 
@@ -50,6 +52,11 @@ class LoginTicketTests(TestCase):
         self.assertFalse(LoginTicket.objects.validate_ticket(lt.ticket))
 
     def test_delete_invalid_tickets(self):
+        """
+        A ``LoginTicket`` ought be deleted when it is either expired or
+        consumed, but not when it is valid.
+
+        """
         valid_lt = LoginTicket.objects.create_ticket()
         consumed_lt = LoginTicket.objects.create_ticket()
         consumed_lt.consume()
@@ -65,6 +72,12 @@ class LoginTicketTests(TestCase):
         self.assertFalse(LoginTicket.objects.validate_ticket(expired_lt.ticket))
 
     def test_management_command(self):
+        """
+        A ``LoginTicket`` ought be deleted using the ``cleanupcas`` managment
+        command when it is either expired or consumed, but not when it is
+        valid.
+
+        """
         valid_lt = LoginTicket.objects.create_ticket()
         consumed_lt = LoginTicket.objects.create_ticket()
         consumed_lt.consume()
@@ -85,14 +98,34 @@ class ServiceTicketTests(TestCase):
         self.ticket_info.update({'granted_by_tgt': self.tgt})
 
     def test_create_ticket(self):
+        """
+        A new ``ServiceTicket`` ought to exist in the database with a valid
+        ticket string and be neither consumed or expired. Additionally, it
+        should be related to the ``TicketGrantingTicket`` that authorized
+        its creation.
+
+        """
         st = ServiceTicket.objects.create_ticket(**self.ticket_info)
 
         self.assertEqual(ServiceTicket.objects.count(), 1)
         self.assertTrue(re.search('^ST-[0-9]{10,}-[a-zA-Z0-9]{32}$', st.ticket))
         self.assertFalse(st.is_consumed())
         self.assertFalse(st.is_expired())
+        self.assertEqual(st.granted_by_tgt, self.tgt)
 
     def test_validate_ticket(self):
+        """
+        A ``ServiceTicket`` ought to validate correctly when it meets these
+        criteria:
+
+        1. Has a valid ticket string that exists in the database
+        2. Is not expired or consumed
+        3. Has a service that matches the provided service parameter
+
+        If any of these conditions are not met the validation should fail.
+        The validation process ought to consume the ``ServiceTicket``.
+
+        """
         st = ServiceTicket.objects.create_ticket(**self.ticket_info)
         service = 'http://www.test.com/'
         renew = 'true'
@@ -101,6 +134,7 @@ class ServiceTicketTests(TestCase):
         self.assertFalse(ServiceTicket.objects.validate_ticket('12345', service=service))
         self.assertFalse(ServiceTicket.objects.validate_ticket(self.valid_st_str, service=service))
         self.assertFalse(ServiceTicket.objects.validate_ticket(st.ticket, service='http://www.test.net/'))
+        # This test should fail, as the ticket was consumed in the preceeding test
         self.assertFalse(ServiceTicket.objects.validate_ticket(st.ticket, service=service), st)
         st.consumed = None
         st.save()
@@ -119,6 +153,13 @@ class TicketGrantingTicketTests(TestCase):
                    'client_ip': '127.0.0.1'}
 
     def test_create_ticket(self):
+        """
+        A new ``TicketGrantingTicket`` ought to exist in the database with
+        a valid ticket string and be neither consumed or expired.
+        Additionally, it should contain the client IP that was passed to
+        its creation function.
+
+        """
         tgt = TicketGrantingTicket.objects.create_ticket(**self.ticket_info)
 
         self.assertEqual(TicketGrantingTicket.objects.count(), 1)
@@ -128,6 +169,12 @@ class TicketGrantingTicketTests(TestCase):
         self.assertFalse(tgt.is_expired())
 
     def test_validate_ticket(self):
+        """
+        A ``TicketGrantingTicket`` ought to validate correctly when it has
+        a valid ticket string that exists in the database, and when it is
+        neither expired or consumed.
+
+        """
         tgt = TicketGrantingTicket.objects.create_ticket(**self.ticket_info)
 
         self.assertFalse(TicketGrantingTicket.objects.validate_ticket(False))
@@ -145,6 +192,12 @@ class TicketGrantingTicketTests(TestCase):
         self.assertFalse(TicketGrantingTicket.objects.validate_ticket(tgt.ticket))
 
     def test_consume_ticket(self):
+        """
+        A ``TicketGrantingTicket`` ought to be consumed properly when a
+        valid ticket string is provided. Once consumed, the ticket should
+        no longer successfully validate. 
+
+        """
         tgt = TicketGrantingTicket.objects.create_ticket(**self.ticket_info)
         tgc = tgt.ticket
 
@@ -155,6 +208,12 @@ class TicketGrantingTicketTests(TestCase):
         self.assertFalse(TicketGrantingTicket.objects.validate_ticket(tgc))
 
     def test_delete_invalid_tickets(self):
+        """
+        A ``TicketGrantingTicket`` ought to be deleted when it is either
+        consumed or expired, but not when it is valid. Additionally, a
+        delete should cascade to all associated ``ServiceTicket``s.
+
+        """
         service = 'http://www.test.com/'
 
         valid_tgt = TicketGrantingTicket.objects.create_ticket(**self.ticket_info)
@@ -175,6 +234,13 @@ class TicketGrantingTicketTests(TestCase):
         self.assertFalse(TicketGrantingTicket.objects.validate_ticket(expired_tgt.ticket))
 
     def test_management_command(self):
+        """
+        A ``TicketGrantingTicket`` ought to be deleted using the ``cleanupcas``
+        management command when it is either consumed or expired; otherwise
+        it should be left alone. Additionally, a delete should cascade to all
+        associated ``ServiceTicket``s.
+
+        """
         service = 'http://www.test.com/'
 
         valid_tgt = TicketGrantingTicket.objects.create_ticket(**self.ticket_info)

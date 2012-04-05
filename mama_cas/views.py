@@ -14,7 +14,7 @@ from mama_cas.utils import add_query_params
 from mama_cas.utils import get_client_ip
 
 
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger('mama_cas')
 
 
 def login(request, form_class=LoginForm,
@@ -79,6 +79,7 @@ def login(request, form_class=LoginForm,
             return HttpResponseRedirect(service)
         else:
             if tgt:
+                LOG.debug("Service ticket request received by credential requestor")
                 LOG.debug("Ticket granting ticket '%s' provided" % tgt.ticket)
                 if service:
                     LOG.debug("Creating service ticket for '%s'" % service)

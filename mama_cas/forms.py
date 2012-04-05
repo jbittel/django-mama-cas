@@ -8,7 +8,7 @@ from django.contrib.auth import authenticate
 from mama_cas.models import LoginTicket
 
 
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger('mama_cas')
 
 
 class LoginForm(forms.Form):

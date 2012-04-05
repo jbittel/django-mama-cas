@@ -10,7 +10,7 @@ from django.utils.crypto import get_random_string
 from django.utils.http import same_origin
 
 
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger('mama_cas')
 
 TICKET_RAND_LEN = getattr(settings, 'CAS_TICKET_RAND_LEN', 32)
 TICKET_RE = re.compile("^[A-Z]{2,3}-[0-9]{10,}-[a-zA-Z0-9]{%d}$" % TICKET_RAND_LEN)
@@ -23,6 +23,7 @@ class TicketManager(models.Manager):
         string to ensure the ticket is not guessable. Any provided arguments
         are passed on to the ``create()`` function. Return the newly created
         ``Ticket``.
+
         """
         ticket_str = "%s-%d-%s" % (self.model.TICKET_PREFIX, int(time.time()),
                                    get_random_string(length=TICKET_RAND_LEN))
@@ -39,11 +40,13 @@ class TicketManager(models.Manager):
         validation process.
 
         If ``service`` is provided and the ticket has a service attribute,
-        the origin of the two services will be compared.
+        the origin of the two services will be compared. Validation will only
+        succeed if the service origins match.
 
         if ``renew`` is provided, the validation will only succeed if the
         ticket was issued from the presentation of the user's primary
         credentials.
+
         """
         if not ticket:
             LOG.warn("No ticket string provided")
@@ -87,6 +90,7 @@ class TicketManager(models.Manager):
         Given a ticket string, consume the corresponding ``Ticket``
         returning the ``Ticket`` if the consumption succeeds. If the
         ``Ticket`` could not be located, return ``False``.
+
         """
         if not ticket:
             LOG.info("No ticket string provided")
@@ -112,6 +116,12 @@ class TicketManager(models.Manager):
         Iterate over all ``Ticket``s and delete all consumed or expired
         ``Ticket``s. Invalid tickets are no longer valid for future
         authentication attempts and can be safely deleted.
+
+        A custom management command is provided that executes this method
+        on all applicable models by running ``manage.py cleanupcas``. It
+        is recommended that you run this command on a regular basis to
+        prevent invalid tickets from causing storage or performance issues.
+
         """
         for ticket in self.all():
             if ticket.is_consumed() or ticket.is_expired():
@@ -122,6 +132,11 @@ class Ticket(models.Model):
     ``Ticket`` is an abstract base class implementing common methods
     and fields for the assorted ticket types. It should never be
     interacted with directly within the application.
+
+    It is recommended that you do not interact directly with this model
+    or its inheritors. Instead, the provided manager contains methods
+    for creating, validating, consuming and deleting invalid ``Ticket``s.
+
     """
     ticket = models.CharField(max_length=255, unique=True)
     created_on = models.DateTimeField()
@@ -145,6 +160,7 @@ class Ticket(models.Model):
         A ``Ticket`` is consumed by populating the ``consumed`` field with
         the current datetime. A consumed ``Ticket`` is no longer valid for
         any future authentication attempts.
+
         """
         self.consumed = now()
         self.save()
@@ -153,6 +169,7 @@ class Ticket(models.Model):
         """
         Check a ``Ticket``s consumed state. Return ``True`` if the ticket is
         consumed, and ``False`` otherwise.
+
         """
         if self.consumed:
             return True
@@ -162,6 +179,7 @@ class Ticket(models.Model):
         """
         Check a ``Ticket``s expired state. Return ``True`` if the ticket is
         expired, and ``False`` otherwise.
+
         """
         if self.created_on + timedelta(minutes=self.TICKET_EXPIRE) <= now():
             return True
@@ -173,6 +191,7 @@ class LoginTicket(Ticket):
     and passed to /login as a credential acceptor to prevent replaying of
     credentials. A ``LoginTicket`` is created automatically when the /login
     form is displayed.
+
     """
     TICKET_PREFIX = u"LT"
     TICKET_EXPIRE = getattr(settings, 'CAS_LOGIN_TICKET_EXPIRE', 20)
@@ -182,6 +201,7 @@ class ServiceTicket(Ticket):
     (3.1) A ``ServiceTicket`` is used by the client as a credential to
     obtain access to a service. It is obtained upon a client's presentation
     of credentials and a service identifier to /login.
+
     """
     TICKET_PREFIX = u"ST"
     TICKET_EXPIRE = getattr(settings, 'CAS_SERVICE_TICKET_EXPIRE', 5)
@@ -195,6 +215,7 @@ class TicketGrantingTicket(Ticket):
     are provided to /login as a credential acceptor. A corresponding
     ticket-granting cookie is created on the client's machine and can be
     presented in lieu of primary credentials to obtain ``ServiceTicket``s.
+
     """
     TICKET_PREFIX = u"TGC"
     TICKET_EXPIRE = getattr(settings, 'CAS_LOGIN_EXPIRE', 1440)
