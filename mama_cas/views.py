@@ -54,7 +54,8 @@ def login(request, form_class=LoginForm,
             # TODO implement warn
             service = form.cleaned_data.get('service')
             username = form.cleaned_data.get('username')
-            tgt = TicketGrantingTicket.objects.create_ticket(username, get_client_ip(request))
+            tgt = TicketGrantingTicket.objects.create_ticket(username=username,
+                                                             client_ip=get_client_ip(request))
             url = add_query_params(reverse('cas_login'), {'service': service})
             response = HttpResponseRedirect(url)
             response.set_signed_cookie('tgc', tgt.ticket)
@@ -65,7 +66,7 @@ def login(request, form_class=LoginForm,
         gateway = request.GET.get('gateway')
 
         tgc = request.get_signed_cookie('tgc', False)
-        tgt = TicketGrantingTicket.objects.validate_ticket(tgc)
+        tgt = TicketGrantingTicket.objects.validate_ticket(tgc, consume=False)
 
         if renew:
             LOG.debug("Renew request received by credential requestor")
@@ -73,7 +74,7 @@ def login(request, form_class=LoginForm,
         elif gateway and service:
             LOG.debug("Gateway request received by credential requestor")
             if tgt:
-                st = ServiceTicket.objects.create_ticket(service, tgt)
+                st = ServiceTicket.objects.create_ticket(service=service, granted_by_tgt=tgt)
                 service = add_query_params(service, {'ticket': st.ticket})
             return HttpResponseRedirect(service)
         else:
@@ -81,7 +82,7 @@ def login(request, form_class=LoginForm,
                 LOG.debug("Ticket granting ticket '%s' provided" % tgt.ticket)
                 if service:
                     LOG.debug("Creating service ticket for '%s'" % service)
-                    st = ServiceTicket.objects.create_ticket(service, tgt)
+                    st = ServiceTicket.objects.create_ticket(service=service, granted_by_tgt=tgt)
                     service = add_query_params(service, {'ticket': st.ticket})
                     return HttpResponseRedirect(service)
                 else:
@@ -137,7 +138,7 @@ def validate(request):
     renew = request.GET.get('renew', None)
 
     if service and ticket:
-        st = ServiceTicket.objects.validate_ticket(ticket, service, renew)
+        st = ServiceTicket.objects.validate_ticket(ticket, service=service, renew=renew)
         if st:
             return HttpResponse(content="yes\n%s\n" % st.granted_by_tgt.username,
                                 content_type='text/plain')
