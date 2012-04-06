@@ -8,6 +8,7 @@ from django.conf import settings
 from django.utils.timezone import now
 from django.utils.crypto import get_random_string
 from django.utils.http import same_origin
+from django.contrib.auth.models import User
 
 
 LOG = logging.getLogger('mama_cas')
@@ -31,7 +32,7 @@ class TicketManager(models.Manager):
         LOG.debug("Created ticket '%s'" % new_ticket.ticket)
         return new_ticket
 
-    def validate_ticket(self, ticket, consume=True, service=None, renew=False):
+    def validate_ticket(self, ticket, service=None, renew=False):
         """
         Given a ticket string, validate the corresponding ``Ticket`` returning
         the ``Ticket`` if valid. If validation fails, return ``False``.
@@ -65,8 +66,7 @@ class TicketManager(models.Manager):
         if t.is_consumed():
             LOG.warn("Ticket '%s' has already been used" % ticket)
             return False
-        if consume:
-            t.consume()
+        t.consume()
 
         if t.is_expired():
             LOG.warn("Ticket '%s' has expired" % ticket)
@@ -77,38 +77,11 @@ class TicketManager(models.Manager):
                 LOG.warn("Ticket '%s' for service '%s' is invalid for service '%s'" % (ticket, t.service, service))
                 return False
 
-        if renew:
-            # TODO if renew is set, only validate if the ticket was issued
-            #      from the presentation of the user's primary credentials
-            pass
+        if renew and not t.is_primary():
+            LOG.warn("Ticket '%s' was not issued via primary credentials" % ticket)
+            return False
 
         LOG.info("Validated ticket '%s'" % ticket)
-        return t
-
-    def consume_ticket(self, ticket):
-        """
-        Given a ticket string, consume the corresponding ``Ticket``
-        returning the ``Ticket`` if the consumption succeeds. If the
-        ``Ticket`` could not be located, return ``False``.
-
-        """
-        if not ticket:
-            LOG.info("No ticket string provided")
-            return False
-
-        if not TICKET_RE.match(ticket):
-            LOG.warn("Invalid ticket string provided: %s" % ticket)
-            return False
-
-        try:
-            t = self.get(ticket=ticket)
-        except self.model.DoesNotExist:
-            LOG.warn("Ticket '%s' does not exist" % ticket)
-            return False
-
-        t.consume()
-
-        LOG.info("Consumed ticket '%s'" % ticket)
         return t
 
     def delete_invalid_tickets(self):
@@ -185,16 +158,15 @@ class Ticket(models.Model):
             return True
         return False
 
-class LoginTicket(Ticket):
-    """
-    (3.5) A ``LoginTicket`` is provided by /login as a credential requestor
-    and passed to /login as a credential acceptor to prevent replaying of
-    credentials. A ``LoginTicket`` is created automatically when the /login
-    form is displayed.
-
-    """
-    TICKET_PREFIX = u"LT"
-    TICKET_EXPIRE = getattr(settings, 'CAS_LOGIN_TICKET_EXPIRE', 20)
+    def is_primary(self):
+        """
+        Check the credential origin for a ``Ticket``. If the ticket was
+        issued from the presentation of the user's primary credentials,
+        return ``True``, otherwise return ``False``.
+        """
+        if self.primary:
+            return True
+        return False
 
 class ServiceTicket(Ticket):
     """
@@ -207,19 +179,5 @@ class ServiceTicket(Ticket):
     TICKET_EXPIRE = getattr(settings, 'CAS_SERVICE_TICKET_EXPIRE', 5)
 
     service = models.CharField(max_length=255)
-    granted_by_tgt = models.ForeignKey('TicketGrantingTicket')
-
-class TicketGrantingTicket(Ticket):
-    """
-    (2.1 and 3.6) A ``TicketGrantingTicket`` is created when valid credentials
-    are provided to /login as a credential acceptor. A corresponding
-    ticket-granting cookie is created on the client's machine and can be
-    presented in lieu of primary credentials to obtain ``ServiceTicket``s.
-
-    """
-    TICKET_PREFIX = u"TGC"
-    TICKET_EXPIRE = getattr(settings, 'CAS_LOGIN_EXPIRE', 1440)
-
-    username = models.CharField(max_length=255)
-    client_ip = models.CharField(max_length=64)
-    warn = models.BooleanField()
+    user = models.ForeignKey(User)
+    primary = models.BooleanField()

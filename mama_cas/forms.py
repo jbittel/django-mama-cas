@@ -3,23 +3,22 @@ import logging
 
 from django import forms
 from django.utils.http import urlunquote_plus
-from django.contrib.auth import authenticate
-
-from mama_cas.models import LoginTicket
+from django.contrib import auth
 
 
 LOG = logging.getLogger('mama_cas')
 
 
 class LoginForm(forms.Form):
-    username = forms.CharField()
-    password = forms.CharField(widget=forms.PasswordInput)
+    username = forms.CharField(label="Username", max_length=30)
+    password = forms.CharField(label="Password", widget=forms.PasswordInput)
     service = forms.CharField(widget=forms.HiddenInput, required=False)
 
     def clean_username(self):
         """
         Lowercase the username for consistency.
         """
+        # TODO check for email addresses
         username = self.cleaned_data.get('username')
         return lower(username)
 
@@ -38,40 +37,18 @@ class LoginForm(forms.Form):
         username = self.cleaned_data.get('username')
         password = self.cleaned_data.get('password')
 
-        if username and password:
-            if not authenticate(username=username, password=password):
-                LOG.warn("Error authenticating user %s" % username)
-                raise forms.ValidationError("Could not authenticate user")
+        user = auth.authenticate(username=username, password=password)
+        if user:
+            if user.is_active:
+                self.user = user
+            else:
+                LOG.warn("User account '%s' is disabled" % username)
+                raise forms.ValidationError("This user account is disabled")
+        else:
+            LOG.warn("Error authenticating user %s" % username)
+            raise forms.ValidationError("The username and/or password you provided are not correct")
 
         return self.cleaned_data
-
-class LoginFormLT(LoginForm):
-    lt = forms.CharField(widget=forms.HiddenInput)
-
-    def __init__(self, *args, **kwargs):
-        super(LoginForm, self).__init__(*args, **kwargs)
-        # Don't create a spurious LoginTicket if the form is bound
-        if not self.is_bound:
-            self.fields['lt'].initial = LoginTicket.objects.create_ticket().ticket
-
-    def clean_lt(self):
-        """
-        Verify the provided login ticket. As the validation process will
-        consume the login ticket, generate a new login ticket and store
-        it in the form.
-
-        If we need to redisplay the form for any reason, this prepares
-        for the next authentication attempt. We can modify data because
-        we're using a copy of request.POST.
-        """
-        lt = self.cleaned_data.get('lt')
-
-        if not LoginTicket.objects.validate_ticket(lt):
-            raise forms.ValidationError("Invalid login ticket provided")
-
-        self.data['lt'] = LoginTicket.objects.create_ticket().ticket
-
-        return lt
 
 class LoginFormWarn(LoginForm):
     warn = forms.BooleanField(required=False)

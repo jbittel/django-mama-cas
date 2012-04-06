@@ -1,11 +1,11 @@
 import logging
+import urlparse
 
 from django.test import TestCase
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 
 from mama_cas.models import ServiceTicket
-from mama_cas.models import TicketGrantingTicket
 from mama_cas.forms import LoginForm
 
 
@@ -33,38 +33,46 @@ class LoginViewTests(TestCase):
 
     def test_login_view_login(self):
         """
-        When called with a valid username and password, a ``POST`` request to
-        the ``login`` view should create a new ``TicketGrantingTicket`` with a
-        corresponding ticket-granting cookie and redirect to the ``login``
-        view.
+        When called with a valid username and password and no service, a
+        ``POST`` request to the ``login`` view should authenticate and
+        login the user, and redirect to the ``login`` view.
 
         """
-        response = self.client.post(reverse('cas_login'),
-                                    data={'username': 'test',
-                                          'password': 'testing'})
+        login_data={'username': 'test',
+                    'password': 'testing'}
+
+        response = self.client.post(reverse('cas_login'), login_data)
+        self.assertEqual(self.client.session['_auth_user_id'], self.user.pk)
         self.assertRedirects(response, reverse('cas_login'))
-        self.assertTrue('tgc' in self.client.cookies)
-        self.assertEqual(TicketGrantingTicket.objects.count(), 1)
 
     def test_login_view_login_service(self):
         """
         When called with a valid username, password and service, a ``POST``
-        request to the ``login`` view should create a new
-        ``TicketGrantingTicket`` with a corresponding ticket-granting cookie
-        and redirect to the ``login`` view with the service included as a
-        query parameter.
+        request to the ``login`` view should authenticate and login the
+        user, create a ``ServiceTicket`` and redirect to the supplied
+        service URL with a ticket parameter.
 
         """
-        response = self.client.post(reverse('cas_login'),
-                                    data={'username': 'test',
-                                          'password': 'testing',
-                                          'service': 'http://test.localhost.com/'})
-        query_str = '?service=http://test.localhost.com/'
-        self.assertRedirects(response, reverse('cas_login') + query_str)
-        self.assertTrue('tgc' in self.client.cookies)
-        self.assertEqual(TicketGrantingTicket.objects.count(), 1)
+        login_data={'username': 'test',
+                    'password': 'testing',
+                    'service': 'http://test.localhost.com/'}
+
+        response = self.client.post(reverse('cas_login'), login_data)
+        self.assertEqual(self.client.session['_auth_user_id'], self.user.pk)
+        self.assertEqual(ServiceTicket.objects.count(), 1)
+        # Check that the client is redirected properly without actually
+        # trying to load the destination page
+        parts = list(urlparse.urlparse(response['Location']))
+        query = dict(urlparse.parse_qsl(parts[4]))
+        destination = "%s://%s%s" % (parts[0], parts[1], parts[2])
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(destination, login_data['service'])
+        self.assertTrue('ticket' in query)
 
 class LogoutViewTests(TestCase):
+    login_data={'username': 'test',
+                'password': 'testing'}
+
     def setUp(self):
         """
         Create a test user for authentication purposes.
@@ -74,66 +82,107 @@ class LogoutViewTests(TestCase):
 
     def test_logout_view(self):
         """
-        When called with no parameters and no cookie, a ``GET`` request
-        to the ``logout`` view should display the correct template.
+        When called with no parameters and no logged in user, a ``GET``
+        request to the ``logout`` view should simply display the correct
+        template.
 
         """
         response = self.client.get(reverse('cas_logout'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'mama_cas/logout.html')
 
+    def test_logout_view_post(self):
+        """
+        A ``POST`` request to the logout view should return an error that
+        the method is not allowed.
+
+        """
+        response = self.client.post(reverse('cas_logout'))
+        self.assertEqual(response.status_code, 405)
+
     def test_logout_view_success(self):
         """
-        When called with a valid ticket granting cookie set, a ``GET``
-        request to the ``logout`` view should invalidate the cookie,
-        consume the ticket and display the correct template.
+        When called with a logged in user, a ``GET`` request to the
+        ``logout`` view should log the user out and display the correct
+        template.
 
         """
-        response = self.client.post(reverse('cas_login'),
-                                    data={'username': 'test',
-                                          'password': 'testing'})
+        response = self.client.post(reverse('cas_login'), self.login_data)
         self.assertRedirects(response, reverse('cas_login'))
-        self.assertTrue('tgc' in self.client.cookies)
-        self.assertEqual(TicketGrantingTicket.objects.count(), 1)
 
         response = self.client.get(reverse('cas_logout'))
-        self.assertEqual(self.client.cookies['tgc']['expires'], 'Thu, 01-Jan-1970 00:00:00 GMT')
-        TicketGrantingTicket.objects.delete_invalid_tickets()
-        self.assertEqual(TicketGrantingTicket.objects.count(), 0)
+        self.assertFalse('_auth_user_id' in self.client.session)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'mama_cas/logout.html')
 
 class ValidateViewTests(TestCase):
     valid_st_str = 'ST-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
     ticket_info = {'service': 'http://www.test.com/'}
+    validation_failure = "no\n\n"
+    validation_success = "yes\ntest\n"
 
     def setUp(self):
         """
-        Create a valid ticket-granting ticket and service ticket for
-        testing purposes.
+        Create a valid user and service ticket for testing purposes.
 
         """
-        self.tgt = TicketGrantingTicket.objects.create_ticket(username='test', client_ip='127.0.0.1')
-        self.ticket_info.update({'granted_by_tgt': self.tgt})
+        self.user = User.objects.create_user('test', 'test@localhost.com', 'testing')
+        self.ticket_info.update({'user': self.user})
         self.st = ServiceTicket.objects.create_ticket(**self.ticket_info)
 
     def test_validate_view(self):
         """
         When called with no parameters, a ``GET`` request to the validate
-        view should return 'no\n\n'.
+        view should return a validation failure.
 
         """
         response = self.client.get(reverse('cas_validate'))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, "no\n\n")
+        self.assertEqual(response.content, self.validation_failure)
+
+    def test_validate_view_post(self):
+        """
+        A ``POST`` request to the validate view should return an error that
+        the method is not allowed.
+
+        """
+        response = self.client.post(reverse('cas_validate'))
+        self.assertEqual(response.status_code, 405)
+
+    def test_validate_view_invalid_service(self):
+        """
+        When called with an invalid service identifier, a ``GET`` request
+        to the validate view should return a validation failure.
+
+        """
+        query_str = "?service=%s&ticket=%s" % ('http://www.test.net', self.st.ticket)
+        response = self.client.get(reverse('cas_validate') + query_str)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, self.validation_failure)
+
+    def test_validate_view_invalid_ticket(self):
+        """
+        When called with an invalid ticket identifier, a ``GET`` request
+        to the validate view should return a validation failure.
+
+        """
+        query_str = "?service=%s&ticket=%s" % (self.ticket_info['service'], self.valid_st_str)
+        response = self.client.get(reverse('cas_validate') + query_str)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, self.validation_failure)
 
     def test_validate_view_success(self):
         """
         When called with correct parameters, a ``GET`` request to the
-        validate view should return 'yes\n<username>\n'.
+        validate view should return a validation success and the service
+        ticket should be consumed and invalid for future validation
+        attempts.
 
         """
         query_str = "?service=%s&ticket=%s" % (self.ticket_info['service'], self.st.ticket)
         response = self.client.get(reverse('cas_validate') + query_str)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, "yes\ntest\n")
+        self.assertEqual(response.content, self.validation_success)
+        # This test should fail as the ticket was consumed in the preceeding test
+        response = self.client.get(reverse('cas_validate') + query_str)
+        self.assertEqual(response.content, self.validation_failure)

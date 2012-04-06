@@ -15,20 +15,16 @@ storage or performance problems.
 This command calls ``delete_invalid_tickets()`` for each applicable
 model, which determines the tickets that have been invalidated and
 deletes them.
+
 """
 
 from django.core.management.base import NoArgsCommand
 
-from mama_cas.models import LoginTicket
-from mama_cas.models import TicketGrantingTicket
+from mama_cas.models import ServiceTicket
 
 
 class Command(NoArgsCommand):
     help = "Delete expired or consumed CAS tickets from the database"
 
     def handle_noargs(self, **options):
-        # Note that service tickets are not deleted directly,
-        # as the delete cascades when their related ticket
-        # granting ticket is deleted.
-        LoginTicket.objects.delete_invalid_tickets()
-        TicketGrantingTicket.objects.delete_invalid_tickets()
+        ServiceTicket.objects.delete_invalid_tickets()
