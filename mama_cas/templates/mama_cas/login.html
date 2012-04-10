@@ -1,25 +1,50 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<html>
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>{% block title %}{% endblock title %}</title>
+    {% block extra_head %}
+    <style>
+        html, body { color:#000; background-color:#d9d9de; }
+        #content { margin:10% auto 0 auto; width:500px; background-color:#fff; padding:30px; }
+        .messages, .errorlist { width:90%; margin:1em auto; background-color:#fff6bf; border:1px solid #ffd324; color:#514721; padding:8px; list-style:none; }
+        .errorlist { background-color:#fbe3e4; border-color:#fbc2c4; color:#8a1f11; }
+        #login-form { width:80%; margin:0 auto; }
+        fieldset { border:0; padding:0; margin:0; }
+        label { display:block; }
+    </style>
+    {% endblock extra_head %}
 </head>
 <body>
-    <h1>Log In</h1>
-    {% if messages %}
-    <ul class="messages">
-        {% for message in messages %}
-        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-        {% endfor %}
-    </ul>
-    {% endif %}
-    <form method="post" action="">
-        {% csrf_token %}
-        <ul>
-            {{ form.as_ul }}
-            <li><input type="submit" name="submit_login" value="Login" /></li>
+    {% block body %}
+    <div id="content">
+        {% block content %}
+        <h1>{% block content_title %}Log In{% endblock content_title %}</h1>
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
         </ul>
-    </form>
-    <p><a href="{% url cas_logout %}">Logout</a></p>
+        {% endif %}
+        {{ form.non_field_errors }}
+        <form id="login-form" method="post">
+            {% csrf_token %}
+            {% for field in form.hidden_fields %}
+                {{ field }}
+            {% endfor %}
+            <fieldset id="input">
+            {% for field in form.visible_fields %}
+                {{ field.label_tag }}{{ field }}
+                {{ field.errors }}
+            {% endfor %}
+            </fieldset>
+            <fieldset id="action">
+                <input type="submit" name="submit_login" value="Log in" />
+            </fieldset>
+        </form>
+        {% endblock content %}
+    </div>
+    {% endblock body %}
 </body>
 </html>
