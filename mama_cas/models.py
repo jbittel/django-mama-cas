@@ -14,7 +14,7 @@ from django.contrib.auth.models import User
 LOG = logging.getLogger('mama_cas')
 
 TICKET_RAND_LEN = getattr(settings, 'CAS_TICKET_RAND_LEN', 32)
-TICKET_RE = re.compile("^[A-Z]{2,3}-[0-9]{10,}-[a-zA-Z0-9]{%d}$" % TICKET_RAND_LEN)
+TICKET_RE = re.compile("^[A-Z]{2}-[0-9]{10,}-[a-zA-Z0-9]{%d}$" % TICKET_RAND_LEN)
 
 
 class TicketManager(models.Manager):
