@@ -170,3 +170,7 @@ class ServiceTicket(Ticket):
     service = models.CharField(max_length=255)
     user = models.ForeignKey(User)
     primary = models.BooleanField()
+
+    class Meta:
+        verbose_name = "service ticket"
+        verbose_name_plural = "service tickets"

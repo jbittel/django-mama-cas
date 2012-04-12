@@ -71,14 +71,16 @@ class LoginView(NeverCacheMixin, FormView):
 
     def form_valid(self, form):
         """
-        As a credential acceptor, it takes two required parameters:
+        As a credential acceptor, /login takes two required parameters:
 
         1. username - the username provided by the client
         2. password - the password provided by the client
 
-        If authentication is successful, a ``TicketGrantingTicket`` is created and
-        the user is redirected back to the login page so that a corresponding
-        ``ServiceTicket`` may be created.
+        If authentication is successful, the user is logged in which creates
+        the single sign-on session. If a service is provided, a corresponding
+        ``ServiceTicket`` is created, and the user is redirected to the
+        service URL. If no service is provided, the user is redirected back
+        to the login page with a message indicating a successful login.
 
         If authentication fails, the login form is redisplayed with an appropriate
         error message displayed indicating the reason for failure.
