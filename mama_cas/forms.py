@@ -37,16 +37,17 @@ class LoginForm(forms.Form):
         username = self.cleaned_data.get('username')
         password = self.cleaned_data.get('password')
 
-        user = auth.authenticate(username=username, password=password)
-        if user:
-            if user.is_active:
-                self.user = user
+        if username and password:
+            user = auth.authenticate(username=username, password=password)
+            if user:
+                if user.is_active:
+                    self.user = user
+                else:
+                    LOG.warn("User account '%s' is disabled" % username)
+                    raise forms.ValidationError("This user account is disabled")
             else:
-                LOG.warn("User account '%s' is disabled" % username)
-                raise forms.ValidationError("This user account is disabled")
-        else:
-            LOG.warn("Error authenticating user %s" % username)
-            raise forms.ValidationError("The username and/or password you provided are not correct")
+                LOG.warn("Error authenticating user %s" % username)
+                raise forms.ValidationError("The username and/or password you provided are not correct")
 
         return self.cleaned_data
 
