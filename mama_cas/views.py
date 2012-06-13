@@ -143,6 +143,7 @@ class ValidateView(NeverCacheMixin, View):
         ticket = self.request.GET.get('ticket')
         renew = self.request.GET.get('renew')
 
+        LOG.debug("Service ticket validation request received for %s" % ticket)
         if service and ticket:
             st = ServiceTicket.objects.validate_ticket(ticket, service=service, renew=renew)
             if st:
@@ -150,11 +151,13 @@ class ValidateView(NeverCacheMixin, View):
         return self.validation_failure()
 
     def validation_success(self, username):
+        LOG.debug("Service ticket validation request successful")
         response = HttpResponse(content="yes\n%s\n" % username)
         response.content_type = 'text/plain'
         return response
 
     def validation_failure(self):
+        LOG.debug("Service ticket validation request failed")
         response = HttpResponse(content="no\n\n")
         response.content_type = 'text/plain'
         return response
