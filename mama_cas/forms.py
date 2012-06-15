@@ -48,7 +48,6 @@ class LoginForm(forms.Form):
             else:
                 LOG.warn("Error authenticating user %s" % username)
                 raise forms.ValidationError("The username and/or password you provided are not correct")
-
         return self.cleaned_data
 
 class LoginFormWarn(LoginForm):

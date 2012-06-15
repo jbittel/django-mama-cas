@@ -5,32 +5,29 @@
     <title>{% block title %}{% endblock title %}</title>
     {% block extra_head %}
     <style>
-        html, body { color:#000; background-color:#d9d9de; font:1em 'Lucida Sans Unicode', Arial, Helvetica; }
-        #content { margin:10% auto 0 auto; width:500px; background-color:#fff; padding:30px; border-radius:20px; }
-        .messages, .errorlist { width:90%; margin:1em auto; background-color:#fff6bf; border:1px solid #ffd324; color:#514721; padding:8px; list-style:none; }
+        html, body { color:#000; background-color:#e6e7e9; font:1em Arial; }
+        #header { height:200px; }
+        #content { margin:0 auto; width:275px; padding:0; }
+        .messages, .errorlist { margin:0 auto; background-color:#f8fff0; border:1px solid #bbee77; color:#234600; padding:5px; list-style:none; font-size:.8em; }
         .errorlist { background-color:#fbe3e4; border-color:#fbc2c4; color:#8a1f11; }
-        #login-form { width:90%; margin:0 auto; }
         fieldset { border:0; padding:0; margin:0; }
-        label { display:block; margin-bottom:5px; font-size:1.1em;}
-        .input input { width:300px; font-size:1.3em; padding:5px; margin:5px 0 10px;
-                       text-shadow:0px 1px 0px #fff;
-                       outline:none;
-                       background:-webkit-gradient(linear, left top, left bottom, from(#ddd), to(#fff));
-                       background:-moz-linear-gradient(top, #ddd, #fff);
-                       -webkit-border-radius: 3px;
-                       -moz-border-radius: 3px;
-                       border-radius:3px;
-                       border:1px solid #717171; }
-        .input input:focus { -webkit-box-shadow:0px 0px 5px #007eff; -moz-box-shadow:0px 0px 5px #007eff; box-shadow:0px 0px 5px #007eff; }
-        .shadow { box-shadow: 3px 3px 4px #000; }
+        label { display:block; margin:5px 0; color:#999; font-size:1em; font-weight:bold; }
+        label:after { content:":"; }
+        .inputs input { font-size:1.2em; padding:5px 0 5px 10px; margin-bottom:15px; border:0; color:#59595b; }
+        .actions { margin:20px 0 5px; }
+        h1 { margin:20px 0; font-size:1.4em; color:#58595b; }
     </style>
     {% endblock extra_head %}
 </head>
 <body>
     {% block body %}
-    <div id="content" class="shadow">
+    <div id="header">
+        {% block header %}
+        {% endblock header %}
+    </div>
+    <div id="content">
         {% block content %}
-        <h1>{% block content_title %}Log In{% endblock content_title %}</h1>
+        <h1>{% block content_title %}Universal Login Portal{% endblock content_title %}</h1>
         {% if messages %}
         <ul class="messages">
             {% for message in messages %}
@@ -44,17 +41,20 @@
             {% for field in form.hidden_fields %}
                 {{ field }}
             {% endfor %}
-            <fieldset class="input">
+            <fieldset class="inputs">
             {% for field in form.visible_fields %}
-                {{ field.label_tag }}{{ field }}
-                {{ field.errors }}
+                {{ field.label_tag }}{{ field.errors }}{{ field }}
             {% endfor %}
             </fieldset>
-            <fieldset class="action">
-                <input type="submit" name="submit_login" value="Log in" />
+            <fieldset class="actions">
+                <input type="submit" name="submit_login" value="Login" />
             </fieldset>
         </form>
         {% endblock content %}
+    </div>
+    <div id="footer">
+        {% block footer %}
+        {% endblock footer %}
     </div>
     {% endblock body %}
 </body>
