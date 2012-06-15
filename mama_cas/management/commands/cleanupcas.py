@@ -15,7 +15,6 @@ storage or performance problems.
 This command calls ``delete_invalid_tickets()`` for each applicable
 model, which determines the tickets that have been invalidated and
 deletes them.
-
 """
 
 from django.core.management.base import NoArgsCommand

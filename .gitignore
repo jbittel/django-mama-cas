@@ -1,1 +1,4 @@
 *.pyc
+_build
+_static
+_templates
