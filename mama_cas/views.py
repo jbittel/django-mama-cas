@@ -112,18 +112,18 @@ class LogoutView(NeverCacheMixin, TemplateView):
 
     If a URL is specified, it will be displayed on the page as a suggested
     link to follow.
-
     """
-    template_name = 'mama_cas/logout.html'
+    template_name = 'mama_cas/login.html'
 
     def get(self, *args, **kwargs):
         if self.request.user.is_authenticated():
             auth.logout(self.request)
-        context = self.get_context_data()
-        return self.render_to_response(context)
-
-    def get_context_data(self):
-        return { 'url': self.request.GET.get('url') }
+        messages.success(self.request, "You have been successfully logged out.")
+        url = self.request.GET.get('url', None)
+        if url:
+            messages.success(self.request, "The application has provided this link to follow: " \
+                "<a href=\"%s\">%s</a>" % (url, url), extra_tags='safe')
+        return redirect(reverse('cas_login'))
 
 class ValidateView(NeverCacheMixin, View):
     """

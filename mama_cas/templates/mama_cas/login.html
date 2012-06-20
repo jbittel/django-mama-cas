@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>{% block title %}{% endblock title %}</title>
+    <title>{% block title %}Universal Login Portal{% endblock title %}</title>
     {% block extra_head %}
     <style>
         html, body { color:#000; background-color:#e6e7e9; font:1em Arial; }
@@ -21,17 +21,16 @@
 </head>
 <body>
     {% block body %}
-    <div id="header">
-        {% block header %}
-        {% endblock header %}
-    </div>
+    <div id="header">{% block header %}{% endblock header %}</div>
     <div id="content">
         {% block content %}
         <h1>{% block content_title %}Universal Login Portal{% endblock content_title %}</h1>
         {% if messages %}
         <ul class="messages">
             {% for message in messages %}
-            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            <li class="{{ message.tags }}">
+                {% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}
+            </li>
             {% endfor %}
         </ul>
         {% endif %}
@@ -52,10 +51,7 @@
         </form>
         {% endblock content %}
     </div>
-    <div id="footer">
-        {% block footer %}
-        {% endblock footer %}
-    </div>
+    <div id="footer">{% block footer %}{% endblock footer %}</div>
     {% endblock body %}
 </body>
 </html>
