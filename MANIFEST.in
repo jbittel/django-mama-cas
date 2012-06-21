@@ -1,0 +1,4 @@
+include LICENSE
+include MANIFEST.in
+recursive-include docs *
+recursive-include mama_cas/templates *
