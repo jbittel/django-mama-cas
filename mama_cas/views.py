@@ -116,6 +116,7 @@ class LogoutView(NeverCacheMixin, TemplateView):
     template_name = 'mama_cas/login.html'
 
     def get(self, *args, **kwargs):
+        LOG.debug("Logout request received for user '%s'" % self.request.user)
         if self.request.user.is_authenticated():
             auth.logout(self.request)
         messages.success(self.request, "You have been successfully logged out.")
@@ -151,13 +152,11 @@ class ValidateView(NeverCacheMixin, View):
         return self.validation_failure()
 
     def validation_success(self, username):
-        LOG.debug("Service ticket validation request successful")
         response = HttpResponse(content="yes\n%s\n" % username)
         response.content_type = 'text/plain'
         return response
 
     def validation_failure(self):
-        LOG.debug("Service ticket validation request failed")
         response = HttpResponse(content="no\n\n")
         response.content_type = 'text/plain'
         return response
