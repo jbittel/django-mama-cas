@@ -19,7 +19,7 @@ acceptor, as well as a validator for services to check for an existing single
 sign-on session.  This allows web services to authenticate a user without
 having access to the user's credentials.
 
-To begin, please read the :ref:`getting started document <getting-started>`
+To begin, please read the :ref:`getting started <getting-started>` document
 for information on how to install and configure django-mama-cas.
 
 Contents:
@@ -30,6 +30,7 @@ Contents:
    getting-started
    forms
    templates
+   management-commands
    protocol
 
 Please note that the current release of django-mama-cas is an early alpha

@@ -7,7 +7,7 @@ Protocol specification
 ----------------------
 
 The official CAS protocol specification can be found at
-<http://www.jasig.org/cas/protocol>. Currently django-mama-cas only supports
+http://www.jasig.org/cas/protocol. Currently django-mama-cas only supports
 the CAS 1.0 protocol, although 2.0 support is planned for the future.
 
 **Basic CAS 1.0 authentication process**
