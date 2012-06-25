@@ -50,6 +50,7 @@ class LoginView(NeverCacheMixin, FormView):
             LOG.debug("Renew request received by credential requestor")
             auth.logout(self.request)
             login = add_query_params(reverse('cas_login'), { 'service': service })
+            LOG.debug("Redirecting to %s" % login)
             return redirect(login)
         elif gateway and service:
             LOG.debug("Gateway request received by credential requestor")
@@ -57,13 +58,15 @@ class LoginView(NeverCacheMixin, FormView):
                 st = ServiceTicket.objects.create_ticket(service=service,
                                                          user=self.request.user)
                 service = add_query_params(service, { 'ticket': st.ticket })
+            LOG.debug("Redirecting to %s" % service)
             return redirect(service)
         elif self.request.user.is_authenticated():
             if service:
                 LOG.debug("Service ticket request received by credential requestor")
                 st = ServiceTicket.objects.create_ticket(service=service,
                                                          user=self.request.user)
-                service = add_query_params(service, {'ticket': st.ticket })
+                service = add_query_params(service, { 'ticket': st.ticket })
+                LOG.debug("Redirecting to %s" % service)
                 return redirect(service)
             else:
                 messages.success(self.request, "You are logged in as %s" % self.request.user)
@@ -94,6 +97,7 @@ class LoginView(NeverCacheMixin, FormView):
                                                      user=self.request.user,
                                                      primary=True)
             service = add_query_params(service, { 'ticket': st.ticket })
+            LOG.debug("Redirecting to %s" % service)
             return redirect(service)
         return redirect(reverse('cas_login'))
 
