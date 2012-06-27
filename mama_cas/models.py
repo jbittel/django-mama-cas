@@ -116,6 +116,8 @@ class Ticket(models.Model):
     or its inheritors. Instead, the provided manager contains methods
     for creating, validating, consuming and deleting invalid ``Ticket``s.
     """
+    TICKET_EXPIRE = getattr(settings, 'CAS_SERVICE_TICKET_EXPIRE', 5)
+
     ticket = models.CharField(max_length=255, unique=True)
     created_on = models.DateTimeField()
     consumed = models.DateTimeField(null=True)
@@ -172,12 +174,42 @@ class ServiceTicket(Ticket):
     of credentials and a service identifier to /login.
     """
     TICKET_PREFIX = u"ST"
-    TICKET_EXPIRE = getattr(settings, 'CAS_SERVICE_TICKET_EXPIRE', 5)
 
     service = models.CharField(max_length=255)
     user = models.ForeignKey(User)
     primary = models.BooleanField()
+    granted_by_pgt = models.ForeignKey('ProxyGrantingTicket', null=True, blank=True)
 
     class Meta:
         verbose_name = "service ticket"
         verbose_name_plural = "service tickets"
+
+class ProxyTicket(ServiceTicket):
+    """
+    (3.2) A ``ProxyTicket`` is used by a service as a credential to obtain
+    access to a back-end service on behalf of a client. It is obtained upon
+    a service's presentation of a ``ProxyGrantingTicket`` and a service
+    identifier.
+    """
+    TICKET_PREFIX = u"PT"
+
+    class Meta:
+        verbose_name = "proxy ticket"
+        verbose_name_plural = "proxy tickets"
+
+class ProxyGrantingTicket(Ticket):
+    """
+    (3.3) A ``ProxyGrantingTicket`` is used by a service to obtain proxy
+    tickets for obtaining access to a back-end service on behalf of a
+    client. It is obtained upon validation of a ``ServiceTicket`` or a
+    ``ProxyTicket``.
+    """
+    TICKET_PREFIX = u"PGT"
+
+    iou = models.CharField(max_length=255, unique=True)
+#    service_ticket = models.ForeignKey(ServiceTicket, null=True, blank=True)
+#    proxy_ticket = models.ForeignKey(ProxyTicket, null=True, blank=True)
+
+    class Meta:
+        verbose_name = "proxy-granting ticket"
+        verbose_name_plural = "proxy-granting tickets"
