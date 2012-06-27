@@ -8,8 +8,8 @@ from django.conf.urls import url
 from mama_cas.views import LoginView
 from mama_cas.views import LogoutView
 from mama_cas.views import ValidateView
+from mama_cas.views import ServiceValidateView
 
-from mama_cas.views import service_validate
 from mama_cas.views import proxy_validate
 from mama_cas.views import proxy
 
@@ -25,7 +25,7 @@ urlpatterns = patterns('',
         ValidateView.as_view(),
         name='cas_validate'),
     url(r'^serviceValidate/?$',
-        service_validate,
+        ServiceValidateView.as_view(),
         name='cas_service_validate'),
     url(r'^proxyValidate/?$',
         proxy_validate,

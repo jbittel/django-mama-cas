@@ -171,11 +171,39 @@ class ValidateView(NeverCacheMixin, View):
         response.content_type = 'text/plain'
         return response
 
-def service_validate(request):
+class ServiceValidateView(NeverCacheMixin, View):
     """
     (2.5) Check the validity of a service ticket. [CAS 2.0]
     """
-    return HttpResponse(content='Not Implemented', content_type='text/plain', status=501)
+    def get(self, *args, **kwargs):
+        service = self.request.GET.get('service')
+        ticket = self.request.GET.get('ticket')
+        renew = self.request.GET.get('renew')
+        pgturl = self.request.GET.get('pgtUrl')
+
+        LOG.debug("Service ticket validation request received for %s" % ticket)
+        try:
+            st = ServiceTicket.objects.validate_ticket(ticket, service=service, renew=renew)
+        except (InvalidRequestError, InvalidTicketError, InvalidServiceError, InternalError) as e:
+            LOG.warn("%s %s" % (e.code, e))
+            return self.validation_failure()
+        else:
+            if pgturl:
+                # TODO issue ProxyGrantingTicket
+                pass
+            return self.validation_success(st.user.username)
+
+    def validation_success(self, username):
+        # TODO return XML fragment
+        response = HttpResponse(content="yes\n%s\n" % username)
+        response.content_type = 'text/plain'
+        return response
+
+    def validation_failure(self):
+        # TODO return XML fragment
+        response = HttpResponse(content="no\n\n")
+        response.content_type = 'text/plain'
+        return response
 
 def proxy_validate(request):
     """
