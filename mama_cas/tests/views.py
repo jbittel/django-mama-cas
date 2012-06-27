@@ -88,8 +88,7 @@ class LogoutViewTests(TestCase):
 
         """
         response = self.client.get(reverse('cas_logout'))
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'mama_cas/logout.html')
+        self.assertEqual(response.status_code, 302)
 
     def test_logout_view_post(self):
         """
@@ -112,8 +111,7 @@ class LogoutViewTests(TestCase):
 
         response = self.client.get(reverse('cas_logout'))
         self.assertFalse('_auth_user_id' in self.client.session)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'mama_cas/logout.html')
+        self.assertEqual(response.status_code, 302)
 
 class ValidateViewTests(TestCase):
     valid_st_str = 'ST-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
