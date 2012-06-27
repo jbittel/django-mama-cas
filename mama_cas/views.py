@@ -14,6 +14,10 @@ from mama_cas.forms import LoginForm
 from mama_cas.models import ServiceTicket
 from mama_cas.utils import add_query_params
 from mama_cas.mixins import NeverCacheMixin
+from mama_cas.exceptions import InvalidRequestError
+from mama_cas.exceptions import InvalidTicketError
+from mama_cas.exceptions import InvalidServiceError
+from mama_cas.exceptions import InternalError
 
 
 LOG = logging.getLogger('mama_cas')
@@ -149,11 +153,13 @@ class ValidateView(NeverCacheMixin, View):
         renew = self.request.GET.get('renew')
 
         LOG.debug("Service ticket validation request received for %s" % ticket)
-        if service and ticket:
+        try:
             st = ServiceTicket.objects.validate_ticket(ticket, service=service, renew=renew)
-            if st:
-                return self.validation_success(st.user.username)
-        return self.validation_failure()
+        except (InvalidRequestError, InvalidTicketError, InvalidServiceError, InternalError) as e:
+            LOG.warn("%s %s" % (e.code, e))
+            return self.validation_failure()
+        else:
+            return self.validation_success(st.user.username)
 
     def validation_success(self, username):
         response = HttpResponse(content="yes\n%s\n" % username)

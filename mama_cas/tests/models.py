@@ -8,6 +8,10 @@ from django.core import management
 from django.contrib.auth.models import User
 
 from mama_cas.models import ServiceTicket
+from mama_cas.exceptions import InvalidRequestError
+from mama_cas.exceptions import InvalidTicketError
+from mama_cas.exceptions import InvalidServiceError
+from mama_cas.exceptions import InternalError
 
 
 logging.disable(logging.CRITICAL)
@@ -57,22 +61,23 @@ class ServiceTicketTests(TestCase):
         service = 'http://www.test.com/'
         renew = 'true'
 
-        self.assertFalse(ServiceTicket.objects.validate_ticket(False))
-        self.assertFalse(ServiceTicket.objects.validate_ticket('12345', service=service))
-        self.assertFalse(ServiceTicket.objects.validate_ticket(self.valid_st_str, service=service))
-        self.assertFalse(ServiceTicket.objects.validate_ticket(st.ticket, service='http://www.test.net/'))
+        self.assertRaises(InvalidRequestError, ServiceTicket.objects.validate_ticket, False)
+        self.assertRaises(InvalidRequestError, ServiceTicket.objects.validate_ticket, '12345', service=None)
+        self.assertRaises(InvalidTicketError, ServiceTicket.objects.validate_ticket, '12345', service=service)
+        self.assertRaises(InvalidTicketError, ServiceTicket.objects.validate_ticket, self.valid_st_str, service=service)
+        self.assertRaises(InvalidServiceError, ServiceTicket.objects.validate_ticket, st.ticket, service='http://www.test.net/')
         # This test should fail, as the ticket was consumed in the preceeding test
-        self.assertFalse(ServiceTicket.objects.validate_ticket(st.ticket, service=service), st)
+        self.assertRaises(InvalidTicketError, ServiceTicket.objects.validate_ticket, st.ticket, service=service)
         st.consumed = None
         st.save()
         self.assertTrue(ServiceTicket.objects.validate_ticket(st.ticket, service=service), st)
 
         st.created_on = now() - timedelta(minutes=st.TICKET_EXPIRE + 1)
         st.save()
-        self.assertFalse(ServiceTicket.objects.validate_ticket(st.ticket, service))
+        self.assertRaises(InvalidTicketError, ServiceTicket.objects.validate_ticket, st.ticket, service=service)
 
         st.consume()
-        self.assertFalse(ServiceTicket.objects.validate_ticket(st.ticket, service))
+        self.assertRaises(InvalidTicketError, ServiceTicket.objects.validate_ticket, st.ticket, service=service)
 
     def test_invalid_ticket_deletion(self):
         """

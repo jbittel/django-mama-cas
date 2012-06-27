@@ -10,6 +10,11 @@ from django.utils.crypto import get_random_string
 from django.utils.http import same_origin
 from django.contrib.auth.models import User
 
+from mama_cas.exceptions import InvalidRequestError
+from mama_cas.exceptions import InvalidTicketError
+from mama_cas.exceptions import InvalidServiceError
+from mama_cas.exceptions import InternalError
+
 
 LOG = logging.getLogger('mama_cas')
 
@@ -50,38 +55,33 @@ class TicketManager(models.Manager):
         credentials.
         """
         if not ticket:
-            LOG.warn("No ticket string provided")
-            return False
+            raise InvalidRequestError("No ticket string provided")
+
+        if not service:
+            raise InvalidRequestError("No service identifier provided")
 
         if not TICKET_RE.match(ticket):
-            LOG.warn("Invalid ticket string provided: %s" % ticket)
-            return False
+            raise InvalidTicketError("Ticket string %s is invalid" % ticket)
 
         try:
             t = self.get(ticket=ticket)
         except self.model.DoesNotExist:
-            LOG.warn("Ticket '%s' does not exist" % ticket)
-            return False
+            raise InvalidTicketError("Ticket %s does not exist" % ticket)
 
         if t.is_consumed():
-            LOG.warn("Ticket '%s' has already been used" % ticket)
-            return False
-        t.consume()
+            raise InvalidTicketError("Ticket %s has already been used" % ticket)
 
         if t.is_expired():
-            LOG.warn("Ticket '%s' has expired" % ticket)
-            return False
+            raise InvalidTicketError("Ticket %s has expired" % ticket)
 
         if service and hasattr(t, 'service'):
             if not same_origin(t.service, service):
-                LOG.warn("Ticket '%s' for service '%s' is invalid for service '%s'" % (ticket, t.service, service))
-                return False
+                raise InvalidServiceError("Ticket %s for service %s is invalid for service %s" % (ticket, t.service, service))
 
         if renew and not t.is_primary():
-            LOG.warn("Ticket '%s' was not issued via primary credentials" % ticket)
-            return False
+            raise InvalidTicketError("Ticket %s was not issued via primary credentials" % ticket)
 
-        LOG.info("Validated ticket '%s'" % ticket)
+        LOG.info("Validated ticket %s" % ticket)
         return t
 
     def delete_invalid_tickets(self):
