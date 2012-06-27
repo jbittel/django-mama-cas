@@ -25,20 +25,24 @@ TICKET_RE = re.compile("^[A-Z]{2}-[0-9]{10,}-[a-zA-Z0-9]{%d}$" % TICKET_RAND_LEN
 class TicketManager(models.Manager):
     def create_ticket(self, **kwargs):
         """
-        Create a new ``Ticket`` and generate a sufficiently opaque ticket
-        string to ensure the ticket is not guessable. Any provided arguments
-        are passed on to the ``create()`` function. Return the newly created
-        ``Ticket``.
+        Create a new ``Ticket`` with the appropriate default values. Any
+        provided arguments are passed on to the ``create()`` function.
+        Return the newly created ``Ticket``.
         """
-        ticket_str = "%s-%d-%s" % (self.model.TICKET_PREFIX, int(time.time()),
-                                   get_random_string(length=TICKET_RAND_LEN))
+        ticket_str = self.create_ticket_str(prefix=self.model.TICKET_PREFIX)
         now = timezone.now()
-
         new_ticket = self.create(ticket=ticket_str, created_on=now, **kwargs)
         LOG.debug("Created ticket '%s'" % new_ticket.ticket)
         return new_ticket
 
-    def validate_ticket(self, ticket, service=None, renew=False):
+    def create_ticket_str(self, prefix=""):
+        """
+        Generate a sufficiently opaque ticket string to ensure the ticket is
+        not guessable. If a prefix is provided, prepend it to the string.
+        """
+        return "%s-%d-%s" % (self.model.TICKET_PREFIX, int(time.time()),
+                             get_random_string(length=TICKET_RAND_LEN))
+
         """
         Given a ticket string, validate the corresponding ``Ticket`` returning
         the ``Ticket`` if valid. If validation fails, return ``False``.
