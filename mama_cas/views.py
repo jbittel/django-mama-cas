@@ -9,6 +9,8 @@ from django.views.generic import FormView
 from django.views.generic import TemplateView
 from django.views.generic import View
 from django.contrib import auth
+from django.template.loader import get_template
+from django.template import Context
 
 from mama_cas.forms import LoginForm
 from mama_cas.models import ServiceTicket
@@ -162,14 +164,10 @@ class ValidateView(NeverCacheMixin, View):
             return self.validation_success(st.user.username)
 
     def validation_success(self, username):
-        response = HttpResponse(content="yes\n%s\n" % username)
-        response.content_type = 'text/plain'
-        return response
+        return HttpResponse(content="yes\n%s\n" % username, content_type='text/plain')
 
     def validation_failure(self):
-        response = HttpResponse(content="no\n\n")
-        response.content_type = 'text/plain'
-        return response
+        return HttpResponse(content="no\n\n", content_type='text/plain')
 
 class ServiceValidateView(NeverCacheMixin, View):
     """
@@ -186,7 +184,7 @@ class ServiceValidateView(NeverCacheMixin, View):
             st = ServiceTicket.objects.validate_ticket(ticket, service=service, renew=renew)
         except (InvalidRequestError, InvalidTicketError, InvalidServiceError, InternalError) as e:
             LOG.warn("%s %s" % (e.code, e))
-            return self.validation_failure()
+            return self.validation_failure(e.code, e.msg)
         else:
             if pgturl:
                 # TODO issue ProxyGrantingTicket
@@ -194,16 +192,14 @@ class ServiceValidateView(NeverCacheMixin, View):
             return self.validation_success(st.user.username)
 
     def validation_success(self, username):
-        # TODO return XML fragment
-        response = HttpResponse(content="yes\n%s\n" % username)
-        response.content_type = 'text/plain'
-        return response
+        template = get_template('mama_cas/service_validate_success.xml')
+        content = template.render(Context({ 'username': username }))
+        return HttpResponse(content=content, content_type='text/xml')
 
-    def validation_failure(self):
-        # TODO return XML fragment
-        response = HttpResponse(content="no\n\n")
-        response.content_type = 'text/plain'
-        return response
+    def validation_failure(self, error_code, error_msg):
+        template = get_template('mama_cas/service_validate_failure.xml')
+        content = template.render(Context({ 'error_code': error_code, 'error_msg': error_msg }))
+        return HttpResponse(content=content, content_type='text/xml')
 
 def proxy_validate(request):
     """
