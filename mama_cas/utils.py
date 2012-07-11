@@ -21,3 +21,6 @@ def add_query_params(url, params):
     url = urlparse.urlunparse(parts)
 
     return url
+
+def is_scheme_https(url):
+    return 'https' == urlparse.urlparse(url).scheme

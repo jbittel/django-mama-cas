@@ -14,6 +14,7 @@ from django.template import Context
 
 from mama_cas.forms import LoginForm
 from mama_cas.models import ServiceTicket
+from mama_cas.models import ProxyGrantingTicket
 from mama_cas.utils import add_query_params
 from mama_cas.mixins import NeverCacheMixin
 from mama_cas.exceptions import InvalidRequestError
@@ -172,6 +173,19 @@ class ValidateView(NeverCacheMixin, View):
 class ServiceValidateView(NeverCacheMixin, View):
     """
     (2.5) Check the validity of a service ticket. [CAS 2.0]
+
+    When both ``service`` and ``ticket`` are provided, this URI responds with
+    an XML-fragment response indicating a ``ServiceTicket`` validation success
+    or failure. Whether or not the validation succeeds, the ``ServiceTicket``
+    is consumed, rendering it invalid for future authentication attempts.
+
+    If ``renew`` is specified, validation will only succeed if the
+    ``ServiceTicket`` was issued from the presentation of the user's primary
+    credentials (i.e. not from an existing single sign-on session).
+
+    If ``pgtUrl`` is specified, the response will also include a
+    ``ProxyGrantingTicket`` if the proxy callback URL has a valid SSL
+    certificate and responds with a successful HTTP status code.
     """
     def get(self, *args, **kwargs):
         service = self.request.GET.get('service')
@@ -187,13 +201,15 @@ class ServiceValidateView(NeverCacheMixin, View):
             return self.validation_failure(e.code, e.msg)
         else:
             if pgturl:
-                # TODO issue ProxyGrantingTicket
-                pass
-            return self.validation_success(st.user.username)
+                LOG.debug("Proxy-granting ticket request received for %s" % pgturl)
+                pgt = ProxyGrantingTicket.objects.create_ticket(pgturl, granted_by_st=st)
+            else:
+                pgt = None
+            return self.validation_success(st.user.username, pgt)
 
-    def validation_success(self, username):
+    def validation_success(self, username, pgt=None):
         template = get_template('mama_cas/service_validate_success.xml')
-        content = template.render(Context({ 'username': username }))
+        content = template.render(Context({ 'username': username, 'pgt': pgt }))
         return HttpResponse(content=content, content_type='text/xml')
 
     def validation_failure(self, error_code, error_msg):

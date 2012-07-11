@@ -14,6 +14,7 @@ from mama_cas.exceptions import InvalidRequestError
 from mama_cas.exceptions import InvalidTicketError
 from mama_cas.exceptions import InvalidServiceError
 from mama_cas.exceptions import InternalError
+from mama_cas.utils import is_scheme_https
 
 
 LOG = logging.getLogger('mama_cas')
@@ -23,19 +24,20 @@ TICKET_RE = re.compile("^[A-Z]{2}-[0-9]{10,}-[a-zA-Z0-9]{%d}$" % TICKET_RAND_LEN
 
 
 class TicketManager(models.Manager):
-    def create_ticket(self, **kwargs):
+    def create_ticket(self, ticket=None, **kwargs):
         """
         Create a new ``Ticket`` with the appropriate default values. Any
         provided arguments are passed on to the ``create()`` function.
         Return the newly created ``Ticket``.
         """
-        ticket_str = self.create_ticket_str(prefix=self.model.TICKET_PREFIX)
+        if not ticket:
+            ticket = self.create_rand_str(prefix=self.model.TICKET_PREFIX)
         now = timezone.now()
-        new_ticket = self.create(ticket=ticket_str, created_on=now, **kwargs)
-        LOG.debug("Created ticket '%s'" % new_ticket.ticket)
+        new_ticket = self.create(ticket=ticket, created_on=now, **kwargs)
+        LOG.debug("Created %s %s" % (self.model._meta.verbose_name.title(), new_ticket.ticket))
         return new_ticket
 
-    def create_ticket_str(self, prefix=""):
+    def create_rand_str(self, prefix=""):
         """
         Generate a sufficiently opaque ticket string to ensure the ticket is
         not guessable. If a prefix is provided, prepend it to the string.
@@ -68,27 +70,29 @@ class TicketManager(models.Manager):
         if not TICKET_RE.match(ticket):
             raise InvalidTicketError("Ticket string %s is invalid" % ticket)
 
+        title = self.model._meta.verbose_name.title()
+
         try:
             t = self.get(ticket=ticket)
         except self.model.DoesNotExist:
-            raise InvalidTicketError("Ticket %s does not exist" % ticket)
+            raise InvalidTicketError("%s %s does not exist" % (title, ticket))
 
         if t.is_consumed():
-            raise InvalidTicketError("Ticket %s has already been used" % ticket)
+            raise InvalidTicketError("%s %s has already been used" % (title, ticket))
         if consume:
             t.consume()
 
         if t.is_expired():
-            raise InvalidTicketError("Ticket %s has expired" % ticket)
+            raise InvalidTicketError("%s %s has expired" % (title, ticket))
 
         if service and hasattr(t, 'service'):
             if not same_origin(t.service, service):
-                raise InvalidServiceError("Ticket %s for service %s is invalid for service %s" % (ticket, t.service, service))
+                raise InvalidServiceError("%s %s for service %s is invalid for service %s" % (title, ticket, t.service, service))
 
         if renew and not t.is_primary():
-            raise InvalidTicketError("Ticket %s was not issued via primary credentials" % ticket)
+            raise InvalidTicketError("%s %s was not issued via primary credentials" % (title, ticket))
 
-        LOG.info("Validated ticket %s" % ticket)
+        LOG.info("Validated %s %s" % (title, ticket))
         return t
 
     def delete_invalid_tickets(self):
@@ -184,7 +188,7 @@ class ServiceTicket(Ticket):
         verbose_name = "service ticket"
         verbose_name_plural = "service tickets"
 
-class ProxyTicket(ServiceTicket):
+class ProxyTicket(Ticket):
     """
     (3.2) A ``ProxyTicket`` is used by a service as a credential to obtain
     access to a back-end service on behalf of a client. It is obtained upon
@@ -197,6 +201,31 @@ class ProxyTicket(ServiceTicket):
         verbose_name = "proxy ticket"
         verbose_name_plural = "proxy tickets"
 
+class ProxyGrantingTicketManager(TicketManager):
+    def create_ticket(self, pgturl, **kwargs):
+        """
+        """
+        pgtid = self.create_rand_str(prefix=self.model.TICKET_PREFIX)
+        pgtiou = self.create_rand_str(prefix=self.model.IOU_PREFIX)
+        try:
+            self.validate_pgturl(pgturl, pgtid, pgtiou)
+        except:
+            # pgtUrl validation failed, so nothing has been created
+            return None
+        else:
+            # pgtUrl validation succeeded, so create a new PGT with the
+            # already created ticket strings
+            return super(ProxyGrantingTicketManager, self).create_ticket(ticket=pgtid, iou=pgtiou, **kwargs)
+
+    def validate_pgturl(self, pgturl, pgtid, pgtiou):
+        """
+        """
+        if not is_scheme_https(pgturl):
+            raise InternalError("pgtUrl scheme is not HTTPS")
+        # TODO verify pgtUrl SSL certificate and the name matches the service
+        # TODO pass pgtId and pgtIou to pgtUrl
+        # TODO verify return HTTP status code is one of: 200, 301, 302, 303
+
 class ProxyGrantingTicket(Ticket):
     """
     (3.3) A ``ProxyGrantingTicket`` is used by a service to obtain proxy
@@ -205,10 +234,13 @@ class ProxyGrantingTicket(Ticket):
     ``ProxyTicket``.
     """
     TICKET_PREFIX = u"PGT"
+    IOU_PREFIX = u"PGTIOU"
 
     iou = models.CharField(max_length=255, unique=True)
-#    service_ticket = models.ForeignKey(ServiceTicket, null=True, blank=True)
-#    proxy_ticket = models.ForeignKey(ProxyTicket, null=True, blank=True)
+    granted_by_st = models.ForeignKey(ServiceTicket, null=True, blank=True)
+    granted_by_pt = models.ForeignKey(ProxyTicket, null=True, blank=True)
+
+    objects = ProxyGrantingTicketManager()
 
     class Meta:
         verbose_name = "proxy-granting ticket"
