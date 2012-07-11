@@ -20,6 +20,8 @@ deletes them.
 from django.core.management.base import NoArgsCommand
 
 from mama_cas.models import ServiceTicket
+from mama_cas.models import ProxyTicket
+from mama_cas.models import ProxyGrantingTicket
 
 
 class Command(NoArgsCommand):
@@ -27,3 +29,5 @@ class Command(NoArgsCommand):
 
     def handle_noargs(self, **options):
         ServiceTicket.objects.delete_invalid_tickets()
+        ProxyTicket.objects.delete_invalid_tickets()
+        ProxyGrantingTicket.objects.delete_invalid_tickets()
