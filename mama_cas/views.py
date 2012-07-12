@@ -155,7 +155,7 @@ class ValidateView(NeverCacheMixin, View):
         ticket = self.request.GET.get('ticket')
         renew = self.request.GET.get('renew')
 
-        LOG.debug("Service ticket validation request received for %s" % ticket)
+        LOG.debug("Validation request received for %s" % ticket)
         try:
             st = ServiceTicket.objects.validate_ticket(ticket, service=service, renew=renew)
         except (InvalidRequestError, InvalidTicketError, InvalidServiceError, InternalError) as e:
@@ -193,7 +193,7 @@ class ServiceValidateView(NeverCacheMixin, View):
         renew = self.request.GET.get('renew')
         pgturl = self.request.GET.get('pgtUrl')
 
-        LOG.debug("Service ticket validation request received for %s" % ticket)
+        LOG.debug("Validation request received for %s" % ticket)
         try:
             st = ServiceTicket.objects.validate_ticket(ticket, service=service, renew=renew)
         except (InvalidRequestError, InvalidTicketError, InvalidServiceError, InternalError) as e:

@@ -175,8 +175,8 @@ class ServiceValidateViewTests(TestCase):
     valid_st_str = 'ST-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
     valid_pgt_str = 'PGT-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
     ticket_info = {'service': 'http://www.test.com/'}
-    valid_pgt_url = 'https://www.test.com/'
-    invalid_pgt_url = 'http://www.test.com/'
+    valid_pgt_url = 'https://localhost/'
+    invalid_pgt_url = 'http://localhost/'
 
     def setUp(self):
         """

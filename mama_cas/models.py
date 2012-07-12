@@ -2,6 +2,7 @@ from datetime import timedelta
 import time
 import logging
 import re
+import requests
 
 from django.db import models
 from django.conf import settings
@@ -14,6 +15,7 @@ from mama_cas.exceptions import InvalidRequestError
 from mama_cas.exceptions import InvalidTicketError
 from mama_cas.exceptions import InvalidServiceError
 from mama_cas.exceptions import InternalError
+from mama_cas.utils import add_query_params
 from mama_cas.utils import is_scheme_https
 
 
@@ -204,13 +206,19 @@ class ProxyTicket(Ticket):
 class ProxyGrantingTicketManager(TicketManager):
     def create_ticket(self, pgturl, **kwargs):
         """
+        When a ``pgtUrl`` parameter is provided to ``/serviceValidate`` or
+        ``/proxyValidate``, attempt to create a new ``ProxyGrantingTicket``.
+        Start by creating the necessary ticket strings and then validate the
+        callback URL. If validation succeeds, create and return the
+        ``ProxyGrantingTicket``. If validation fails, return ``None``.
         """
         pgtid = self.create_rand_str(prefix=self.model.TICKET_PREFIX)
         pgtiou = self.create_rand_str(prefix=self.model.IOU_PREFIX)
         try:
             self.validate_pgturl(pgturl, pgtid, pgtiou)
-        except:
+        except InternalError as e:
             # pgtUrl validation failed, so nothing has been created
+            LOG.warn("%s %s" % (e.code, e))
             return None
         else:
             # pgtUrl validation succeeded, so create a new PGT with the
@@ -219,12 +227,32 @@ class ProxyGrantingTicketManager(TicketManager):
 
     def validate_pgturl(self, pgturl, pgtid, pgtiou):
         """
+        Verify the provided proxy callback URL. This verification process
+        requires three steps:
+
+        1. The URL scheme must be HTTPS
+        2. The SSL certificate must be valid and its name must match that
+           of the service
+        3. The callback URL must respond with a 200 or 3xx response code
+
+        It is not required for validation that 3xx redirects be followed.
         """
+        # Ensure the scheme is HTTPS before proceeding
         if not is_scheme_https(pgturl):
-            raise InternalError("pgtUrl scheme is not HTTPS")
-        # TODO verify pgtUrl SSL certificate and the name matches the service
-        # TODO pass pgtId and pgtIou to pgtUrl
-        # TODO verify return HTTP status code is one of: 200, 301, 302, 303
+            raise InternalError("Proxy callback URL scheme is not HTTPS")
+
+        # Connect to proxy callback URL, checking the SSL certificate
+        pgturl = add_query_params(pgturl, { 'pgtId': pgtid, 'pgtIou': pgtiou })
+        try:
+            r = requests.get(pgturl, verify=True)
+        except (requests.exceptions.ConnectionError, requests.exceptions.SSLError) as e:
+            raise InternalError("%s" % e)
+
+        # Check the returned HTTP status code
+        try:
+            r.raise_for_status()
+        except requests.exceptions.HTTPError as e:
+            raise InternalError("Proxy callback returned %s" % e)
 
 class ProxyGrantingTicket(Ticket):
     """
