@@ -9,9 +9,8 @@ from mama_cas.views import LoginView
 from mama_cas.views import LogoutView
 from mama_cas.views import ValidateView
 from mama_cas.views import ServiceValidateView
+from mama_cas.views import ProxyValidateView
 from mama_cas.views import ProxyView
-
-from mama_cas.views import proxy_validate
 
 
 urlpatterns = patterns('',
@@ -28,7 +27,7 @@ urlpatterns = patterns('',
         ServiceValidateView.as_view(),
         name='cas_service_validate'),
     url(r'^proxyValidate/?$',
-        proxy_validate,
+        ProxyValidateView.as_view(),
         name='cas_proxy_validate'),
     url(r'^proxy/?$',
         ProxyView.as_view(),

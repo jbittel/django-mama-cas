@@ -190,6 +190,9 @@ class ServiceValidateView(NeverCacheMixin, View):
     ``ProxyGrantingTicket`` if the proxy callback URL has a valid SSL
     certificate and responds with a successful HTTP status code.
     """
+    template_success = 'mama_cas/validate_success.xml'
+    template_failure = 'mama_cas/validate_failure.xml'
+
     def get(self, *args, **kwargs):
         service = self.request.GET.get('service')
         ticket = self.request.GET.get('ticket')
@@ -212,21 +215,22 @@ class ServiceValidateView(NeverCacheMixin, View):
             return self.validation_success(st.user.username, pgt)
 
     def validation_success(self, username, pgt=None):
-        template = get_template('mama_cas/service_validate_success.xml')
+        template = get_template(self.template_success)
         content = template.render(Context({ 'username': username, 'pgt': pgt }))
         return HttpResponse(content=content, content_type='text/xml')
 
     def validation_failure(self, error_code, error_msg):
-        template = get_template('mama_cas/service_validate_failure.xml')
+        template = get_template(self.template_failure)
         content = template.render(Context({ 'error_code': error_code, 'error_msg': error_msg }))
         return HttpResponse(content=content, content_type='text/xml')
 
-def proxy_validate(request):
+class ProxyValidateView(ServiceValidateView):
     """
     (2.6) Check the validity of a service ticket, and additionally
     validate proxy tickets. [CAS 2.0]
     """
-    return HttpResponse(content='Not Implemented', content_type='text/plain', status=501)
+    # TODO validate proxy tickets
+    pass
 
 class ProxyView(NeverCacheMixin, View):
     """
@@ -235,8 +239,12 @@ class ProxyView(NeverCacheMixin, View):
 
     When both ``pgt`` and ``targetService`` are specified, this URI responds
     with an XML-fragment response indicating a ``ProxyGrantingTicket``
-    validation success or failure.
+    validation success or failure. If validation succeeds, a ``ProxyTicket``
+    will be created and included in the response.
     """
+    template_success = 'mama_cas/proxy_success.xml'
+    template_failure = 'mama_cas/proxy_failure.xml'
+
     def get(self, *args, **kwargs):
         pgt = self.request.GET.get('pgt')
         target_service = self.request.GET.get('targetService')
@@ -254,11 +262,11 @@ class ProxyView(NeverCacheMixin, View):
             return self.validation_success(pt)
 
     def validation_success(self, pt):
-        template = get_template('mama_cas/proxy_success.xml')
+        template = get_template(self.template_success)
         content = template.render(Context({ 'pt': pt }))
         return HttpResponse(content=content, content_type='text/xml')
 
     def validation_failure(self, error_code, error_msg):
-        template = get_template('mama_cas/proxy_failure.xml')
+        template = get_template(self.template_failure)
         content = template.render(Context({ 'error_code': error_code, 'error_msg': error_msg }))
         return HttpResponse(content=content, content_type='text/xml')
