@@ -6,6 +6,8 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 
 from mama_cas.models import ServiceTicket
+from mama_cas.models import ProxyTicket
+from mama_cas.models import ProxyGrantingTicket
 from mama_cas.forms import LoginForm
 
 
@@ -257,3 +259,55 @@ class ServiceValidateViewTests(TestCase):
         response = self.client.get(reverse('cas_service_validate') + query_str)
         self.assertContains(response, 'authenticationSuccess', status_code=200)
         self.assertNotContains(response, 'proxyGrantingTicket', status_code=200)
+
+class ProxyViewTests(TestCase):
+    valid_st_str = 'ST-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+    valid_pgt_str = 'PGT-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+    valid_pgtiou_str = 'PGTIOU-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+    ticket_info = { 'service': 'http://www.example.com/' }
+
+    def setUp(self):
+        """
+        Create a valid user and service ticket for testing purposes.
+        """
+        self.user = User.objects.create_user('test', 'test@example.com', 'testing')
+        self.ticket_info.update({'user': self.user})
+        self.st = ServiceTicket.objects.create_ticket(**self.ticket_info)
+        self.pgt = ProxyGrantingTicket.objects.create_ticket('https://login.corban.edu',
+                                                             user=self.user,
+                                                             granted_by_st=self.st)
+
+    def test_proxy_view_get(self):
+        """
+        When called with no parameters, a ``GET`` request to the validate
+        view should return a validation failure.
+        """
+        response = self.client.get(reverse('cas_proxy'))
+        self.assertContains(response, 'INVALID_REQUEST', status_code=200)
+
+    def test_proxy_view_post(self):
+        """
+        A ``POST`` request to the validate view should return an error that
+        the method is not allowed.
+        """
+        response = self.client.post(reverse('cas_proxy'))
+        self.assertEqual(response.status_code, 405)
+
+    def test_proxy_view_invalid_ticket(self):
+        """
+        When called with an invalid ticket identifier, a ``GET`` request
+        to the proxy view should return a validation failure.
+        """
+        query_str = "?targetService=%s&pgt=%s" % (self.ticket_info['service'], self.valid_pgt_str)
+        response = self.client.get(reverse('cas_proxy') + query_str)
+        self.assertContains(response, 'BAD_PGT', status_code=200)
+
+    def test_proxy_view_success(self):
+        """
+        When called with correct parameters, a ``GET`` request to the
+        proxy view should return a validation success with an included
+        ``ProxyTicket``.
+        """
+        query_str = "?targetService=%s&pgt=%s" % (self.ticket_info['service'], self.pgt.ticket)
+        response = self.client.get(reverse('cas_proxy') + query_str)
+        self.assertContains(response, 'proxyTicket', status_code=200)

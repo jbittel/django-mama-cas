@@ -15,6 +15,7 @@ from mama_cas.exceptions import InvalidRequestError
 from mama_cas.exceptions import InvalidTicketError
 from mama_cas.exceptions import InvalidServiceError
 from mama_cas.exceptions import InternalError
+from mama_cas.exceptions import BadPGTError
 from mama_cas.utils import add_query_params
 from mama_cas.utils import is_scheme_https
 
@@ -22,7 +23,7 @@ from mama_cas.utils import is_scheme_https
 LOG = logging.getLogger('mama_cas')
 
 TICKET_RAND_LEN = getattr(settings, 'CAS_TICKET_RAND_LEN', 32)
-TICKET_RE = re.compile("^[A-Z]{2}-[0-9]{10,}-[a-zA-Z0-9]{%d}$" % TICKET_RAND_LEN)
+TICKET_RE = re.compile("^[A-Z]{2,3}-[0-9]{10,}-[a-zA-Z0-9]{%d}$" % TICKET_RAND_LEN)
 
 
 class TicketManager(models.Manager):
@@ -273,6 +274,36 @@ class ProxyGrantingTicketManager(TicketManager):
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:
             raise InternalError("Proxy callback returned %s" % e)
+
+    def validate_ticket(self, ticket, service):
+        """
+        Given a ticket string, validate the corresponding ``Ticket`` returning
+        the ``Ticket`` if valid. If validation fails, return ``False``.
+        """
+        if not ticket:
+            raise InvalidRequestError("No ticket string provided")
+
+        if not service:
+            raise InvalidRequestError("No service identifier provided")
+
+        if not TICKET_RE.match(ticket):
+            raise InvalidTicketError("Ticket string %s is invalid" % ticket)
+
+        title = self.model._meta.verbose_name.title()
+
+        try:
+            t = self.get(ticket=ticket)
+        except self.model.DoesNotExist:
+            raise BadPGTError("%s %s does not exist" % (title, ticket))
+
+        if t.is_consumed():
+            raise InvalidTicketError("%s %s has already been used" % (title, ticket))
+
+        if t.is_expired():
+            raise InvalidTicketError("%s %s has expired" % (title, ticket))
+
+        LOG.info("Validated %s %s" % (title, ticket))
+        return t
 
 class ProxyGrantingTicket(Ticket):
     """

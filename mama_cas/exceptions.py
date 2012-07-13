@@ -44,3 +44,11 @@ class InternalError(Error):
     def __init__(self, msg):
         self.code = 'INTERNAL_ERROR'
         self.msg = msg
+
+class BadPGTError(Error):
+    """
+    The PGT provided was invalid
+    """
+    def __init__(self, msg):
+        self.code = 'BAD_PGT'
+        self.msg = msg

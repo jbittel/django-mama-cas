@@ -14,6 +14,7 @@ from django.template import Context
 
 from mama_cas.forms import LoginForm
 from mama_cas.models import ServiceTicket
+from mama_cas.models import ProxyTicket
 from mama_cas.models import ProxyGrantingTicket
 from mama_cas.utils import add_query_params
 from mama_cas.mixins import NeverCacheMixin
@@ -21,6 +22,7 @@ from mama_cas.exceptions import InvalidRequestError
 from mama_cas.exceptions import InvalidTicketError
 from mama_cas.exceptions import InvalidServiceError
 from mama_cas.exceptions import InternalError
+from mama_cas.exceptions import BadPGTError
 
 
 LOG = logging.getLogger('mama_cas')
@@ -129,6 +131,7 @@ class LogoutView(NeverCacheMixin, TemplateView):
     def get(self, *args, **kwargs):
         LOG.debug("Logout request received for user '%s'" % self.request.user)
         if self.request.user.is_authenticated():
+            ProxyGrantingTicket.objects.consume_tickets(self.request.user)
             auth.logout(self.request)
         messages.success(self.request, "You have been successfully logged out.")
         url = self.request.GET.get('url', None)
@@ -193,7 +196,7 @@ class ServiceValidateView(NeverCacheMixin, View):
         renew = self.request.GET.get('renew')
         pgturl = self.request.GET.get('pgtUrl')
 
-        LOG.debug("Validation request received for %s" % ticket)
+        LOG.debug("Service validation request received for %s" % ticket)
         try:
             st = ServiceTicket.objects.validate_ticket(ticket, service=service, renew=renew)
         except (InvalidRequestError, InvalidTicketError, InvalidServiceError, InternalError) as e:
@@ -202,7 +205,8 @@ class ServiceValidateView(NeverCacheMixin, View):
         else:
             if pgturl:
                 LOG.debug("Proxy-granting ticket request received for %s" % pgturl)
-                pgt = ProxyGrantingTicket.objects.create_ticket(pgturl, granted_by_st=st)
+                pgt = ProxyGrantingTicket.objects.create_ticket(pgturl, user=st.user,
+                                                                granted_by_st=st)
             else:
                 pgt = None
             return self.validation_success(st.user.username, pgt)
@@ -224,9 +228,37 @@ def proxy_validate(request):
     """
     return HttpResponse(content='Not Implemented', content_type='text/plain', status=501)
 
-def proxy(request):
+class ProxyView(NeverCacheMixin, View):
     """
     (2.7) Provide proxy tickets to services that have acquired proxy-
     granting tickets. [CAS 2.0]
+
+    When both ``pgt`` and ``targetService`` are specified, this URI responds
+    with an XML-fragment response indicating a ``ProxyGrantingTicket``
+    validation success or failure.
     """
-    return HttpResponse(content='Not Implemented', content_type='text/plain', status=501)
+    def get(self, *args, **kwargs):
+        pgt = self.request.GET.get('pgt')
+        target_service = self.request.GET.get('targetService')
+
+        LOG.debug("Proxy ticket request received")
+        try:
+            pgt = ProxyGrantingTicket.objects.validate_ticket(pgt, target_service)
+        except (InvalidRequestError, BadPGTError, InternalError) as e:
+            LOG.warn("%s %s" % (e.code, e))
+            return self.validation_failure(e.code, e)
+        else:
+            pt = ProxyTicket.objects.create_ticket(service=target_service,
+                                                   user=pgt.user,
+                                                   granted_by_pgt=pgt)
+            return self.validation_success(pt)
+
+    def validation_success(self, pt):
+        template = get_template('mama_cas/proxy_success.xml')
+        content = template.render(Context({ 'pt': pt }))
+        return HttpResponse(content=content, content_type='text/xml')
+
+    def validation_failure(self, error_code, error_msg):
+        template = get_template('mama_cas/proxy_failure.xml')
+        content = template.render(Context({ 'error_code': error_code, 'error_msg': error_msg }))
+        return HttpResponse(content=content, content_type='text/xml')
