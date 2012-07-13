@@ -119,6 +119,17 @@ class TicketManager(models.Manager):
             if ticket.is_consumed() or ticket.is_expired():
                 ticket.delete()
 
+    def consume_tickets(self, user):
+        """
+        Iterate over all ``Ticket``s for a specified user and consume all
+        tickets if they are not already consumed or expired. This is used
+        when the user logs out to ensure all tickets issued for this user
+        are no longer valid for future authentication attempts.
+        """
+        for ticket in self.filter(user=user):
+            if not ticket.is_consumed() and not ticket.is_expired():
+                ticket.consume()
+
 class Ticket(models.Model):
     """
     ``Ticket`` is an abstract base class implementing common methods
