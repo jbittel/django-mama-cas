@@ -62,7 +62,7 @@ class ServiceTicketTests(TestCase):
         renew = 'true'
 
         self.assertRaises(InvalidRequestError, ServiceTicket.objects.validate_ticket, False)
-        self.assertRaises(InvalidRequestError, ServiceTicket.objects.validate_ticket, '12345', service=None)
+        self.assertRaises(InvalidRequestError, ServiceTicket.objects.validate_ticket, self.valid_st_str, service=None)
         self.assertRaises(InvalidTicketError, ServiceTicket.objects.validate_ticket, '12345', service=service)
         self.assertRaises(InvalidTicketError, ServiceTicket.objects.validate_ticket, self.valid_st_str, service=service)
         self.assertRaises(InvalidServiceError, ServiceTicket.objects.validate_ticket, st.ticket, service='http://www.test.net/')
@@ -72,7 +72,7 @@ class ServiceTicketTests(TestCase):
         st.save()
         self.assertTrue(ServiceTicket.objects.validate_ticket(st.ticket, service=service), st)
 
-        st.created_on = now() - timedelta(minutes=st.TICKET_EXPIRE + 1)
+        st.created = now() - timedelta(minutes=st.TICKET_EXPIRE + 1)
         st.save()
         self.assertRaises(InvalidTicketError, ServiceTicket.objects.validate_ticket, st.ticket, service=service)
 
@@ -87,7 +87,7 @@ class ServiceTicketTests(TestCase):
         """
         st = ServiceTicket.objects.create_ticket(**self.ticket_info)
         expired_st = ServiceTicket.objects.create_ticket(**self.ticket_info)
-        expired_st.created_on = now() - timedelta(minutes=st.TICKET_EXPIRE + 1)
+        expired_st.created = now() - timedelta(minutes=st.TICKET_EXPIRE + 1)
         expired_st.save()
         consumed_st = ServiceTicket.objects.create_ticket(**self.ticket_info)
         consumed_st.consume()
@@ -105,7 +105,7 @@ class ServiceTicketTests(TestCase):
         """
         st = ServiceTicket.objects.create_ticket(**self.ticket_info)
         expired_st = ServiceTicket.objects.create_ticket(**self.ticket_info)
-        expired_st.created_on = now() - timedelta(minutes=st.TICKET_EXPIRE + 1)
+        expired_st.created = now() - timedelta(minutes=st.TICKET_EXPIRE + 1)
         expired_st.save()
         consumed_st = ServiceTicket.objects.create_ticket(**self.ticket_info)
         consumed_st.consume()

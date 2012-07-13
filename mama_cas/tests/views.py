@@ -17,7 +17,7 @@ class LoginViewTests(TestCase):
         """
         Create a test user for authentication purposes.
         """
-        self.user = User.objects.create_user('test', 'test@localhost.com', 'testing')
+        self.user = User.objects.create_user('test', 'test@example.com', 'testing')
 
     def test_login_view(self):
         """
@@ -51,7 +51,7 @@ class LoginViewTests(TestCase):
         """
         login_data={'username': 'test',
                     'password': 'testing',
-                    'service': 'http://test.localhost.com/'}
+                    'service': 'http://test.example.com/'}
 
         response = self.client.post(reverse('cas_login'), login_data)
         self.assertEqual(self.client.session['_auth_user_id'], self.user.pk)
@@ -73,7 +73,7 @@ class LogoutViewTests(TestCase):
         """
         Create a test user for authentication purposes.
         """
-        self.user = User.objects.create_user('test', 'test@localhost.com', 'testing')
+        self.user = User.objects.create_user('test', 'test@example.com', 'testing')
 
     def test_logout_view(self):
         """
@@ -107,7 +107,7 @@ class LogoutViewTests(TestCase):
 
 class ValidateViewTests(TestCase):
     valid_st_str = 'ST-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
-    ticket_info = {'service': 'http://www.test.com/'}
+    ticket_info = {'service': 'http://www.example.com/'}
     validation_failure = "no\n\n"
     validation_success = "yes\ntest\n"
 
@@ -115,7 +115,7 @@ class ValidateViewTests(TestCase):
         """
         Create a valid user and service ticket for testing purposes.
         """
-        self.user = User.objects.create_user('test', 'test@localhost.com', 'testing')
+        self.user = User.objects.create_user('test', 'test@example.com', 'testing')
         self.ticket_info.update({'user': self.user})
         self.st = ServiceTicket.objects.create_ticket(**self.ticket_info)
 
@@ -141,7 +141,7 @@ class ValidateViewTests(TestCase):
         When called with an invalid service identifier, a ``GET`` request
         to the validate view should return a validation failure.
         """
-        query_str = "?service=%s&ticket=%s" % ('http://www.test.net', self.st.ticket)
+        query_str = "?service=%s&ticket=%s" % ('http://www.example.org', self.st.ticket)
         response = self.client.get(reverse('cas_validate') + query_str)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.content, self.validation_failure)
@@ -174,15 +174,15 @@ class ValidateViewTests(TestCase):
 class ServiceValidateViewTests(TestCase):
     valid_st_str = 'ST-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
     valid_pgt_str = 'PGT-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
-    ticket_info = {'service': 'http://www.test.com/'}
+    ticket_info = {'service': 'http://www.example.com/'}
     valid_pgt_url = 'https://localhost/'
-    invalid_pgt_url = 'http://localhost/'
+    invalid_pgt_url = 'http://www.example.com/'
 
     def setUp(self):
         """
         Create a valid user and service ticket for testing purposes.
         """
-        self.user = User.objects.create_user('test', 'test@localhost.com', 'testing')
+        self.user = User.objects.create_user('test', 'test@example.com', 'testing')
         self.ticket_info.update({'user': self.user})
         self.st = ServiceTicket.objects.create_ticket(**self.ticket_info)
 
@@ -207,7 +207,7 @@ class ServiceValidateViewTests(TestCase):
         When called with an invalid service identifier, a ``GET`` request
         to the validate view should return a validation failure.
         """
-        query_str = "?service=%s&ticket=%s" % ('http://www.test.net', self.st.ticket)
+        query_str = "?service=%s&ticket=%s" % ('http://www.example.org', self.st.ticket)
         response = self.client.get(reverse('cas_service_validate') + query_str)
         self.assertContains(response, 'INVALID_SERVICE', status_code=200)
 

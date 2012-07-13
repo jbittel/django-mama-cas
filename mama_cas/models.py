@@ -35,7 +35,7 @@ class TicketManager(models.Manager):
         if not ticket:
             ticket = self.create_rand_str(prefix=self.model.TICKET_PREFIX)
         now = timezone.now()
-        new_ticket = self.create(ticket=ticket, created_on=now, **kwargs)
+        new_ticket = self.create(ticket=ticket, created=now, **kwargs)
         LOG.debug("Created %s %s" % (self.model._meta.verbose_name.title(), new_ticket.ticket))
         return new_ticket
 
@@ -66,8 +66,15 @@ class TicketManager(models.Manager):
         if not ticket:
             raise InvalidRequestError("No ticket string provided")
 
-        if not service:
-            raise InvalidRequestError("No service identifier provided")
+        # If the model contains a ``service`` field, make sure we received
+        # a service parameter to compare against it
+        try:
+            self.model._meta.get_field('service')
+        except models.FieldDoesNotExist:
+            pass
+        else:
+            if not service:
+                raise InvalidRequestError("No service identifier provided")
 
         if not TICKET_RE.match(ticket):
             raise InvalidTicketError("Ticket string %s is invalid" % ticket)
@@ -125,7 +132,8 @@ class Ticket(models.Model):
     TICKET_EXPIRE = getattr(settings, 'CAS_SERVICE_TICKET_EXPIRE', 5)
 
     ticket = models.CharField(max_length=255, unique=True)
-    created_on = models.DateTimeField()
+    user = models.ForeignKey(User)
+    created = models.DateTimeField()
     consumed = models.DateTimeField(null=True)
 
     objects = TicketManager()
@@ -159,7 +167,7 @@ class Ticket(models.Model):
         Check a ``Ticket``s expired state. Return ``True`` if the ticket is
         expired, and ``False`` otherwise.
         """
-        if self.created_on + timedelta(minutes=self.TICKET_EXPIRE) <= timezone.now():
+        if self.created + timedelta(minutes=self.TICKET_EXPIRE) <= timezone.now():
             return True
         return False
 
@@ -182,9 +190,7 @@ class ServiceTicket(Ticket):
     TICKET_PREFIX = u"ST"
 
     service = models.CharField(max_length=255)
-    user = models.ForeignKey(User)
     primary = models.BooleanField()
-    granted_by_pgt = models.ForeignKey('ProxyGrantingTicket', null=True, blank=True)
 
     class Meta:
         verbose_name = "service ticket"
@@ -198,6 +204,9 @@ class ProxyTicket(Ticket):
     identifier.
     """
     TICKET_PREFIX = u"PT"
+
+    service = models.CharField(max_length=255)
+    granted_by_pgt = models.ForeignKey('ProxyGrantingTicket', null=True, blank=True)
 
     class Meta:
         verbose_name = "proxy ticket"
