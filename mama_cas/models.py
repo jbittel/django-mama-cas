@@ -48,13 +48,10 @@ class TicketManager(models.Manager):
         return "%s-%d-%s" % (self.model.TICKET_PREFIX, int(time.time()),
                              get_random_string(length=TICKET_RAND_LEN))
 
-    def validate_ticket(self, ticket, consume=True, service=None, renew=False):
+    def validate_ticket(self, ticket, service=None, renew=False):
         """
         Given a ticket string, validate the corresponding ``Ticket`` returning
         the ``Ticket`` if valid. If validation fails, return ``False``.
-
-        If ``consume`` is True, the ticket will be consumed as part of the
-        validation process.
 
         If ``service`` is provided and the ticket has a service attribute,
         the origin of the two services will be compared. Validation will only
@@ -89,8 +86,7 @@ class TicketManager(models.Manager):
 
         if t.is_consumed():
             raise InvalidTicketError("%s %s has already been used" % (title, ticket))
-        if consume:
-            t.consume()
+        t.consume()
 
         if t.is_expired():
             raise InvalidTicketError("%s %s has expired" % (title, ticket))
