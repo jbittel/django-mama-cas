@@ -181,16 +181,6 @@ class Ticket(models.Model):
             return True
         return False
 
-    def is_primary(self):
-        """
-        Check the credential origin for a ``Ticket``. If the ticket was
-        issued from the presentation of the user's primary credentials,
-        return ``True``, otherwise return ``False``.
-        """
-        if self.primary:
-            return True
-        return False
-
 class ServiceTicket(Ticket):
     """
     (3.1) A ``ServiceTicket`` is used by the client as a credential to
@@ -205,6 +195,16 @@ class ServiceTicket(Ticket):
     class Meta:
         verbose_name = "service ticket"
         verbose_name_plural = "service tickets"
+
+    def is_primary(self):
+        """
+        Check the credential origin for a ``ServiceTicket``. If the ticket was
+        issued from the presentation of the user's primary credentials,
+        return ``True``, otherwise return ``False``.
+        """
+        if self.primary:
+            return True
+        return False
 
 class ProxyTicket(Ticket):
     """
