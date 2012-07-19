@@ -216,7 +216,7 @@ class ProxyTicket(Ticket):
     TICKET_PREFIX = u"PT"
 
     service = models.CharField(max_length=255)
-    granted_by_pgt = models.ForeignKey('ProxyGrantingTicket', null=True, blank=True)
+    granted_by_pgt = models.ForeignKey('ProxyGrantingTicket')
 
     class Meta:
         verbose_name = "proxy ticket"
