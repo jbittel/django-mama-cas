@@ -40,12 +40,14 @@ class TicketManager(models.Manager):
         LOG.debug("Created %s %s" % (self.model._meta.verbose_name.title(), new_ticket.ticket))
         return new_ticket
 
-    def create_rand_str(self, prefix=""):
+    def create_rand_str(self, prefix=None):
         """
         Generate a sufficiently opaque ticket string to ensure the ticket is
         not guessable. If a prefix is provided, prepend it to the string.
         """
-        return "%s-%d-%s" % (self.model.TICKET_PREFIX, int(time.time()),
+        if not prefix:
+            prefix = self.model.TICKET_PREFIX
+        return "%s-%d-%s" % (prefix, int(time.time()),
                              get_random_string(length=TICKET_RAND_LEN))
 
     def validate_ticket(self, ticket, service=None, renew=False):
