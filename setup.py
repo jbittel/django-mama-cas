@@ -23,6 +23,13 @@ def split_relative_path(path):
     else:
         return ''
 
+def get_readme(filename):
+    """
+    Utility function to print the README file, used for the long_description
+    setup argument below.
+    """
+    return open(os.path.join(os.path.dirname(__file__), filename)).read()
+
 packages, package_data = [], []
 root_dir = os.path.dirname(__file__)
 if root_dir:
@@ -48,6 +55,7 @@ setup(
     name = 'django-mama-cas',
     version = '0.1',
     description = 'A CAS server single sign-on application for Django',
+    long_description = get_readme('README.md'),
     author = 'Jason Bittel',
     author_email = 'jason.bittel@gmail.com',
     url = 'http://github.com/jbittel/django-mama-cas',
