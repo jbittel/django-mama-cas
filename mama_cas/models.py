@@ -22,9 +22,6 @@ from mama_cas.utils import is_scheme_https
 
 LOG = logging.getLogger('mama_cas')
 
-TICKET_RAND_LEN = getattr(settings, 'CAS_TICKET_RAND_LEN', 32)
-TICKET_RE = re.compile("^[A-Z]{2,3}-[0-9]{10,}-[a-zA-Z0-9]{%d}$" % TICKET_RAND_LEN)
-
 
 class TicketManager(models.Manager):
     def create_ticket(self, ticket=None, **kwargs):
@@ -48,7 +45,7 @@ class TicketManager(models.Manager):
         if not prefix:
             prefix = self.model.TICKET_PREFIX
         return "%s-%d-%s" % (prefix, int(time.time()),
-                             get_random_string(length=TICKET_RAND_LEN))
+                             get_random_string(length=self.model.TICKET_RAND_LEN))
 
     def validate_ticket(self, ticket, service=None, renew=False):
         """
@@ -76,7 +73,7 @@ class TicketManager(models.Manager):
             if not service:
                 raise InvalidRequestError("No service identifier provided")
 
-        if not TICKET_RE.match(ticket):
+        if not self.model.TICKET_RE.match(ticket):
             raise InvalidTicketError("Ticket string %s is invalid" % ticket)
 
         title = self.model._meta.verbose_name.title()
@@ -140,6 +137,8 @@ class Ticket(models.Model):
     for creating, validating, consuming and deleting invalid ``Ticket``s.
     """
     TICKET_EXPIRE = getattr(settings, 'CAS_SERVICE_TICKET_EXPIRE', 5)
+    TICKET_RAND_LEN = getattr(settings, 'CAS_TICKET_RAND_LEN', 32)
+    TICKET_RE = re.compile("^[A-Z]{2,3}-[0-9]{10,}-[a-zA-Z0-9]{%d}$" % TICKET_RAND_LEN)
 
     ticket = models.CharField(max_length=255, unique=True)
     user = models.ForeignKey(User)
@@ -289,7 +288,7 @@ class ProxyGrantingTicketManager(TicketManager):
         if not service:
             raise InvalidRequestError("No service identifier provided")
 
-        if not TICKET_RE.match(ticket):
+        if not self.model.TICKET_RE.match(ticket):
             raise InvalidTicketError("Ticket string %s is invalid" % ticket)
 
         title = self.model._meta.verbose_name.title()
