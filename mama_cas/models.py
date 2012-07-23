@@ -10,6 +10,7 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.http import same_origin
 from django.contrib.auth.models import User
+from django.utils.translation import ugettext_lazy as _
 
 from mama_cas.exceptions import InvalidRequestError
 from mama_cas.exceptions import InvalidTicketError
@@ -140,10 +141,10 @@ class Ticket(models.Model):
     TICKET_RAND_LEN = getattr(settings, 'CAS_TICKET_RAND_LEN', 32)
     TICKET_RE = re.compile("^[A-Z]{2,3}-[0-9]{10,}-[a-zA-Z0-9]{%d}$" % TICKET_RAND_LEN)
 
-    ticket = models.CharField(max_length=255, unique=True)
-    user = models.ForeignKey(User)
-    created = models.DateTimeField()
-    consumed = models.DateTimeField(null=True)
+    ticket = models.CharField(_('ticket'), max_length=255, unique=True)
+    user = models.ForeignKey(User, verbose_name=_('user'))
+    created = models.DateTimeField(_('created'))
+    consumed = models.DateTimeField(_('consumed'), null=True)
 
     objects = TicketManager()
 
@@ -188,12 +189,12 @@ class ServiceTicket(Ticket):
     """
     TICKET_PREFIX = u"ST"
 
-    service = models.CharField(max_length=255)
-    primary = models.BooleanField()
+    service = models.CharField(_('service'), max_length=255)
+    primary = models.BooleanField(_('primary'))
 
     class Meta:
-        verbose_name = "service ticket"
-        verbose_name_plural = "service tickets"
+        verbose_name = _('service ticket')
+        verbose_name_plural = _('service tickets')
 
     def is_primary(self):
         """
@@ -214,12 +215,13 @@ class ProxyTicket(Ticket):
     """
     TICKET_PREFIX = u"PT"
 
-    service = models.CharField(max_length=255)
-    granted_by_pgt = models.ForeignKey('ProxyGrantingTicket')
+    service = models.CharField(_('service'), max_length=255)
+    granted_by_pgt = models.ForeignKey('ProxyGrantingTicket',
+                                       verbose_name=_('granted by proxy-granting ticket'))
 
     class Meta:
-        verbose_name = "proxy ticket"
-        verbose_name_plural = "proxy tickets"
+        verbose_name = _('proxy ticket')
+        verbose_name_plural = _('proxy tickets')
 
 class ProxyGrantingTicketManager(TicketManager):
     def create_ticket(self, pgturl, validate=True, **kwargs):
@@ -317,12 +319,14 @@ class ProxyGrantingTicket(Ticket):
     TICKET_PREFIX = u"PGT"
     IOU_PREFIX = u"PGTIOU"
 
-    iou = models.CharField(max_length=255, unique=True)
-    granted_by_st = models.ForeignKey(ServiceTicket, null=True, blank=True)
-    granted_by_pt = models.ForeignKey(ProxyTicket, null=True, blank=True)
+    iou = models.CharField(_('iou'), max_length=255, unique=True)
+    granted_by_st = models.ForeignKey(ServiceTicket, null=True, blank=True,
+                                      verbose_name=_('granted by service ticket'))
+    granted_by_pt = models.ForeignKey(ProxyTicket, null=True, blank=True,
+                                      verbose_name=_('granted by proxy ticket'))
 
     objects = ProxyGrantingTicketManager()
 
     class Meta:
-        verbose_name = "proxy-granting ticket"
-        verbose_name_plural = "proxy-granting tickets"
+        verbose_name = _('proxy-granting ticket')
+        verbose_name_plural = _('proxy-granting tickets')

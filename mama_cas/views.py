@@ -11,6 +11,7 @@ from django.views.generic import View
 from django.contrib import auth
 from django.template.loader import get_template
 from django.template import Context
+from django.utils.translation import ugettext as _
 
 from mama_cas.forms import LoginForm
 from mama_cas.models import ServiceTicket
@@ -78,7 +79,7 @@ class LoginView(NeverCacheMixin, FormView):
                 LOG.debug("Redirecting to %s" % service)
                 return redirect(service)
             else:
-                messages.success(self.request, "You are logged in as %s" % self.request.user)
+                messages.success(self.request, _("You are logged in as %s") % self.request.user)
         return super(LoginView, self).get(*args, **kwargs)
 
     def form_valid(self, form):
@@ -133,11 +134,11 @@ class LogoutView(NeverCacheMixin, TemplateView):
         if self.request.user.is_authenticated():
             ProxyGrantingTicket.objects.consume_tickets(self.request.user)
             auth.logout(self.request)
-        messages.success(self.request, "You have been successfully logged out.")
+        messages.success(self.request, _("You have been successfully logged out."))
         url = self.request.GET.get('url', None)
         if url:
-            messages.success(self.request, "The application has provided this link to follow: " \
-                "<a href=\"%s\">%s</a>" % (url, url), extra_tags='safe')
+            messages.success(self.request, _("The application has provided this link to follow: " \
+                "<a href=\"%(url)s\">%(url)s</a>") % { 'url': url }, extra_tags='safe')
         return redirect(reverse('cas_login'))
 
 class ValidateView(NeverCacheMixin, View):
