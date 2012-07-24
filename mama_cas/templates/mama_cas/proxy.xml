@@ -1,0 +1,11 @@
+<cas:serviceResponse xmlns:cas='http://www.yale.edu/tp/cas'>
+    {% if error %}
+    <cas:proxyFailure code="{{ error.code }}">
+        {{ error.msg }}
+    </cas:proxyFailure>
+    {% elif ticket %}
+    <cas:proxySuccess>
+        <cas:proxyTicket>{{ ticket }}</cas:proxyTicket>
+    </cas:proxySuccess>
+    {% endif %}
+</cas:serviceResponse>
