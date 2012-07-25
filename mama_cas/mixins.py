@@ -70,14 +70,12 @@ class TicketValidateMixin(object):
         """
         service = request.GET.get('service')
         ticket = request.GET.get('ticket')
-        renew = request.GET.get('renew')
         pgturl = request.GET.get('pgtUrl')
 
         LOG.debug("Proxy validation request received for %s" % ticket)
         try:
             pt = ProxyTicket.objects.validate_ticket(ticket,
-                                                     service=service,
-                                                     renew=renew)
+                                                     service=service)
         except (InvalidRequestError, InvalidTicketError,
                 InvalidServiceError, InternalError) as e:
             LOG.warn("%s %s" % (e.code, e))

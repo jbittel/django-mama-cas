@@ -190,9 +190,8 @@ class ProxyValidateView(NeverCacheMixin, TicketValidateMixin, TemplateView):
     future authentication attempts.
 
     If ``renew`` is specified, validation will only succeed if the
-    ``ProxyTicket`` or ``ServiceTicket`` was issued from the presentation of
-    the user's primary credentials (i.e. not from an existing single sign-on
-    session).
+    ``ServiceTicket`` was issued from the presentation of the user's primary
+    credentials (i.e. not from an existing single sign-on session).
 
     If ``pgtUrl`` is specified, the response will also include a
     ``ProxyGrantingTicket`` if the proxy callback URL has a valid SSL
