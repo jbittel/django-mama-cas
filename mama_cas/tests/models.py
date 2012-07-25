@@ -13,7 +13,6 @@ from mama_cas.models import ProxyGrantingTicket
 from mama_cas.exceptions import InvalidRequestError
 from mama_cas.exceptions import InvalidTicketError
 from mama_cas.exceptions import InvalidServiceError
-from mama_cas.exceptions import InternalError
 from mama_cas.exceptions import BadPGTError
 
 

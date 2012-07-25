@@ -9,8 +9,6 @@ from django.views.generic import FormView
 from django.views.generic import TemplateView
 from django.views.generic import View
 from django.contrib import auth
-from django.template.loader import get_template
-from django.template import Context
 from django.utils.translation import ugettext as _
 
 from mama_cas.forms import LoginForm
@@ -20,11 +18,6 @@ from mama_cas.models import ProxyGrantingTicket
 from mama_cas.utils import add_query_params
 from mama_cas.mixins import NeverCacheMixin
 from mama_cas.mixins import TicketValidateMixin
-from mama_cas.exceptions import InvalidRequestError
-from mama_cas.exceptions import InvalidTicketError
-from mama_cas.exceptions import InvalidServiceError
-from mama_cas.exceptions import InternalError
-from mama_cas.exceptions import BadPGTError
 
 
 LOG = logging.getLogger('mama_cas')
