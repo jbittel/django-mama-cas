@@ -266,7 +266,7 @@ class ServiceValidateViewTests(TestCase):
     def test_service_validate_view_success(self):
         """
         When called with correct parameters, a ``GET`` request to the view
-        should return a validation success and the service ticket should be
+        should return a validation success and the ``ServiceTicket`` should be
         consumed and invalid for future validation attempts.
         """
         query_str = "?service=%s&ticket=%s" % (self.valid_service, self.st.ticket)

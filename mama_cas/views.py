@@ -174,8 +174,7 @@ class ServiceValidateView(NeverCacheMixin, TicketValidateMixin, TemplateView):
 
     def get(self, request, *args, **kwargs):
         ticket, pgt, error = TicketValidateMixin.validate_service_ticket(self, request)
-        context = self.get_context_data(**kwargs)
-        context.update({ 'ticket': ticket, 'pgt': pgt, 'error': error })
+        context = { 'ticket': ticket, 'pgt': pgt, 'error': error }
         return self.render_to_response(context, content_type='text/xml')
 
 class ProxyValidateView(NeverCacheMixin, TicketValidateMixin, TemplateView):
@@ -208,8 +207,7 @@ class ProxyValidateView(NeverCacheMixin, TicketValidateMixin, TemplateView):
         else:
             ticket, pgt, error = TicketValidateMixin.validate_service_ticket(self, request)
 
-        context = self.get_context_data(**kwargs)
-        context.update({ 'ticket': ticket, 'pgt': pgt, 'error': error })
+        context = { 'ticket': ticket, 'pgt': pgt, 'error': error }
         return self.render_to_response(context, content_type='text/xml')
 
 class ProxyView(NeverCacheMixin, TicketValidateMixin, TemplateView):
@@ -226,6 +224,5 @@ class ProxyView(NeverCacheMixin, TicketValidateMixin, TemplateView):
 
     def get(self, request, *args, **kwargs):
         ticket, error = TicketValidateMixin.validate_proxy_granting_ticket(self, request)
-        context = self.get_context_data(**kwargs)
-        context.update({ 'ticket': ticket, 'error': error })
+        context = { 'ticket': ticket, 'error': error }
         return self.render_to_response(context, content_type='text/xml')
