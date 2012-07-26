@@ -203,11 +203,12 @@ class ProxyValidateView(NeverCacheMixin, TicketValidateMixin, TemplateView):
         if not ticket or ticket.startswith(ProxyTicket.TICKET_PREFIX):
             # If no ticket parameter is present, attempt to validate it anyway
             # so the appropriate error is raised
-            ticket, pgt, error = TicketValidateMixin.validate_proxy_ticket(self, request)
+            ticket, pgt, proxies, error = TicketValidateMixin.validate_proxy_ticket(self, request)
         else:
             ticket, pgt, error = TicketValidateMixin.validate_service_ticket(self, request)
+            proxies = None
 
-        context = { 'ticket': ticket, 'pgt': pgt, 'error': error }
+        context = { 'ticket': ticket, 'pgt': pgt, 'proxies': proxies, 'error': error }
         return self.render_to_response(context, content_type='text/xml')
 
 class ProxyView(NeverCacheMixin, TicketValidateMixin, TemplateView):

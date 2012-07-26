@@ -63,7 +63,8 @@ class TicketValidateMixin(object):
     def validate_proxy_ticket(self, request):
         """
         Given a ``request``, validate a proxy ticket string. On success, a
-        triplet is returned containing the ``ProxyTicket`` and an optional
+        4-tuple is returned containing the ``ProxyTicket``, a list of all
+        services that proxied authentication and an optional
         ``ProxyGrantingTicket``, with no error. On error, a triplet is
         returned containing no ``ProxyTicket`` or ``ProxyGrantingTicket``,
         but with an ``Error`` describing what went wrong.
@@ -79,8 +80,16 @@ class TicketValidateMixin(object):
         except (InvalidRequestError, InvalidTicketError,
                 InvalidServiceError, InternalError) as e:
             LOG.warn("%s %s" % (e.code, e))
-            return None, None, e
+            return None, None, None, e
         else:
+            # Build a list of all services that proxied authentication,
+            # in reverse order of which they were traversed
+            proxies = [pt.service]
+            prior_pt = pt.granted_by_pgt.granted_by_pt
+            while prior_pt:
+                proxies.append(prior_pt.service)
+                prior_pt = pt.granted_by_pgt.granted_by_pt
+
             if pgturl:
                 LOG.debug("Proxy-granting ticket request received for %s" % pgturl)
                 pgt = ProxyGrantingTicket.objects.create_ticket(pgturl,
@@ -88,7 +97,7 @@ class TicketValidateMixin(object):
                                                                 granted_by_pt=pt)
             else:
                 pgt = None
-            return pt, pgt, None
+            return pt, pgt, proxies, None
 
     def validate_proxy_granting_ticket(self, request):
         """

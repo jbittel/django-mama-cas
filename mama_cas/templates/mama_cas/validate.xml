@@ -6,7 +6,16 @@
     {% elif ticket %}
     <cas:authenticationSuccess>
         <cas:user>{{ ticket.user.username }}</cas:user>
-        {% if pgt %}<cas:proxyGrantingTicket>{{ pgt }}</cas:proxyGrantingTicket>{% endif %}
+        {% if pgt %}
+        <cas:proxyGrantingTicket>{{ pgt }}</cas:proxyGrantingTicket>
+        {% endif %}
+        {% if proxies %}
+        <cas:proxies>
+        {% for proxy in proxies %}
+            <cas:proxy>{{ proxy }}</cas:proxy>
+        {% endfor %}
+        </cas:proxies>
+        {% endif %}
     </cas:authenticationSuccess>
     {% endif %}
 </cas:serviceResponse>

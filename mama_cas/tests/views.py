@@ -410,6 +410,8 @@ class ProxyValidateViewTests(TestCase):
         response = self.client.get(reverse('cas_proxy_validate') + query_str)
 
         self.assertContains(response, 'authenticationSuccess', status_code=200)
+        self.assertContains(response, 'proxies', status_code=200)
+        self.assertContains(response, self.valid_service, status_code=200)
         self.assertEqual(response.get('Content-Type'), 'text/xml')
 
         response = self.client.get(reverse('cas_proxy_validate') + query_str)
