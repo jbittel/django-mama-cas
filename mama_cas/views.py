@@ -107,7 +107,7 @@ class LoginView(NeverCacheMixin, FormView):
         if service:
             return { 'service': urlquote_plus(service) }
 
-class LogoutView(NeverCacheMixin, TemplateView):
+class LogoutView(NeverCacheMixin, View):
     """
     (2.3) End a client's single sign-on CAS session.
 
@@ -118,8 +118,6 @@ class LogoutView(NeverCacheMixin, TemplateView):
     If a URL is specified, it will be displayed on the page as a suggested
     link to follow.
     """
-    template_name = 'mama_cas/login.html'
-
     def get(self, request, *args, **kwargs):
         LOG.debug("Logout request received for user '%s'" % request.user)
         if request.user.is_authenticated():
