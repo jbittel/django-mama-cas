@@ -7,8 +7,8 @@ Authentication forms
 django-mama-cas includes form classes for implementing standard username and
 password authentication. In most cases, this will be the form of
 authentication required. CAS can be used with trust authentication, but the
-form that would take is highly implementation dependent. These classes should
-suffice for the most common needs.
+requirements would be highly implementation dependent. These classes should
+suffice for common needs.
 
 .. class:: LoginForm
 
@@ -16,18 +16,18 @@ suffice for the most common needs.
     following fields:
 
     ``username``
-        The username of the client requesting authentication. The provided string
-        is automatically converted to lowercase for consistency. This field is
-        required.
+        The username of the client requesting authentication. The provided
+        string is automatically converted to lowercase for consistency. This
+        field is required.
 
     ``password``
         The password of the client requesting authentication. This field is
         required.
 
     ``service``
-        The service that the client is attempting authentication to access,
-        typically represented as a URL. This is a hidden, optional field and is
-        automatically added to the form when provided.
+        The service the client is attempting to access, typically represented
+        as a URL. This is a hidden, optional field and is automatically added
+        to the form when provided.
 
     The form's ``clean()`` method attempts authentication against the configured
     authentication backends and verifies that the user account is active.

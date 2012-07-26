@@ -17,9 +17,11 @@ The commands specific to django-mama-cas will show up underneath the
 
     Tickets created by django-mama-cas are not removed from the database at
     the moment of invalidation. Running this command will delete all invalid
-    tickets from the database.
+    tickets from the database. Tickets are invalidated either when they expire
+    a configurable number of minutes after creation or by being consumed.
+    Either situation means the ticket is no longer valid for future
+    authentication attempts and can be safely deleted.
 
-    Tickets are invalidated either when they expire a configurable number of
-    minutes after creation or by being consumed. Either situation means the
-    ticket is no longer valid for future authentication attempts and can be
-    safely deleted.
+    It is recommended that this command be run on a regular basis to ensure
+    invalid tickets do not become a performance or storage concern.
+

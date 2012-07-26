@@ -6,13 +6,21 @@ Getting started
 Prerequisites
 -------------
 
-The only prerequesite of django-mama-cas is `Django
+The primary prerequesite of django-mama-cas is `Django
 <http://www.djangoproject.com>`_ itself. For django-mama-cas |version|, Django
 1.4 or later is required. Earlier versions of Django may work, but are not
-tested or supported.
+tested or supported. See the `Django downloads
+<https://www.djangoproject.com/download/>`_ page for information on
+downloading and installing Django.
 
-You will also need an authentication backend installed and configured, which
-will change depending on your authoritative authentication source.
+The Python `requests <http://python-requests.org/>`_ library is also required,
+but should be automatically installed during the installation process
+described below.
+
+You will also need an `authentication backend
+<https://docs.djangoproject.com/en/dev/topics/auth/#specifying-authentication-backends>`_
+installed and configured, which will change depending on your authoritative
+authentication source.
 
 Installing django-mama-cas
 --------------------------
@@ -20,7 +28,7 @@ Installing django-mama-cas
 Via pip
 ~~~~~~~
 
-The easiest way to install django-mama-cas is by using pip. Simply type::
+The easiest way to install django-mama-cas is using pip. Simply type::
 
    pip install django-mama-cas
 
@@ -44,9 +52,24 @@ Once installed, add django-mama-cas to your project by modifying the
 Once django-mama-cas is added to the project, run ``python manage.py syncdb``
 to install the required database tables.
 
-Configure session expiration
-Configure session caching?
-Other available settings and their defaults
+Sessions
+~~~~~~~~
+
+django-mama-cas relies on the built-in Django sessions to control session
+storage and expiration. To understand how sessions work within Django,
+read the `session documentation
+<https://docs.djangoproject.com/en/dev/topics/http/sessions/>`_. There are
+three particular session settings that control where sessions are stored and
+how they are expired:
+
+   * `SESSION_ENGINE
+     <https://docs.djangoproject.com/en/dev/topics/http/sessions/#session-engine>`_
+
+   * `SESSION_COOKIE_AGE
+     <https://docs.djangoproject.com/en/dev/topics/http/sessions/#session-cookie-age>`_
+
+   * `SESSION_EXPIRE_AT_BROWSER_CLOSE
+     <https://docs.djangoproject.com/en/dev/topics/http/sessions/#session-expire-at-browser-close>`_
 
 URL paths
 ~~~~~~~~~
@@ -58,27 +81,25 @@ and can be included directly in your project's root ``URLconf``. For example::
    (r'', include('mama_cas.urls')),
 
 This would make the CAS server available at the top level of your project's
-URL. If this is not the desired behavior, you can add a prefix to the included
+URLs. If this is not the desired location, you can add a base to the included
 URLs. For example, if you wished the CAS server to be available under the
-``/cas/`` prefix you would use::
+``/cas/`` base you would use::
    
    (r'^cas/', include('mama_cas.urls')),
 
-You would also need to ensure that all CAS enabled services are configured
-with a prefix that matches your configuration here. Changing the CAS URLs
-within ``mama_cas.urls`` is not recommended as they are specific to the HTTP
-contract specification and will likely break the CAS behavior.
+All CAS enabled services need to be configured according to the URL settings
+here. Changing the CAS URLs within ``mama_cas.urls`` is not recommended as
+that will likely break CAS behavior.
 
 Templates
 ~~~~~~~~~
 
-django-mama-cas comes with basic templates implementing standard username and
-password authentication. They are intentionally generic and extendable to
-serve as a starting point for your own templates, but can also be replaced
-wholesale.
+django-mama-cas comes with a basic template implementing standard username and
+password authentication. It will work as provided, but is intended to be
+extended or replaced according to your needs.
 
 Read the :ref:`template documentation <templates>` for more information on the
-included templates.
+included template and customization.
 
 Authentication
 --------------

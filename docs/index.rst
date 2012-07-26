@@ -28,11 +28,11 @@ Contents:
    :maxdepth: 1
 
    getting-started
-   forms
    templates
+   forms
    management-commands
    protocol
 
-Please note that the current release of django-mama-cas is an early alpha
-release and is not intended for production deployment. Testing, patches and
-feedback are much appreciated!
+Note that the current release of django-mama-cas is an early alpha release and
+is not intended for production deployment. Testing, patches and feedback are
+much appreciated!

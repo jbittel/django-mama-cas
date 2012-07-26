@@ -3,14 +3,25 @@
 CAS protocol
 ============
 
-Protocol specification
+The official CAS protocol specification can be found at
+http://www.jasig.org/cas/protocol. Where appropriate, comments within the
+code include section numbers in parenthesis (e.g. ``(2.3)``) corresponding to
+the section number within the CAS protocol where that functionality is
+described. Additionally, the views are labeled with a CAS version number
+in brackets (e.g. ``[CAS 2.0]``) corresponding to the CAS version that
+defines that particular view.
+
+Authentication process
 ----------------------
 
-The official CAS protocol specification can be found at
-http://www.jasig.org/cas/protocol. Currently django-mama-cas only supports
-the CAS 1.0 protocol, although 2.0 support is planned for the future.
+A quick summary of how the authentication process works might be helpful in
+understanding how these pieces work together. Obviously there is a lot of
+detail skipped here that would be necessary for a complete understanding of
+the protocol. For further details of how the protocol works, read the
+`official specification <http://www.jasig.org/cas/protocol>`_.
 
-**Basic CAS 1.0 authentication process**
+
+**CAS 1.0 authentication process**
    To begin, an unauthenticated client initiates a login request from a CAS
    enabled service. The service redirects the login request to ``/login``,
    which is acting as a credential requestor. Along with the login request,
@@ -29,10 +40,19 @@ the CAS 1.0 protocol, although 2.0 support is planned for the future.
    service ticket validates, the user is now successfully authenticated to the
    service.
 
-   This process can become more complicated when renew or gateway parameters
-   are provided by the service, as they alter the behavior of the credential
-   requestor. For further details of how the protocol works, read the
-   `official specification <http://www.jasig.org/cas/protocol>`_.
+**CAS 2.0 authentication process**
+   When using CAS 2.0, the first step in the authentication process occurs
+   identically to CAS 1.0. However, once the service receives the service
+   ticket, it instead makes a request to either ``/serviceValidate`` or
+   ``/proxyValidate`` to validate the service ticket.
+
+   If the service desires a proxy ticket, it will pass a proxy callback URL
+   as a parameter to the validator. If the callback URL is valid, a proxy-
+   granting ticket is returned to the service.
+
+   Having obtained a proxy-granting ticket, the service can then issue a
+   request to ``/proxy`` to aquire proxy tickets which can then be validated
+   through ``/proxyValidate``.
 
 .. _protocol-deviations:
 
