@@ -88,7 +88,7 @@ class TicketValidateMixin(object):
             prior_pt = pt.granted_by_pgt.granted_by_pt
             while prior_pt:
                 proxies.append(prior_pt.service)
-                prior_pt = pt.granted_by_pgt.granted_by_pt
+                prior_pt = prior_pt.granted_by_pgt.granted_by_pt
 
             if pgturl:
                 LOG.debug("Proxy-granting ticket request received for %s" % pgturl)

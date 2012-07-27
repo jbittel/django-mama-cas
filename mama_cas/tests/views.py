@@ -320,6 +320,7 @@ class ProxyValidateViewTests(TestCase):
     invalid_st_str = 'ST-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
     invalid_pt_str = 'PT-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
     valid_service = 'http://www.example.com/'
+    valid_service2 = 'http://ww2.example.com/'
     invalid_service = 'http://www.example.org/'
     user_info = { 'username': 'ellen',
                   'password': 'mamas&papas',
@@ -418,6 +419,30 @@ class ProxyValidateViewTests(TestCase):
         # This test should fail as the ticket was consumed in the preceeding test
         self.assertContains(response, 'INVALID_TICKET', status_code=200)
         self.assertEqual(response.get('Content-Type'), 'text/xml')
+
+    def test_proxy_validate_view_proxies(self):
+        """
+        When a successful ``ProxyTicket`` validation occurs, the response
+        should include a ``proxies`` block containing all of the proxies
+        involved. When authentication has proceeded through multiple proxies,
+        they must be listed in reverse order of being accessed.
+        """
+        pgt2 = ProxyGrantingTicket.objects.create_ticket(self.valid_service,
+                                                         validate=False,
+                                                         user=self.user,
+                                                         granted_by_pt=self.pt)
+        ticket_info2 = { 'service': self.valid_service2,
+                         'user': self.user }
+        pt2 = ProxyTicket.objects.create_ticket(granted_by_pgt=pgt2,
+                                                **ticket_info2)
+        query_str = "?service=%s&ticket=%s" % (self.valid_service2, pt2)
+        response = self.client.get(reverse('cas_proxy_validate') + query_str)
+
+        self.assertContains(response, 'proxies', status_code=200)
+        self.assertContains(response, self.valid_service2, status_code=200)
+        self.assertContains(response, self.valid_service, status_code=200)
+        self.assertEqual(response.get('Content-Type'), 'text/xml')
+
 
     def test_proxy_validate_view_pgturl(self):
         """
