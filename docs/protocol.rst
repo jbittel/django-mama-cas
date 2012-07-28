@@ -5,21 +5,24 @@ CAS protocol
 
 The official CAS protocol specification can be found at
 http://www.jasig.org/cas/protocol. Where appropriate, comments within the
-code include section numbers in parenthesis (e.g. ``(2.3)``) corresponding to
-the section number within the CAS protocol where that functionality is
-described. Additionally, the views are labeled with a CAS version number
-in brackets (e.g. ``[CAS 2.0]``) corresponding to the CAS version that
-defines that particular view.
+code include numbers in parenthesis (e.g. ``(2.3)``) corresponding to the
+section number within the CAS protocol documentation where that functionality
+is described. Additionally, views are labeled with a CAS version number in
+brackets (e.g. ``[CAS 2.0]``) corresponding to the CAS version that supports
+that particular URI.
+
+.. seealso::
+
+   * `CAS Protocol <http://www.jasig.org/cas/protocol>`_
+   * `CAS User Manual <https://wiki.jasig.org/display/CASUM/Home>`_
 
 Authentication process
 ----------------------
 
 A quick summary of how the authentication process works might be helpful in
-understanding how these pieces work together. Obviously there is a lot of
-detail skipped here that would be necessary for a complete understanding of
-the protocol. For further details of how the protocol works, read the
-`official specification <http://www.jasig.org/cas/protocol>`_.
-
+understanding how these pieces work together. Obviously, a lot of detail is
+skipped here that would be necessary for a complete understanding of how the
+login process works.
 
 **CAS 1.0 authentication process**
    To begin, an unauthenticated client initiates a login request from a CAS
@@ -40,6 +43,10 @@ the protocol. For further details of how the protocol works, read the
    service ticket validates, the user is now successfully authenticated to the
    service.
 
+.. seealso::
+
+   * `CAS 1 Architecture <http://www.jasig.org/cas/cas1-architecture>`_
+
 **CAS 2.0 authentication process**
    When using CAS 2.0, the first step in the authentication process occurs
    identically to CAS 1.0. However, once the service receives the service
@@ -53,6 +60,11 @@ the protocol. For further details of how the protocol works, read the
    Having obtained a proxy-granting ticket, the service can then issue a
    request to ``/proxy`` to aquire proxy tickets which can then be validated
    through ``/proxyValidate``.
+
+.. seealso::
+
+   * `CAS 2 Architecture <http://www.jasig.org/cas/cas2-architecture>`_
+   * `Proxy Authentication <http://www.jasig.org/cas/proxy-authentication>`_
 
 .. _protocol-deviations:
 
@@ -69,13 +81,12 @@ specification to take advantage of built-in Django functionality.
    tickets and instead relies on the built-in CSRF protection for the login
    form.
 
-**Ticket granting ticket**
-   This is intended to be a string stored on the server that keys to
-   a ticket-granting cookie provided by the client for successful single
-   sign-on authentication. django-mama-cas does not implement ticket
-   granting tickets and instead uses Django sessions to determine whether or
-   not a single sign-on session has already been established when a service
-   ticket request is made.
+**Ticket-granting ticket**
+   This is intended to be a string stored on the server that keys to a
+   ticket-granting cookie provided by the client to identify an existing
+   single sign-on session. django-mama-cas does not implement ticket-granting
+   tickets and instead uses Django sessions to determine whether or not a
+   single sign-on session has been established.
 
-None of these changes alter the contract between the service and the CAS
-server. They only affect the internals of the server itself.
+These changes do not alter the contract between the client, service and CAS
+server.

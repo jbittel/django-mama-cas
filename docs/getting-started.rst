@@ -17,10 +17,11 @@ The Python `requests <http://python-requests.org/>`_ library is also required,
 but should be automatically installed during the installation process
 described below.
 
-You will also need an `authentication backend
-<https://docs.djangoproject.com/en/dev/topics/auth/#specifying-authentication-backends>`_
-installed and configured, which will change depending on your authoritative
-authentication source.
+You will also need at least one `authentication backend
+<http://pypi.python.org/pypi?:action=browse&c=475&c=523>`_
+`installed and configured
+<https://docs.djangoproject.com/en/dev/topics/auth/#specifying-authentication-backends>`_,
+depending on your authoritative authentication source.
 
 Installing django-mama-cas
 --------------------------
@@ -32,6 +33,10 @@ The easiest way to install django-mama-cas is using pip. Simply type::
 
    pip install django-mama-cas
 
+It is recommended to run this command within a
+`virtualenv <http://www.virtualenv.org>`_ so django-mama-cas is installed
+within an isolated environment instead of system wide.
+
 Via a downloaded package
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -41,50 +46,75 @@ archive and install it with::
 
    python setup.py install
 
+Alternately, you can manually put django-mama-cas anywhere, provided it is on
+the Python path. If you take the route, you will also need to manually install
+the `requests library <http://python-requests.org>`_ dependency.
+
 Configuration
 -------------
 
 Once installed, add django-mama-cas to your project by modifying the
-``INSTALLED_APPS`` setting to insert this line::
+``INSTALLED_APPS`` setting within ``settings.py`` to include this line::
 
    'mama_cas',
 
 Once django-mama-cas is added to the project, run ``python manage.py syncdb``
-to install the required database tables.
+to create the required database tables.
+
+Settings
+~~~~~~~~
+
+django-mama-cas can be modified using several custom settings. None of them
+are required, but can be set if you wish to override the defaults.
+
+**CAS_TICKET_EXPIRE (default: 5)**
+   This setting controls the length of time, in minutes, between when a service
+   or proxy ticket is generated and when it expires. If the ticket is not
+   validated before this time is up, it will be invalidated. This does NOT
+   affect the duration of a user's single sign-on session.
+
+**CAS_TICKET_RAND_LEN (default: 32)**
+   This setting controls the number of random characters created as part of
+   the ticket string. It should be long enough that the ticket cannot be
+   brute forced within a reasonable amount of time.
 
 Sessions
 ~~~~~~~~
 
-django-mama-cas relies on the built-in Django sessions to control session
+django-mama-cas relies on the standard Django sessions to control session
 storage and expiration. To understand how sessions work within Django,
 read the `session documentation
 <https://docs.djangoproject.com/en/dev/topics/http/sessions/>`_. There are
 three particular session settings that control where sessions are stored and
-how they are expired:
+when they expire:
 
    * `SESSION_ENGINE
      <https://docs.djangoproject.com/en/dev/topics/http/sessions/#session-engine>`_
-
    * `SESSION_COOKIE_AGE
      <https://docs.djangoproject.com/en/dev/topics/http/sessions/#session-cookie-age>`_
-
    * `SESSION_EXPIRE_AT_BROWSER_CLOSE
      <https://docs.djangoproject.com/en/dev/topics/http/sessions/#session-expire-at-browser-close>`_
+
+It is recommended that ``SESSION_COOKIE_AGE`` be set shorter than the default
+of two weeks. ``SESSION_EXPIRE_AT_BROWSER_CLOSE`` should be set to ``False``
+to conform to the CAS specification. Both of these settings can be configured
+to meet your particular environment and security needs.
 
 URL paths
 ~~~~~~~~~
 
 django-mama-cas includes a Django ``URLconf`` that provides the required CAS
-URIs (e.g. login, logout, validate). They are located in ``mama_cas.urls``
-and can be included directly in your project's root ``URLconf``. For example::
+URIs (e.g. login, logout, validate, etc.). They are located in
+``mama_cas.urls`` and can be included directly in your project's root
+``URLconf``. For example::
 
    (r'', include('mama_cas.urls')),
 
 This would make the CAS server available at the top level of your project's
 URLs. If this is not the desired location, you can add a base to the included
 URLs. For example, if you wished the CAS server to be available under the
-``/cas/`` base you would use::
-   
+``/cas/`` root you would use::
+
    (r'^cas/', include('mama_cas.urls')),
 
 All CAS enabled services need to be configured according to the URL settings
@@ -105,15 +135,13 @@ Authentication
 --------------
 
 django-mama-cas does not perform any authentication itself. It relies on the
-configured Django authentication backends for that task. The process of
-configuring your authentication backend will change depending on the backend
-in use.
+active Django authentication backends for that task. The process of configuring
+the authentication backend will change depending on the backend in use.
 
 .. seealso::
 
    * `Django user authentication
      <https://docs.djangoproject.com/en/dev/topics/auth/>`_: the official
      documentation for the user authentication system in Django.
-
    * `django-ldap <https://bitbucket.org/psagers/django-auth-ldap/>`_: an
      authentication backend that authenticates against an LDAP service.

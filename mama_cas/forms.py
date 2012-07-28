@@ -11,6 +11,13 @@ LOG = logging.getLogger('mama_cas')
 
 
 class LoginForm(forms.Form):
+    """
+    Form implementing standard username and password authentication.
+
+    The ``clean()`` method passes the provided username and password to the
+    active authentication backend(s) and verifies the user account is not
+    disabled.
+    """
     username = forms.CharField(label=_("Username"), max_length=30)
     password = forms.CharField(label=_("Password"), widget=forms.PasswordInput)
     service = forms.CharField(widget=forms.HiddenInput, required=False)
@@ -19,7 +26,6 @@ class LoginForm(forms.Form):
         """
         Lowercase the username for consistency.
         """
-        # TODO check for email addresses
         username = self.cleaned_data.get('username')
         return lower(username)
 
@@ -52,6 +58,12 @@ class LoginForm(forms.Form):
         return self.cleaned_data
 
 class LoginFormWarn(LoginForm):
+    """
+    Subclass of ``LoginForm`` adding an optional checkbox allowing the user to
+    be notified whenever authentication occurs.
+
+    NOTE: the functionality for this form control has not yet been implemented.
+    """
     warn = forms.BooleanField(widget=forms.CheckboxInput(),
                               label=_("Prompt me before being authenticated to another service"),
                               required=False)
