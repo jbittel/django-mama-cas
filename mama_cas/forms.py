@@ -55,3 +55,16 @@ class LoginFormWarn(LoginForm):
     warn = forms.BooleanField(widget=forms.CheckboxInput(),
                               label=_("Prompt me before being authenticated to another service"),
                               required=False)
+
+class LoginFormEmail(LoginForm):
+    """
+    Subclass of ``LoginForm`` that extracts only the username if an email
+    address is provided.
+    """
+    def clean_username(self):
+        """
+        If an email address is provided, remove the '@<domain>' portion
+        and return only the lowercase username.
+        """
+        username = self.cleaned_data.get('username').split('@')[0]
+        return lower(username)

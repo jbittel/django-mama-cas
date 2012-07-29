@@ -48,3 +48,11 @@ suffice for common needs.
 
     Although this form is available, the warn parameter has not yet been
     implemented in django-mama-cas |version|.
+
+.. class:: LoginFormEmail
+
+   A subclass of :class:`LoginForm` which adds no additional fields but
+   performs additional cleanup on the ``username`` field. If an email address
+   is provided for the username, it extracts only the username portion of the
+   string. Additionally, the username is converted to lowercase for
+   consistency.
