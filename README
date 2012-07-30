@@ -1,0 +1,15 @@
+django-mama-cas 0.2
+-------------------
+
+django-mama-cas is a CAS server single sign-on application for Django,
+implementing the popular CAS server protocol in Python. This implementation
+provides several differences over the Jasig CAS server reference
+implementation:
+
+   * Simpler installation and configuration
+   * Integrates with an existing Python ecosystem
+   * Easily use or write Django applications for authentication
+
+For installation and configuration instructions, see the local
+docs/getting-started.rst file or read the documentation online at
+http://django-mama-cas.readthedocs.org/.

@@ -36,7 +36,7 @@ if root_dir:
     os.chdir(root_dir)
 
 # Collect the lists of packages and package files, starting
-# from the base project directory
+# from the base project directory (adapted from the Django setup script)
 for dirpath, dirnames, filenames in os.walk('mama_cas'):
     # Collect packages
     if '__init__.py' in filenames:
@@ -53,9 +53,9 @@ for dirpath, dirnames, filenames in os.walk('mama_cas'):
 
 setup(
     name = 'django-mama-cas',
-    version = '0.1',
+    version = '0.2',
     description = 'A CAS server single sign-on application for Django',
-    long_description = get_readme('README.md'),
+    long_description = get_readme('README'),
     author = 'Jason Bittel',
     author_email = 'jason.bittel@gmail.com',
     url = 'http://github.com/jbittel/django-mama-cas',
@@ -65,7 +65,7 @@ setup(
     package_data = { 'mama_cas': package_data },
     license = 'BSD',
     classifiers = [
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
         'Programming Language :: Python',
         'Framework :: Django',
