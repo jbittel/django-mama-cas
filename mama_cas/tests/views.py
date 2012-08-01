@@ -1,5 +1,7 @@
 import logging
 import urlparse
+from xml.etree.ElementTree import ElementTree
+from xml.etree.ElementTree import fromstring
 
 from django.test import TestCase
 from django.core.urlresolvers import reverse
@@ -438,11 +440,14 @@ class ProxyValidateViewTests(TestCase):
         query_str = "?service=%s&ticket=%s" % (self.valid_service2, pt2)
         response = self.client.get(reverse('cas_proxy_validate') + query_str)
 
-        self.assertContains(response, 'proxies', status_code=200)
-        self.assertContains(response, self.valid_service2, status_code=200)
-        self.assertContains(response, self.valid_service, status_code=200)
-        self.assertEqual(response.get('Content-Type'), 'text/xml')
+        tree = ElementTree(fromstring(response.content))
+        proxies = tree.find('*/{http://www.yale.edu/tp/cas}proxies')
+        proxy = list(proxies.getiterator('{http://www.yale.edu/tp/cas}proxy'))
 
+        self.assertContains(response, 'proxies', status_code=200)
+        self.assertEqual(proxy[0].text, self.valid_service2)
+        self.assertEqual(proxy[1].text, self.valid_service)
+        self.assertEqual(response.get('Content-Type'), 'text/xml')
 
     def test_proxy_validate_view_pgturl(self):
         """
