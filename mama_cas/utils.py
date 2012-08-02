@@ -5,10 +5,8 @@ import urlparse
 def add_query_params(url, params):
     """
     Inject additional query parameters into an existing URL. If
-    existing parameters already exist with the same name, they
-    will be overwritten.
-
-    Return the modified URL as a string.
+    parameters already exist with the same name, they will be
+    overwritten. Return the modified URL as a string.
     """
     # If any of the additional parameters have empty values,
     # ignore them
