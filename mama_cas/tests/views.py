@@ -612,6 +612,21 @@ class ProxyViewTests(TestCase):
 
         self.assertEqual(response.status_code, 405)
 
+    def test_proxy_view_no_service(self):
+        """
+        When called with no service identifier, a ``GET`` request to the view
+        should return a validation failure.
+        """
+        query_str = "?pgt=%s" % (self.pgt.ticket)
+        response = self.client.get(reverse('cas_proxy') + query_str)
+        tree = ElementTree(fromstring(response.content))
+        elem = tree.find(XMLNS + 'proxyFailure')
+
+        self.assertIsNotNone(elem)
+        self.assertEqual(elem.get('code'), 'INVALID_REQUEST')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get('Content-Type'), 'text/xml')
+
     def test_proxy_view_invalid_ticket(self):
         """
         When called with an invalid ticket identifier, a ``GET`` request to
