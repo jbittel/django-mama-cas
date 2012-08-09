@@ -18,8 +18,10 @@ class LoginForm(forms.Form):
     active authentication backend(s) and verifies the user account is not
     disabled.
     """
-    username = forms.CharField(label=_("Username"), max_length=30)
-    password = forms.CharField(label=_("Password"), widget=forms.PasswordInput)
+    username = forms.CharField(label=_("Username"),
+                               error_messages={'required': _("Please enter your username")})
+    password = forms.CharField(label=_("Password"), widget=forms.PasswordInput,
+                               error_messages={'required': _("Please enter your password")})
     service = forms.CharField(widget=forms.HiddenInput, required=False)
 
     def clean_username(self):
@@ -54,7 +56,7 @@ class LoginForm(forms.Form):
                     raise forms.ValidationError(_("This user account is disabled"))
             else:
                 LOG.warn("Error authenticating user %s" % username)
-                raise forms.ValidationError(_("The username and/or password you provided are not correct"))
+                raise forms.ValidationError(_("The username or password is not correct"))
         return self.cleaned_data
 
 class LoginFormWarn(LoginForm):
