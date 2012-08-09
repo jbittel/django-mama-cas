@@ -4,18 +4,18 @@
 <head>
     <meta charset="utf-8" />
     <meta name="robots" content="noindex" />
-    <title>{% block title %}{% trans "Universal Login Portal" %}{% endblock title %}</title>
+    <title>{% block title %}{% trans "Central Authentication Service" %}{% endblock title %}</title>
     {% block extra_head %}
     <style>
         html,body { background:#eee; color:#777; font:10px arial,sans-serif; margin:0; padding:0 }
-        a:link, a:visited { text-decoration:none; color:#777 }
-        a:hover { color:#39f }
         p { font-size:1.2em; margin-top:.3em }
         h1 { color:#777; font-size:2.4em; padding-bottom:15px; text-align:center; font-weight:400; margin:0 }
         h2 { font-size:1.6em; margin:0 }
         #header { height:160px; background:30px; margin:0 }
         #content { background-color:rgba(255,255,255,0.85); border:1px solid #dcdcdc; width:325px; margin:0 auto 200px; padding:20px 30px 40px }
-        .messagelist, .errorlist { background-color:#f8fff0; border:1px solid #be7; color:#234600; font-size:1.2em; list-style:none outside none; margin:0 auto; padding:3px }
+        .messagelist, .errorlist { background-color:#f8fff0; border:1px solid #be7; color:#234600; font-size:1.2em; list-style:none outside none; margin:0 auto }
+        .messagelist li, .errorlist li { padding:2px 0 }
+        .messagelist a { color:#234600; text-decoration:underline }
         .errorlist { background-color:#fbe3e4; color:#8a1f11; border-color:#fbc2c4 }
         div.errorfield { border-color:#8a1f11 }
         fieldset { border:0 none; margin:10px 0 0; padding:0 }
@@ -41,7 +41,7 @@
     <div id="header">{% block header %}{% endblock header %}</div>
     <div id="content" class="box">
         {% block content %}
-        <h1>{% block content_title %}{% trans "Central Authentication Portal" %}{% endblock content_title %}</h1>
+        <h1>{% block content_title %}{% trans "Central Authentication Service" %}{% endblock content_title %}</h1>
 
         {% if messages %}
         <div class="messagelist"><ul>
