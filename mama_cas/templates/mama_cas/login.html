@@ -7,48 +7,77 @@
     <title>{% block title %}{% trans "Universal Login Portal" %}{% endblock title %}</title>
     {% block extra_head %}
     <style>
-        html, body { color:#000; background-color:#e6e7e9; font:1em Arial; }
-        #header { height:200px; }
-        #content { margin:0 auto; width:275px; padding:0; }
-        .messages, .errorlist { margin:0 auto; background-color:#f8fff0; border:1px solid #bbee77; color:#234600; padding:5px; list-style:none; font-size:.8em; }
-        .errorlist { background-color:#fbe3e4; border-color:#fbc2c4; color:#8a1f11; }
-        fieldset { border:0; padding:0; margin:0; }
-        label { display:block; margin:5px 0; color:#999; font-size:1em; font-weight:bold; }
-        label:after { content:":"; }
-        .inputs input { font-size:1.2em; padding:5px 0 5px 10px; margin-bottom:15px; border:0; color:#59595b; }
-        .actions { margin:20px 0 5px; }
-        h1 { margin:20px 0; font-size:1.4em; color:#58595b; }
+        html,body { background:#eee; color:#777; font:10px arial,sans-serif; margin:0; padding:0 }
+        a:link, a:visited { text-decoration:none; color:#777 }
+        a:hover { color:#39f }
+        p { font-size:1.2em; margin-top:.3em }
+        h1 { color:#777; font-size:2.4em; padding-bottom:15px; text-align:center; font-weight:400; margin:0 }
+        h2 { font-size:1.6em; margin:0 }
+        #header { height:160px; background:30px; margin:0 }
+        #content { background-color:rgba(255,255,255,0.85); border:1px solid #dcdcdc; width:325px; margin:0 auto 200px; padding:20px 30px 40px }
+        .messagelist, .errorlist { background-color:#f8fff0; border:1px solid #be7; color:#234600; font-size:1.2em; list-style:none outside none; margin:0 auto; padding:3px }
+        .errorlist { background-color:#fbe3e4; color:#8a1f11; border-color:#fbc2c4 }
+        div.errorfield { border-color:#8a1f11 }
+        fieldset { border:0 none; margin:10px 0 0; padding:0 }
+        label { display:block; font-size:1.6em; cursor:pointer; margin:5px }
+        h1, label, .actions input { text-shadow:0 1px 0 #f9f9f9 }
+        .inputs input { border:0 none; color:#666; font-size:1.6em; width:62%; margin:0 0 0 10px; padding:10px 0 0 }
+        fieldset.actions { text-align:center }
+        textarea, input { outline:none }
+        .box { border-radius:3px 3px 3px 3px; -webkit-box-shadow:0 5px 5px -7px rgba(51,153,255,.7); -moz-box-shadow:0 5px 5px -7px rgba(51,153,255,.7); box-shadow:0 5px 5px -7px rgba(51,153,255,.7) }
+        .field, .button { background-color:#fff; border:1px solid #ddd; height:40px; overflow:hidden; color:#39f; margin:10px 0 }
+        .button { background-color:#eee; color:#39f; width:37%; cursor:pointer; font-size:1.4em; margin:0 }
+        .button:hover { background-color:rgba(0,0,0,.09) }
+        .button:active { -webkit-box-shadow:0 1px 4px 0 rgba(51,153,255,.3) inset; -moz-box-shadow:0 1px 4px 0 rgba(51,153,255,.3) inset; box-shadow:0 1px 4px 0 rgba(51,153,255,.3) inset }
+        .label { background-color:#eee; border-right:1px solid #ddd; float:left; width:9em; cursor:pointer; height:40px; padding:5px }
+        .group:before, .group:after { content:""; display:table }
+        .group:after { clear:both }
+        .group { zoom:1 }
     </style>
     {% endblock extra_head %}
 </head>
 <body>
     {% block body %}
     <div id="header">{% block header %}{% endblock header %}</div>
-    <div id="content">
+    <div id="content" class="box">
         {% block content %}
-        <h1>{% block content_title %}{% trans "Universal Login Portal" %}{% endblock content_title %}</h1>
+        <h1>{% block content_title %}{% trans "Central Authentication Portal" %}{% endblock content_title %}</h1>
+
         {% if messages %}
-        <ul class="messages">
+        <div class="messagelist"><ul>
             {% for message in messages %}
             <li class="{{ message.tags }}">
                 {% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}
             </li>
             {% endfor %}
-        </ul>
+        </ul></div>
         {% endif %}
-        {{ form.non_field_errors }}
-        <form id="login-form" method="post">
+
+        {% if form.errors %}
+        <div class="errorlist"><ul>
+        {% for field in form %}
+            {% if field.errors %}<li>{{ field.errors|striptags }}</li>{% endif %}
+        {% endfor %}
+        {% for error in form.non_field_errors %}
+            <li>{{ error }}</li>
+        {% endfor %}
+        </ul></div>
+        {% endif %}
+
+        <form id="login-form" class="group" method="post">
             {% csrf_token %}
             {% for field in form.hidden_fields %}
                 {{ field }}
             {% endfor %}
             <fieldset class="inputs">
             {% for field in form.visible_fields %}
-                {{ field.label_tag }}{{ field.errors }}{{ field }}
+                <div class="field group box{% if field.errors %} errorfield{% endif %}">
+                    <span class="label">{{ field.label_tag }}</span>{{ field }}
+                </div>
             {% endfor %}
             </fieldset>
             <fieldset class="actions">
-                <input type="submit" name="submit_login" value="{% trans "Login" %}" />
+                <input class="button box" type="submit" name="submit_login" value="{% trans "Login" %}" />
             </fieldset>
         </form>
         {% endblock content %}
