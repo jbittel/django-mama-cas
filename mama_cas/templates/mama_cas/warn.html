@@ -1,0 +1,10 @@
+{% extends "mama_cas/login.html" %}
+{% load i18n %}
+
+{% block content %}
+<p>Authentication is being attempted for <strong>{{ service }}</strong>. Do you want to proceed?</p>
+<p>
+    <a class="button box" href="{{ continue_url }}">{% trans "Yes, continue" %}</a>
+    <a class="button box" href="{% url cas_logout %}">{% trans "No, log me out" %}</a>
+</p>
+{% endblock content %}

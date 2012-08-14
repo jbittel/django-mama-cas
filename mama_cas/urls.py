@@ -11,6 +11,7 @@ from mama_cas.views import ValidateView
 from mama_cas.views import ServiceValidateView
 from mama_cas.views import ProxyValidateView
 from mama_cas.views import ProxyView
+from mama_cas.views import WarnView
 
 
 urlpatterns = patterns('',
@@ -32,4 +33,7 @@ urlpatterns = patterns('',
     url(r'^proxy/?$',
         ProxyView.as_view(),
         name='cas_proxy'),
+    url(r'^warn/?$',
+        WarnView.as_view(),
+        name='cas_warn'),
 )

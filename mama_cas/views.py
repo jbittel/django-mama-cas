@@ -47,6 +47,7 @@ class LoginView(NeverCacheMixin, FormView):
         service = request.GET.get('service')
         renew = request.GET.get('renew')
         gateway = request.GET.get('gateway')
+        warned = request.GET.get('warned')
 
         if renew:
             LOG.debug("Renew request received by credential requestor")
@@ -57,6 +58,10 @@ class LoginView(NeverCacheMixin, FormView):
         elif gateway and service:
             LOG.debug("Gateway request received by credential requestor")
             if request.user.is_authenticated():
+                if request.session.get('warn', False) and not warned:
+                    return redirect(add_query_params(reverse('cas_warn'),
+                                                     { 'service': service,
+                                                       'gateway': gateway }))
                 st = ServiceTicket.objects.create_ticket(service=service,
                                                          user=request.user)
                 service = add_query_params(service, { 'ticket': st.ticket })
@@ -65,6 +70,9 @@ class LoginView(NeverCacheMixin, FormView):
         elif request.user.is_authenticated():
             if service:
                 LOG.debug("Service ticket request received by credential requestor")
+                if request.session.get('warn', False) and not warned:
+                    return redirect(add_query_params(reverse('cas_warn'),
+                                                     { 'service': service }))
                 st = ServiceTicket.objects.create_ticket(service=service,
                                                          user=request.user)
                 service = add_query_params(service, { 'ticket': st.ticket })
@@ -92,6 +100,11 @@ class LoginView(NeverCacheMixin, FormView):
         """
         auth.login(self.request, form.user)
         LOG.info("User logged in as '%s'" % self.request.user)
+
+        warn = form.cleaned_data.get('warn')
+        if warn:
+            self.request.session['warn'] = True
+
         service = form.cleaned_data.get('service')
         if service:
             st = ServiceTicket.objects.create_ticket(service=service,
@@ -106,6 +119,24 @@ class LoginView(NeverCacheMixin, FormView):
         service = self.request.GET.get('service')
         if service:
             return { 'service': urlquote_plus(service) }
+
+class WarnView(NeverCacheMixin, TemplateView):
+    """
+    (2.2.1) Disable transparent authentication by displaying a page indicating
+    that authentication is taking place. The user can then choose to continue
+    or cancel the authentication attempt.
+    """
+    template_name = 'mama_cas/warn.html'
+
+    def get(self, request, *args, **kwargs):
+        service = request.GET.get('service')
+        gateway = request.GET.get('gateway')
+        continue_url = add_query_params(reverse('cas_login'),
+                                        { 'service': service,
+                                          'gateway': gateway,
+                                          'warned': 'true' })
+        return self.render_to_response({ 'continue_url': continue_url,
+                                         'service': service })
 
 class LogoutView(NeverCacheMixin, View):
     """

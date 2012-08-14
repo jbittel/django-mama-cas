@@ -63,8 +63,6 @@ class LoginFormWarn(LoginForm):
     """
     Subclass of ``LoginForm`` adding an optional checkbox allowing the user to
     be notified whenever authentication occurs.
-
-    NOTE: the functionality for this form control has not yet been implemented.
     """
     warn = forms.BooleanField(widget=forms.CheckboxInput(),
                               label=_("Prompt me before being authenticated to another service"),
