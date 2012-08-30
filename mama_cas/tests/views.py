@@ -93,11 +93,12 @@ class LogoutViewTests(TestCase):
     def test_logout_view(self):
         """
         When called with no parameters and no logged in user, a ``GET``
-        request to the view should simply display the correct template.
+        request to the view should simply redirect to the login view.
         """
         response = self.client.get(reverse('cas_logout'))
 
-        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse('cas_login'),
+                             status_code=302, target_status_code=200)
 
     def test_logout_view_post(self):
         """
@@ -116,8 +117,9 @@ class LogoutViewTests(TestCase):
         response = self.client.post(reverse('cas_login'), self.user_info)
         response = self.client.get(reverse('cas_logout'))
 
+        self.assertRedirects(response, reverse('cas_login'),
+                             status_code=302, target_status_code=200)
         self.assertFalse('_auth_user_id' in self.client.session)
-        self.assertEqual(response.status_code, 302)
 
 class ValidateViewTests(TestCase):
     """
