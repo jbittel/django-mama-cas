@@ -129,8 +129,11 @@ class WarnView(NeverCacheMixin, TemplateView):
     template_name = 'mama_cas/warn.html'
 
     def get(self, request, *args, **kwargs):
-        service = request.GET.get('service')
-        gateway = request.GET.get('gateway')
+        if not request.user.is_authenticated():
+            return redirect(reverse('cas_login'))
+
+        service = request.GET.get('service', '')
+        gateway = request.GET.get('gateway', '')
         continue_url = add_query_params(reverse('cas_login'),
                                         { 'service': service,
                                           'gateway': gateway,
