@@ -1,5 +1,6 @@
 import logging
 import urlparse
+import urllib
 from xml.etree.ElementTree import ElementTree
 from xml.etree.ElementTree import fromstring
 
@@ -75,6 +76,57 @@ class LoginViewTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(destination, self.user_info['service'])
         self.assertTrue('ticket' in query)
+
+class WarnViewTests(TestCase):
+    """
+    Test the ``WarnView`` view.
+    """
+    user_info = { 'username': 'ellen',
+                  'password': 'mamas&papas',
+                  'email': 'ellen@example.com' }
+    valid_service = 'http://www.example.com/'
+    form_data = user_info.copy()
+    form_data.update({ 'warn': 'true' })
+
+    def setUp(self):
+        """
+        Create a test user for authentication purposes.
+        """
+        self.user = User.objects.create_user(**self.user_info)
+
+    def test_warn_view(self):
+        """
+        When called with no parameters and no logged in user, a ``GET``
+        request to the view should simply redirect to the login view.
+        """
+        response = self.client.get(reverse('cas_warn'))
+
+        self.assertRedirects(response, reverse('cas_login'),
+                             status_code=302, target_status_code=200)
+
+    def test_warn_view_post(self):
+        """
+        A ``POST`` request to the view should return an error that the method
+        is not allowed.
+        """
+        response = self.client.post(reverse('cas_warn'))
+
+        self.assertEqual(response.status_code, 405)
+
+    def test_warn_view_redirect(self):
+        """
+        When called with a logged in user, a ``ServiceTicket`` request to the
+        credential requestor should redirect to the correct view.
+        """
+        response = self.client.post(reverse('cas_login'), self.form_data)
+
+        self.assertEqual(self.client.session.get('warn'), True)
+
+        query_str = "?service=%s" % urllib.quote(self.valid_service, '')
+        response = self.client.get(reverse('cas_login') + query_str)
+
+        self.assertRedirects(response, reverse('cas_warn') + query_str,
+                             status_code=302, target_status_code=200)
 
 class LogoutViewTests(TestCase):
     """
