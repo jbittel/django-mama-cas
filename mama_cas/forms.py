@@ -65,7 +65,7 @@ class LoginFormWarn(LoginForm):
     be notified whenever authentication occurs.
     """
     warn = forms.BooleanField(widget=forms.CheckboxInput(),
-                              label=_("Prompt me before being authenticated to another service"),
+                              label=_("Prompt before authenticating to another service"),
                               required=False)
 
 class LoginFormEmail(LoginForm):
