@@ -3,28 +3,33 @@
 Templates
 =========
 
-django-mama-cas comes with a basic, functional template implementing standard
-password authentication. It is likely that you will want to either extend the
-template with your own customizations or simply replace it entirely.
+django-mama-cas comes with generalized but functional templates to provide a
+working starting point. You will likely want to either extend the templates
+with your customizations or simply replace them entirely.
 
-Included template
------------------
+Included templates
+------------------
 
 **mama_cas/login.html**
 
-   This is the main authentication form template used by ``LoginView`` and
-   is displayed whenever user credentials are requested. It displays
-   appropriate messages or errors to indicate success or failure during the
-   login process. When the user logs out, they are redirected back to
-   ``LoginView`` so this template is again displayed, along with a message
-   indicating they were successfully logged out.
+   This is the main authentication form template used by ``LoginView``
+   implementing standard password authentication and is used whenever user
+   credentials are required. It displays appropriate messages or errors to
+   indicate success or failure during the login process. When the user logs
+   out, they are redirected back to this template, with a message indicating
+   they were successfully logged out.
 
-   It is not recommended to edit this template file directly, as changes will
-   be overwritten whenever django-mama-cas is updated. Instead use one of the
-   two options below.
+**mama_cas/warn.html**
 
-Extending the template
-----------------------
+   This template is used by ``LoginView`` when the warn parameter from
+   ``LoginFormWarn`` is in effect. This causes the login process to not be
+   transparent to the user. When an authentication attempt occurs, this
+   template is displayed to provide continue or cancel options for the user.
+
+.. note:: These template files should not be edited directly, as changes will be overwritten when django-mama-cas is updated.
+
+Extending templates
+-------------------
 
 The default template provides a number of unused blocks to make it easy to
 insert content. If only minor changes are required, it might be simplest to
@@ -45,22 +50,22 @@ extend what is already provided. Here are the basic steps involved:
    file would be ``custom_login/templates/custom_login/login.html``.  Putting
    the template within an application specific subdirectory within
    ``templates`` helps keep templates distinct. The template does not need to
-   be named ``login.html``, but in this case it makes sense to keep the same
-   name of the template being replaced.
+   be named ``login.html``, but it can be helpful to mirror the name of the
+   template being replaced.
 
-   For example, to add an additional header about the form with additional
-   styling, create a template with the following content::
+   For example, to add a header above the login form with additional styling,
+   create a template with the following content::
 
       {% extends "mama_cas/login.html" %}
       {% block extra_head %}{{ block.super }}
       <style>#header { font-size:3em; text-align:center; color:#aaa; }</style>
       {% endblock extra_head %}
       {% block header %}
-      <h1>If You Can Believe Your Eyes and Ears
+      <h1>If You Can Believe Your Eyes and Ears</h1>
       {% endblock header %}
 
-3. Tell django-mama-cas to use the new template. The simplest way is to
-   specify it within the URLconf::
+3. Tell django-mama-cas to use the new template by specifying it within the
+   URLconf::
 
       urlpatterns = patterns('',
           url(r'^login/?$',
@@ -71,19 +76,17 @@ extend what is already provided. Here are the basic steps involved:
 Replacing the template
 ----------------------
 
-If the required changes to the login template are substantial, it is easier to
-replace the stock template entirely. The process is very similar to the
-process of extending the template, as described above. However, instead of
-extending the template in step two, replace it entirely.
+If the required changes are substantial, it is easier to replace the stock
+template entirely. Instead of extending the template as described in step two,
+replace it entirely.
 
-There are a couple of things you'll likely want to include in a custom
-template:
+There are some things you'll likely want to include in a custom template:
 
 **Messages**
    The ``messages`` framework is used to display information about the user's
    logged in or logged out status. When the message contains HTML, it is
    passed to the template with a ``safe`` tag so the message can be rendered
-   appropriately with the HTML intact.
+   with the HTML intact.
 
 **Non-field errors**
    The ``non_field_errors`` are how the user is informed of authentication

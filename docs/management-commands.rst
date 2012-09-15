@@ -9,7 +9,7 @@ You can see what custom managment commands are available by running::
     python manage.py
 
 The commands specific to django-mama-cas will show up underneath the
-``mama_cas`` heading. To run a given command, run::
+``mama_cas`` heading. To run a given command::
 
     python manage.py <command name>
 

@@ -8,7 +8,7 @@ http://www.jasig.org/cas/protocol. Where appropriate, comments within the
 code include numbers in parenthesis (e.g. ``(2.3)``) corresponding to the
 section number within the CAS protocol documentation where that functionality
 is described. Additionally, views are labeled with a CAS version number in
-brackets (e.g. ``[CAS 2.0]``) corresponding to the CAS version that supports
+brackets (e.g. ``[CAS 2.0]``) corresponding to the CAS version that defines
 that particular URI.
 
 .. seealso::
@@ -21,8 +21,8 @@ Authentication process
 
 A quick summary of how the authentication process works might be helpful in
 understanding how these pieces work together. Obviously, a lot of detail is
-skipped here that would be necessary for a complete understanding of how the
-login process works.
+skipped here that is necessary for a complete understanding of how the login
+process works.
 
 **CAS 1.0 authentication process**
    To begin, an unauthenticated client initiates a login request from a CAS
@@ -71,22 +71,21 @@ login process works.
 Protocol deviations
 -------------------
 
-There are a few areas where django-mama-cas deviates from the official CAS
+There are some areas where django-mama-cas deviates from the official CAS
 specification to take advantage of built-in Django functionality.
 
 **Login ticket**
-   According to the specification, this is a string created for the login
-   form and is passed along with the username and password to prevent the
-   replaying of credentials. django-mama-cas does not implement login
-   tickets and instead relies on the built-in CSRF protection for the login
-   form.
+   This ticket string created for the login form is passed along with the
+   username and password to prevent the replaying of credentials.
+   django-mama-cas does not implement login tickets and instead relies on
+   the built-in CSRF protection for the login form.
 
 **Ticket-granting ticket**
-   This is intended to be a string stored on the server that keys to a
-   ticket-granting cookie provided by the client to identify an existing
-   single sign-on session. django-mama-cas does not implement ticket-granting
-   tickets and instead uses Django sessions to determine whether or not a
-   single sign-on session has been established.
+   This ticket string is stored on the server and keys to a ticket-granting
+   cookie provided by the client to identify an existing single sign-on
+   session. django-mama-cas does not implement ticket-granting tickets and
+   instead uses Django sessions to determine whether or not a single sign-on
+   session has been established.
 
 These changes do not alter the contract between the client, service and CAS
 server.

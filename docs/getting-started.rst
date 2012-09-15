@@ -35,7 +35,7 @@ The easiest way to install django-mama-cas is using pip. Simply type::
 
 It is recommended to run this command within a
 `virtualenv <http://www.virtualenv.org>`_ so django-mama-cas is installed
-within an isolated environment instead of system wide.
+in an isolated environment instead of system wide.
 
 Via a downloaded package
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -70,7 +70,7 @@ are required, but can be set if you wish to override the defaults.
 **CAS_TICKET_EXPIRE (default: 5)**
    This setting controls the length of time, in minutes, between when a service
    or proxy ticket is generated and when it expires. If the ticket is not
-   validated before this time is up, it will be invalidated. This does NOT
+   validated before this time is up, it will become invalid. This does NOT
    affect the duration of a user's single sign-on session.
 
 **CAS_TICKET_RAND_LEN (default: 32)**
@@ -81,11 +81,10 @@ are required, but can be set if you wish to override the defaults.
 Sessions
 ~~~~~~~~
 
-django-mama-cas relies on the standard Django sessions to control session
-storage and expiration. To understand how sessions work within Django,
-read the `session documentation
-<https://docs.djangoproject.com/en/dev/topics/http/sessions/>`_. There are
-three particular session settings that control where sessions are stored and
+django-mama-cas relies on standard Django sessions to control session storage
+and expiration. To understand how sessions work within Django, read the
+`session documentation <https://docs.djangoproject.com/en/dev/topics/http/sessions/>`_.
+There are three particular settings that control where sessions are stored and
 when they expire:
 
    * `SESSION_ENGINE
@@ -96,7 +95,7 @@ when they expire:
      <https://docs.djangoproject.com/en/dev/topics/http/sessions/#session-expire-at-browser-close>`_
 
 It is recommended that ``SESSION_COOKIE_AGE`` be set shorter than the default
-of two weeks. ``SESSION_EXPIRE_AT_BROWSER_CLOSE`` should be set to ``False``
+of two weeks. ``SESSION_EXPIRE_AT_BROWSER_CLOSE`` should be set to ``True``
 to conform to the CAS specification. Both of these settings can be configured
 to meet your particular environment and security needs.
 
@@ -111,15 +110,15 @@ URIs (e.g. login, logout, validate, etc.). They are located in
    (r'', include('mama_cas.urls')),
 
 This would make the CAS server available at the top level of your project's
-URLs. If this is not the desired location, you can add a base to the included
-URLs. For example, if you wished the CAS server to be available under the
-``/cas/`` root you would use::
+URLs. If this is not the desired path, add a base to the included URLs. For
+example, if you wished the CAS server to be available under the ``/cas/``
+root, use::
 
    (r'^cas/', include('mama_cas.urls')),
 
 All CAS enabled services need to be configured according to the URL settings
 here. Changing the CAS URLs within ``mama_cas.urls`` is not recommended as
-that will likely break CAS behavior.
+that will likely break standard CAS behavior.
 
 Templates
 ~~~~~~~~~
@@ -129,7 +128,7 @@ password authentication. It will work as provided, but is intended to be
 extended or replaced according to your needs.
 
 Read the :ref:`template documentation <templates>` for more information on the
-included template and customization.
+included templates and customization.
 
 Authentication
 --------------

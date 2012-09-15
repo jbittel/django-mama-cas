@@ -49,8 +49,6 @@ or alternate behavior during the login process.
       should be transparent. If selected, the user will be prompted before
       being authenticated to another service.
 
-.. note:: Although the ``LoginFormWarn`` class is available, the warn parameter has not yet been implemented in django-mama-cas |version|.
-
 .. class:: LoginFormEmail
 
    A subclass of :class:`LoginForm` which adds no additional fields but
