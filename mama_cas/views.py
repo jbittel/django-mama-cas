@@ -58,7 +58,7 @@ class LoginView(NeverCacheMixin, FormView):
         elif gateway and service:
             LOG.debug("Gateway request received by credential requestor")
             if request.user.is_authenticated():
-                if request.session.get('warn', False) and not warned:
+                if self.warn_user() and not warned:
                     return redirect(add_query_params(reverse('cas_warn'),
                                                      { 'service': service,
                                                        'gateway': gateway }))
@@ -70,7 +70,7 @@ class LoginView(NeverCacheMixin, FormView):
         elif request.user.is_authenticated():
             if service:
                 LOG.debug("Service ticket request received by credential requestor")
-                if request.session.get('warn', False) and not warned:
+                if self.warn_user() and not warned:
                     return redirect(add_query_params(reverse('cas_warn'),
                                                      { 'service': service }))
                 st = ServiceTicket.objects.create_ticket(service=service,
@@ -81,6 +81,13 @@ class LoginView(NeverCacheMixin, FormView):
             else:
                 messages.success(request, _("You are logged in as %s") % request.user)
         return super(LoginView, self).get(request, *args, **kwargs)
+
+    def warn_user(self):
+        """
+        Returns ``True`` if the ``warn`` parameter is set in the current
+        session. Otherwise, returns ``False``.
+        """
+        return self.request.session.get('warn', False)
 
     def form_valid(self, form):
         """
@@ -101,8 +108,7 @@ class LoginView(NeverCacheMixin, FormView):
         auth.login(self.request, form.user)
         LOG.info("User logged in as '%s'" % self.request.user)
 
-        warn = form.cleaned_data.get('warn')
-        if warn:
+        if form.cleaned_data.get('warn'):
             self.request.session['warn'] = True
 
         service = form.cleaned_data.get('service')
@@ -134,12 +140,16 @@ class WarnView(NeverCacheMixin, TemplateView):
 
         service = request.GET.get('service', '')
         gateway = request.GET.get('gateway', '')
-        continue_url = add_query_params(reverse('cas_login'),
+        return self.render_to_response({ 'service': service,
+                                         'gateway': gateway })
+
+    def form_valid(self, form):
+        service = form.cleaned_data.get('service', '')
+        gateway = form.cleaned_data.get('gateway', '')
+        return redirect(add_query_params(reverse('cas_login'),
                                         { 'service': service,
                                           'gateway': gateway,
-                                          'warned': 'true' })
-        return self.render_to_response({ 'continue_url': continue_url,
-                                         'service': service })
+                                          'warned': 'true' }))
 
 class LogoutView(NeverCacheMixin, View):
     """
