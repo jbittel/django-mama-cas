@@ -3,9 +3,15 @@
 {% load url from future %}
 
 {% block content %}
-<p>Authentication is being attempted for <strong>{{ service }}</strong> as <strong>{{ user.username }}</strong>. Do you want to proceed?</p>
-<p>
-    <a class="button box" href="{{ continue_url }}">{% trans "Yes, continue" %}</a>
-    <a class="button box" href="{% url 'cas_logout' %}">{% trans "No, log me out" %}</a>
-</p>
+<div class="warnlist"><ul>
+    <li>Authentication is being attempted as <strong>{{ user.username }}</strong>{% if service %} for <strong>{{ service }}</strong>{% endif %}. Do you want to proceed?</li>
+</ul></div>
+<form id="warn-form" method="post">
+    {% if service %}<input type="hidden" name="service" value="{{ service }}" id="id_service" />{% endif %}
+    {% if gateway %}<input type="hidden" name="gateway" value="{{ gateway }}" id="id_gateway" />{% endif %}
+    <fieldset class="actions">
+        <input class="button box" type="submit" name="submit_warn" value="{% trans "Yes, continue" %}" />
+    </fieldset>
+</form>
+<p><a class="" href="{% url 'cas_logout' %}">{% trans "No, log me out" %}</a></p>
 {% endblock content %}
