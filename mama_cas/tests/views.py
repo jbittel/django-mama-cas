@@ -116,7 +116,7 @@ class WarnViewTests(TestCase):
     def test_warn_view_redirect(self):
         """
         When called with a logged in user, a ``ServiceTicket`` request to the
-        credential requestor should redirect to the correct view.
+        credential requestor should redirect to the warn view.
         """
         response = self.client.post(reverse('cas_login'), self.form_data)
 
@@ -127,6 +127,28 @@ class WarnViewTests(TestCase):
 
         self.assertRedirects(response, reverse('cas_warn') + query_str,
                              status_code=302, target_status_code=200)
+
+    def test_warn_view_no_auth(self):
+        """
+        When called without a logged in user, a request to the warn view should
+        redirect to the login view.
+        """
+        response = self.client.get(reverse('cas_warn'))
+
+        self.assertRedirects(response, reverse('cas_login'), status_code=302,
+                             target_status_code=200)
+
+    def test_warn_view_display(self):
+        """
+        When called with a logged in user, a request to the warn view should
+        display the correct template containing the provided service string.
+        """
+        response = self.client.post(reverse('cas_login'), self.form_data)
+        query_str = "?service=%s" % urllib.quote(self.valid_service, '')
+        response = self.client.get(reverse('cas_warn') + query_str)
+
+        self.assertContains(response, self.valid_service, status_code=200)
+        self.assertTemplateUsed(response, 'mama_cas/warn.html')
 
 class LogoutViewTests(TestCase):
     """
