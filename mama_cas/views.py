@@ -123,7 +123,8 @@ class LogoutView(NeverCacheMixin, View):
         if request.user.is_authenticated():
             ProxyGrantingTicket.objects.consume_tickets(request.user)
             auth.logout(request)
-        messages.success(request, _("You have been successfully logged out"))
+            messages.success(request, _("You have been successfully logged out"))
+
         url = request.GET.get('url', None)
         if url:
             messages.success(request, _("The application has provided this link to follow: " \
