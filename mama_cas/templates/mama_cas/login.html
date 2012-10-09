@@ -1,4 +1,6 @@
 {% load i18n %}
+{% load mama_cas_tags %}
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -15,16 +17,18 @@
         #content { background-color:rgba(255,255,255,0.85); border:1px solid #dcdcdc; width:325px; margin:0 auto 200px; padding:20px 30px 40px }
         fieldset { border:0 none; margin:10px 0 0; padding:0 }
         label { display:block; font-size:1.6em; cursor:pointer; margin:5px }
+        span.label label { display:inline; font-size:1.1em; color:#777 }
         h1, label, .actions input { text-shadow:0 1px 0 #f9f9f9 }
         textarea, input { outline:none }
-        .inputs input { border:0 none; color:#666; font-size:1.6em; width:62%; margin:0 0 0 10px; padding:10px 0 0 }
+        .inputs input { border:0 none; color:#666; font-size:1.6em; width:65%; padding:10px 0 0 10px }
         .actions { text-align:center }
-        .box { border-radius:3px; -webkit-box-shadow:0 5px 5px -7px rgba(51,153,255,.7); -moz-box-shadow:0 5px 5px -7px rgba(51,153,255,.7); box-shadow:0 5px 5px -7px rgba(51,153,255,.7) }
-        .field, .button { background-color:#fff; border:1px solid #ddd; height:40px; overflow:hidden; color:#39f; margin:10px 0 }
+        .box { border:1px solid #ddd; border-radius:3px; -webkit-box-shadow:0 5px 5px -7px rgba(51,153,255,.7); -moz-box-shadow:0 5px 5px -7px rgba(51,153,255,.7); box-shadow:0 5px 5px -7px rgba(51,153,255,.7) }
+        .field, .button { background-color:#fff; height:40px; overflow:hidden; color:#39f; margin-top:10px }
         .button { background-color:#eee; width:37%; cursor:pointer; font-size:1.4em; margin:0 }
         .button:hover { background-color:rgba(0,0,0,.09) }
         .button:active { -webkit-box-shadow:0 1px 4px 0 rgba(51,153,255,.3) inset; -moz-box-shadow:0 1px 4px 0 rgba(51,153,255,.3) inset; box-shadow:0 1px 4px 0 rgba(51,153,255,.3) inset }
-        .label { background-color:#eee; border-right:1px solid #ddd; float:left; width:9em; cursor:pointer; height:40px; padding:5px }
+        .fieldlabel { background-color:#eee; border-right:1px solid #ddd; float:left; width:9em; cursor:pointer; height:30px; padding:5px }
+        .label { font-size:1.2em; }
         .messagelist, .warnlist, .errorlist { background-color:#f8fff0; border:1px solid #be7; color:#234600; font-size:1.2em; margin:0 auto }
         .messagelist li, .warnlist li, .errorlist li { margin-left:-10px; padding:2px 0 }
         .messagelist a:link, .messagelist a:visited { color:#234600; text-decoration:underline }
@@ -34,6 +38,7 @@
         .group:before, .group:after { content:""; display:table }
         .group:after { clear:both }
         .group { zoom:1 }
+        a.logout { color:#777; padding-top:20px }
     </style>
     {% endblock extra_head %}
 </head>
@@ -42,8 +47,8 @@
     <div id="header">{% block header %}{% endblock header %}</div>
     <div id="content" class="box">
         <h1>{% block content_title %}{% trans "Central Authentication Service" %}{% endblock content_title %}</h1>
-
         {% block content %}
+
         {% if messages %}
         <div class="messagelist"><ul>
             {% for message in messages %}
@@ -72,15 +77,22 @@
             {% endfor %}
             <fieldset class="inputs">
             {% for field in form.visible_fields %}
+                {% if field|field_type = 'charfield' %}
                 <div class="field group box{% if field.errors %} errorfield{% endif %}">
-                    <span class="label">{{ field.label_tag }}</span>{{ field }}
+                    <span class="fieldlabel">{{ field.label_tag }}</span>{{ field }}
                 </div>
+                {% else %}
+                <div class="field group">
+                    {{ field }}<span class="label">{{ field.label_tag }}</span>
+                </div>
+                {% endif %}
             {% endfor %}
             </fieldset>
             <fieldset class="actions">
                 <input class="button box" type="submit" name="submit_login" value="{% trans "Login" %}" />
             </fieldset>
         </form>
+
         {% endblock content %}
     </div>
     <div id="footer">{% block footer %}{% endblock footer %}</div>
