@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="warnlist"><ul>
-    <li>Authentication is being attempted as <strong>{{ user.username }}</strong>{% if service %} for <strong>{{ service }}</strong>{% endif %}. Do you want to proceed?</li>
+    <li>An automatic login is being attempted as <strong>{{ user.username }}</strong>{% if service %} for <strong>{{ service }}</strong>{% endif %}. Do you want to proceed?</li>
 </ul></div>
 <form id="warn-form" method="post">
     {% if service %}<input type="hidden" name="service" value="{{ service }}" id="id_service" />{% endif %}
