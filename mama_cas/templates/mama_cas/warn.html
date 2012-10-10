@@ -10,8 +10,12 @@
     {% if service %}<input type="hidden" name="service" value="{{ service }}" id="id_service" />{% endif %}
     {% if gateway %}<input type="hidden" name="gateway" value="{{ gateway }}" id="id_gateway" />{% endif %}
     <fieldset class="actions">
-        <input class="button box" type="submit" name="submit_warn" value="{% trans "Yes, continue" %}" />
+        <div class="field">
+            <input class="button box" type="submit" name="submit_warn" value="{% trans "Yes, continue" %}" />
+        </div>
     </fieldset>
 </form>
-<p class="group"><a class="logout" href="{% url 'cas_logout' %}">{% trans "No, log me out" %}</a></p>
+<div class="logout">
+    <a href="{% url 'cas_logout' %}">{% trans "No, log me out" %}</a>
+</div>
 {% endblock content %}

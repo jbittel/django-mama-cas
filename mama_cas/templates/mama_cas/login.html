@@ -28,7 +28,7 @@
         .button:hover { background-color:rgba(0,0,0,.09) }
         .button:active { -webkit-box-shadow:0 1px 4px 0 rgba(51,153,255,.3) inset; -moz-box-shadow:0 1px 4px 0 rgba(51,153,255,.3) inset; box-shadow:0 1px 4px 0 rgba(51,153,255,.3) inset }
         .fieldlabel { background-color:#eee; border-right:1px solid #ddd; float:left; width:9em; cursor:pointer; height:30px; padding:5px }
-        .label { font-size:1.2em; }
+        .label { font-size:1.2em }
         .messagelist, .warnlist, .errorlist { background-color:#f8fff0; border:1px solid #be7; color:#234600; font-size:1.2em; margin:0 auto }
         .messagelist li, .warnlist li, .errorlist li { margin-left:-10px; padding:2px 0 }
         .messagelist a:link, .messagelist a:visited { color:#234600; text-decoration:underline }
@@ -38,7 +38,8 @@
         .group:before, .group:after { content:""; display:table }
         .group:after { clear:both }
         .group { zoom:1 }
-        a.logout { color:#777; padding-top:20px }
+        .logout { margin-top:12px; float:right }
+        .logout a:link, .logout a:visited { font-size:1.2em; color:#777 }
     </style>
     {% endblock extra_head %}
 </head>
