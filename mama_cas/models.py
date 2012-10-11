@@ -137,8 +137,8 @@ class Ticket(models.Model):
     or its inheritors. Instead, the provided manager contains methods
     for creating, validating, consuming and deleting invalid ``Ticket``s.
     """
-    TICKET_EXPIRE = getattr(settings, 'CAS_SERVICE_TICKET_EXPIRE', 5)
-    TICKET_RAND_LEN = getattr(settings, 'CAS_TICKET_RAND_LEN', 32)
+    TICKET_EXPIRE = getattr(settings, 'MAMA_CAS_SERVICE_TICKET_EXPIRE', 5)
+    TICKET_RAND_LEN = getattr(settings, 'MAMA_CAS_TICKET_RAND_LEN', 32)
     TICKET_RE = re.compile("^[A-Z]{2,3}-[0-9]{10,}-[a-zA-Z0-9]{%d}$" % TICKET_RAND_LEN)
 
     ticket = models.CharField(_('ticket'), max_length=255, unique=True)
