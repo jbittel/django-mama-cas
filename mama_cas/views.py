@@ -19,6 +19,7 @@ from mama_cas.models import ProxyGrantingTicket
 from mama_cas.utils import add_query_params
 from mama_cas.mixins import NeverCacheMixin
 from mama_cas.mixins import TicketValidateMixin
+from mama_cas.mixins import UserAttributesMixin
 
 
 LOG = logging.getLogger('mama_cas')
@@ -206,7 +207,7 @@ class ValidateView(NeverCacheMixin, TicketValidateMixin, View):
         else:
             return HttpResponse(content="no\n\n", content_type='text/plain')
 
-class ServiceValidateView(NeverCacheMixin, TicketValidateMixin, TemplateView):
+class ServiceValidateView(NeverCacheMixin, TicketValidateMixin, UserAttributesMixin, TemplateView):
     """
     (2.5) Check the validity of a service ticket. [CAS 2.0]
 
@@ -227,10 +228,11 @@ class ServiceValidateView(NeverCacheMixin, TicketValidateMixin, TemplateView):
 
     def get(self, request, *args, **kwargs):
         st, pgt, error = TicketValidateMixin.validate_service_ticket(self, request)
-        context = { 'ticket': st, 'pgt': pgt, 'error': error }
+        attributes = UserAttributesMixin.get_user_attributes(self, st)
+        context = { 'ticket': st, 'pgt': pgt, 'error': error, 'attributes': attributes }
         return self.render_to_response(context, content_type='text/xml')
 
-class ProxyValidateView(NeverCacheMixin, TicketValidateMixin, TemplateView):
+class ProxyValidateView(NeverCacheMixin, TicketValidateMixin, UserAttributesMixin, TemplateView):
     """
     (2.6) Check the validity of a service ticket, and additionally
     validate proxy tickets. [CAS 2.0]
@@ -257,11 +259,14 @@ class ProxyValidateView(NeverCacheMixin, TicketValidateMixin, TemplateView):
             # If no ticket parameter is present, attempt to validate it anyway
             # so the appropriate error is raised
             t, pgt, proxies, error = TicketValidateMixin.validate_proxy_ticket(self, request)
+            attributes = UserAttributesMixin.get_user_attributes(self, t)
         else:
             t, pgt, error = TicketValidateMixin.validate_service_ticket(self, request)
             proxies = None
+            attributes = UserAttributesMixin.get_user_attributes(self, t)
 
-        context = { 'ticket': t, 'pgt': pgt, 'proxies': proxies, 'error': error }
+        context = { 'ticket': t, 'pgt': pgt, 'proxies': proxies, 'error': error,
+                    'attributes': attributes }
         return self.render_to_response(context, content_type='text/xml')
 
 class ProxyView(NeverCacheMixin, TicketValidateMixin, TemplateView):

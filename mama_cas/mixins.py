@@ -1,7 +1,10 @@
 import logging
 
+from django.conf import settings
 from django.views.decorators.cache import never_cache
 from django.utils.decorators import method_decorator
+from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.models import SiteProfileNotAvailable
 
 from mama_cas.models import ServiceTicket
 from mama_cas.models import ProxyTicket
@@ -121,3 +124,56 @@ class TicketValidateMixin(object):
                                                    user=pgt.user,
                                                    granted_by_pgt=pgt)
             return pt, None
+
+class UserAttributesMixin(object):
+    """
+    View mixin for including extra user attributes in a validation response.
+    """
+    def get_user_attributes(self, ticket):
+        """
+        Given a ``ticket``, build a list of user attributes to be returned
+        with a validation success. The attributes are selected with two
+        settings variables:
+
+        ``MAMA_CAS_USER_ATTRIBUTES``
+            This is a list of name and ``User`` attribute pairs. The name can
+            be any meaningful string, while the attribute must correspond with
+            an attribute on the ``User`` object.
+
+        ``MAMA_CAS_PROFILE_ATTRIBUTES``
+            This is a list of name and ``Profile`` attribute pairs. The name
+            can be any meaningful string, while the attribute must correspond
+            with an attribute on the ``Profile`` object.
+
+        One or both of the settings variables may be used, with all data
+        returned as a single list. Ordering is not guaranteed.
+        """
+        if not ticket:
+            return None
+        user = ticket.user
+        attributes = []
+
+        user_attr_list = getattr(settings, 'MAMA_CAS_USER_ATTRIBUTES', ())
+        for (name, key) in user_attr_list:
+            try:
+                attribute = [name, getattr(user, key)]
+            except AttributeError:
+                pass
+            else:
+                attributes.append(attribute)
+
+        try:
+            profile = user.get_profile()
+        except (ObjectDoesNotExist, SiteProfileNotAvailable):
+            pass
+        else:
+            profile_attr_list = getattr(settings, 'MAMA_CAS_PROFILE_ATTRIBUTES', ())
+            for (name, key) in profile_attr_list:
+                try:
+                    attribute = [name, getattr(profile, key)]
+                except AttributeError:
+                    pass
+                else:
+                    attributes.append(attribute)
+
+        return attributes

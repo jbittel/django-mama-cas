@@ -4,6 +4,7 @@ import urllib
 from xml.etree.ElementTree import ElementTree
 from xml.etree.ElementTree import fromstring
 
+from django.conf import settings
 from django.test import TestCase
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
@@ -298,8 +299,25 @@ class ServiceValidateViewTests(TestCase):
         Create a valid user and service ticket for testing purposes.
         """
         self.user = User.objects.create_user(**self.user_info)
+        self.user.first_name = 'Ellen'
+        self.user.last_name = 'Cohen'
+        self.user.save()
+
         self.ticket_info.update({'user': self.user})
         self.st = ServiceTicket.objects.create_ticket(**self.ticket_info)
+
+        self.old_user_attributes = getattr(settings, 'MAMA_CAS_USER_ATTRIBUTES', None)
+        if self.old_user_attributes is None:
+            settings.MAMA_CAS_USER_ATTRIBUTES = (('givenName', 'first_name'),
+                                                 ('surname', 'last_name'),
+                                                 ('email', 'email'))
+
+    def tearDown(self):
+        """
+        Undo any modifications made to settings.
+        """
+        if self.old_user_attributes is None:
+            settings.MAMA_CAS_USER_ATTRIBUTES = self.old_user_attributes
 
     def test_service_validate_view_get(self):
         """
@@ -425,6 +443,22 @@ class ServiceValidateViewTests(TestCase):
         elem = tree.find(XMLNS + 'authenticationSuccess/' + XMLNS + 'proxyGrantingTicket')
         self.assertIsNone(elem)
 
+    def test_service_validate_view_user_attributes(self):
+        """
+        When ``MAMA_CAS_USER_ATTRIBUTES`` is defined in the settings file, a
+        service validation success should include the list of configured user
+        attributes.
+        """
+        query_str = "?service=%s&ticket=%s" % (self.valid_service, self.st.ticket)
+        response = self.client.get(reverse('cas_service_validate') + query_str)
+        tree = ElementTree(fromstring(response.content))
+        elem = tree.find(XMLNS + 'authenticationSuccess/')
+        attribute = list(elem.getiterator(XMLNS + 'attribute'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get('Content-Type'), 'text/xml')
+        self.assertEqual(len(attribute), 4)
+
 class ProxyValidateViewTests(TestCase):
     """
     Test the ``ProxyValidateView`` view.
@@ -446,6 +480,10 @@ class ProxyValidateViewTests(TestCase):
         Create a valid user and service ticket for testing purposes.
         """
         self.user = User.objects.create_user(**self.user_info)
+        self.user.first_name = 'Ellen'
+        self.user.last_name = 'Cohen'
+        self.user.save()
+
         self.ticket_info.update({'user': self.user})
         self.st = ServiceTicket.objects.create_ticket(**self.ticket_info)
         self.pgt = ProxyGrantingTicket.objects.create_ticket(self.valid_service,
@@ -454,6 +492,19 @@ class ProxyValidateViewTests(TestCase):
                                                              granted_by_st=self.st)
         self.pt = ProxyTicket.objects.create_ticket(granted_by_pgt=self.pgt,
                                                     **self.ticket_info)
+
+        self.old_user_attributes = getattr(settings, 'MAMA_CAS_USER_ATTRIBUTES', None)
+        if self.old_user_attributes is None:
+            settings.MAMA_CAS_USER_ATTRIBUTES = (('givenName', 'first_name'),
+                                                 ('surname', 'last_name'),
+                                                 ('email', 'email'))
+
+    def tearDown(self):
+        """
+        Undo any modifications made to settings.
+        """
+        if self.old_user_attributes is None:
+            settings.MAMA_CAS_USER_ATTRIBUTES = self.old_user_attributes
 
     def test_proxy_validate_view_get(self):
         """
@@ -640,6 +691,22 @@ class ProxyValidateViewTests(TestCase):
 
         elem = tree.find(XMLNS + 'authenticationSuccess/' + XMLNS + 'proxyGrantingTicket')
         self.assertIsNone(elem)
+
+    def test_proxy_validate_view_user_attributes(self):
+        """
+        When ``MAMA_CAS_USER_ATTRIBUTES`` is defined in the settings file, a
+        proxy validation success should include the list of configured user
+        attributes.
+        """
+        query_str = "?service=%s&ticket=%s" % (self.valid_service, self.st.ticket)
+        response = self.client.get(reverse('cas_service_validate') + query_str)
+        tree = ElementTree(fromstring(response.content))
+        elem = tree.find(XMLNS + 'authenticationSuccess/')
+        attribute = list(elem.getiterator(XMLNS + 'attribute'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get('Content-Type'), 'text/xml')
+        self.assertEqual(len(attribute), 4)
 
 class ProxyViewTests(TestCase):
     """

@@ -6,6 +6,7 @@
     {% elif ticket %}
     <cas:authenticationSuccess>
         <cas:user>{{ ticket.user.username }}</cas:user>
+        {% include 'mama_cas/attributes-namevalue.xml' %}
         {% if pgt %}
         <cas:proxyGrantingTicket>{{ pgt }}</cas:proxyGrantingTicket>
         {% endif %}
