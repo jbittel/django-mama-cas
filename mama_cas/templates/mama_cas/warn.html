@@ -7,12 +7,13 @@
     <li>An automatic login is being attempted as <strong>{{ user.username }}</strong>{% if service %} for <strong>{{ service }}</strong>{% endif %}. Do you want to proceed?</li>
 </ul></div>
 <form id="warn-form" method="post">
-    {% if service %}<input type="hidden" name="service" value="{{ service }}" id="id_service" />{% endif %}
-    {% if gateway %}<input type="hidden" name="gateway" value="{{ gateway }}" id="id_gateway" />{% endif %}
+    {% csrf_token %}
+    {% for field in form.hidden_fields %}
+        {{ field }}
+    {% endfor %}
+    <fieldset class="inputs"></fieldset>
     <fieldset class="actions">
-        <div class="field">
-            <input class="button box" type="submit" name="submit_warn" value="{% trans "Yes, continue" %}" />
-        </div>
+        <input class="button box" type="submit" name="submit_warn" value="{% trans "Yes, continue" %}" />
     </fieldset>
 </form>
 <div class="logout">

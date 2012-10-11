@@ -104,19 +104,11 @@ class WarnViewTests(TestCase):
         self.assertRedirects(response, reverse('cas_login'),
                              status_code=302, target_status_code=200)
 
-    def test_warn_view_post(self):
-        """
-        A ``POST`` request to the view should return an error that the method
-        is not allowed.
-        """
-        response = self.client.post(reverse('cas_warn'))
-
-        self.assertEqual(response.status_code, 405)
-
     def test_warn_view_redirect(self):
         """
-        When called with a logged in user, a ``ServiceTicket`` request to the
-        credential requestor should redirect to the warn view.
+        When a user logs in with the warn parameter present, the user's
+        session should contain a ``warn`` attribute and a ``ServiceTicket``
+        request to the credential requestor should redirect to the warn view.
         """
         response = self.client.post(reverse('cas_login'), self.form_data)
 
@@ -143,12 +135,26 @@ class WarnViewTests(TestCase):
         When called with a logged in user, a request to the warn view should
         display the correct template containing the provided service string.
         """
-        response = self.client.post(reverse('cas_login'), self.form_data)
+        self.client.login(username=self.user_info['username'],
+                          password=self.user_info['password'])
         query_str = "?service=%s" % urllib.quote(self.valid_service, '')
         response = self.client.get(reverse('cas_warn') + query_str)
 
         self.assertContains(response, self.valid_service, status_code=200)
         self.assertTemplateUsed(response, 'mama_cas/warn.html')
+
+    def test_warn_view_warned(self):
+        """
+        When a logged in user submits the form on the warn view, the user
+        should be redirected to the login view with the ``warned`` parameter
+        present.
+        """
+        self.client.login(username=self.user_info['username'],
+                          password=self.user_info['password'])
+        response = self.client.post(reverse('cas_warn'))
+
+        self.assertRedirects(response, reverse('cas_login') + '?warned=true',
+                             status_code=302, target_status_code=200)
 
 class LogoutViewTests(TestCase):
     """

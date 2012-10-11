@@ -12,6 +12,7 @@ from django.contrib import auth
 from django.utils.translation import ugettext as _
 
 from mama_cas.forms import LoginForm
+from mama_cas.forms import WarnForm
 from mama_cas.models import ServiceTicket
 from mama_cas.models import ProxyTicket
 from mama_cas.models import ProxyGrantingTicket
@@ -126,30 +127,39 @@ class LoginView(NeverCacheMixin, FormView):
         if service:
             return { 'service': urlquote_plus(service) }
 
-class WarnView(NeverCacheMixin, TemplateView):
+class WarnView(NeverCacheMixin, FormView):
     """
     (2.2.1) Disable transparent authentication by displaying a page indicating
     that authentication is taking place. The user can then choose to continue
     or cancel the authentication attempt.
     """
     template_name = 'mama_cas/warn.html'
+    form_class = WarnForm
 
     def get(self, request, *args, **kwargs):
         if not request.user.is_authenticated():
             return redirect(reverse('cas_login'))
-
-        service = request.GET.get('service', '')
-        gateway = request.GET.get('gateway', '')
-        return self.render_to_response({ 'service': service,
-                                         'gateway': gateway })
+        return super(WarnView, self).get(request, *args, **kwargs)
 
     def form_valid(self, form):
-        service = form.cleaned_data.get('service', '')
-        gateway = form.cleaned_data.get('gateway', '')
         return redirect(add_query_params(reverse('cas_login'),
-                                        { 'service': service,
-                                          'gateway': gateway,
+                                        { 'service': form.cleaned_data.get('service'),
+                                          'gateway': form.cleaned_data.get('gateway'),
                                           'warned': 'true' }))
+
+    def get_initial(self):
+        initial = {}
+        service = self.request.GET.get('service')
+        gateway = self.request.GET.get('gateway')
+        if service:
+            initial['service'] = urlquote_plus(service)
+        if gateway:
+            initial['gateway'] = gateway
+        return initial
+
+    def get_context_data(self, **kwargs):
+        kwargs['service'] = self.request.GET.get('service')
+        return kwargs
 
 class LogoutView(NeverCacheMixin, View):
     """

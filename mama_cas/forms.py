@@ -80,3 +80,21 @@ class LoginFormEmail(LoginForm):
         """
         username = self.cleaned_data.get('username').split('@')[0]
         return lower(username)
+
+class WarnForm(forms.Form):
+    """
+    Form implementing warning for interrupting the automatic authentication
+    process.
+
+    Primarily the form consists of a submit button, but these hidden fields
+    allow this data to be passed through the form during the process.
+    """
+    service = forms.CharField(widget=forms.HiddenInput, required=False)
+    gateway = forms.CharField(widget=forms.HiddenInput, required=False)
+
+    def clean_service(self):
+        """
+        Remove any HTML percent encoding in the service URL.
+        """
+        service = self.cleaned_data.get('service')
+        return urlunquote_plus(service)
