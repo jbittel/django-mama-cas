@@ -101,14 +101,17 @@ class WarnViewTests(TestCase):
         """
         response = self.client.get(reverse('cas_warn'))
 
-        self.assertRedirects(response, reverse('cas_login'),
-                             status_code=302, target_status_code=200)
+        self.assertRedirects(response, reverse('cas_login'), status_code=302,
+                             target_status_code=200)
 
     def test_warn_view_redirect(self):
         """
         When a user logs in with the warn parameter present, the user's
         session should contain a ``warn`` attribute and a ``ServiceTicket``
         request to the credential requestor should redirect to the warn view.
+
+        NOTE: this test will fail if ``LoginView`` is not using the
+        ``LoginFormWarn`` form class.
         """
         response = self.client.post(reverse('cas_login'), self.form_data)
 
@@ -119,16 +122,6 @@ class WarnViewTests(TestCase):
 
         self.assertRedirects(response, reverse('cas_warn') + query_str,
                              status_code=302, target_status_code=200)
-
-    def test_warn_view_no_auth(self):
-        """
-        When called without a logged in user, a request to the warn view should
-        redirect to the login view.
-        """
-        response = self.client.get(reverse('cas_warn'))
-
-        self.assertRedirects(response, reverse('cas_login'), status_code=302,
-                             target_status_code=200)
 
     def test_warn_view_display(self):
         """
@@ -393,8 +386,8 @@ class ServiceValidateViewTests(TestCase):
         ``GET`` request to the view should return a validation success and
         also attempt to create a ``ProxyGrantingTicket``.
 
-        This test will fail unless ``valid_pgt_url`` is configured with a
-        valid proxy callback URL.
+        NOTE: this test will fail unless ``valid_pgt_url`` is configured with
+        a valid proxy callback URL.
         """
         query_str = "?service=%s&ticket=%s&pgtUrl=%s" % (self.valid_service,
                                                          self.st.ticket,
@@ -609,8 +602,8 @@ class ProxyValidateViewTests(TestCase):
         ``GET`` request to the view should return a validation success and
         also attempt to create a ``ProxyGrantingTicket``.
 
-        This test will fail unless ``valid_pgt_url`` is configured with a
-        valid proxy callback URL.
+        NOTE: this test will fail unless ``valid_pgt_url`` is configured with
+        a valid proxy callback URL.
         """
         query_str = "?service=%s&ticket=%s&pgtUrl=%s" % (self.valid_service,
                                                          self.st.ticket,
