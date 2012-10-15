@@ -290,6 +290,9 @@ class ServiceValidateViewTests(TestCase):
     user_info = { 'username': 'ellen',
                   'password': 'mamas&papas',
                   'email': 'ellen@example.com' }
+    user_attr = (('givenName', 'first_name'),
+                 ('sn', 'last_name'),
+                 ('email', 'email'))
     ticket_info = { 'service': valid_service }
     valid_pgt_url = 'https://www.example.com/'
     invalid_pgt_url = 'http://www.example.com/'
@@ -307,17 +310,13 @@ class ServiceValidateViewTests(TestCase):
         self.st = ServiceTicket.objects.create_ticket(**self.ticket_info)
 
         self.old_user_attributes = getattr(settings, 'MAMA_CAS_USER_ATTRIBUTES', None)
-        if self.old_user_attributes is None:
-            settings.MAMA_CAS_USER_ATTRIBUTES = (('givenName', 'first_name'),
-                                                 ('surname', 'last_name'),
-                                                 ('email', 'email'))
+        settings.MAMA_CAS_USER_ATTRIBUTES = self.user_attr
 
     def tearDown(self):
         """
         Undo any modifications made to settings.
         """
-        if self.old_user_attributes is None:
-            settings.MAMA_CAS_USER_ATTRIBUTES = self.old_user_attributes
+        settings.MAMA_CAS_USER_ATTRIBUTES = self.old_user_attributes
 
     def test_service_validate_view_get(self):
         """
@@ -453,11 +452,16 @@ class ServiceValidateViewTests(TestCase):
         response = self.client.get(reverse('cas_service_validate') + query_str)
         tree = ElementTree(fromstring(response.content))
         elem = tree.find(XMLNS + 'authenticationSuccess/')
-        attribute = list(elem.getiterator(XMLNS + 'attribute'))
+        attributes = list(elem.getiterator(XMLNS + 'attribute'))
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get('Content-Type'), 'text/xml')
-        self.assertEqual(len(attribute), 4)
+        self.assertEqual(len(attributes), len(self.user_attr) + 1)
+        for attr in attributes:
+            self.assertTrue(attr.attrib['value'])
+            if attr.attrib['name'] == 'attraStyle':
+                continue
+            self.assertTrue(attr.attrib['name'] in name for name in self.user_attr)
 
 class ProxyValidateViewTests(TestCase):
     """
@@ -471,6 +475,9 @@ class ProxyValidateViewTests(TestCase):
     user_info = { 'username': 'ellen',
                   'password': 'mamas&papas',
                   'email': 'ellen@example.com' }
+    user_attr = (('givenName', 'first_name'),
+                 ('sn', 'last_name'),
+                 ('email', 'email'))
     ticket_info = { 'service': valid_service }
     valid_pgt_url = 'https://www.example.com/'
     invalid_pgt_url = 'http://www.example.com/'
@@ -494,17 +501,13 @@ class ProxyValidateViewTests(TestCase):
                                                     **self.ticket_info)
 
         self.old_user_attributes = getattr(settings, 'MAMA_CAS_USER_ATTRIBUTES', None)
-        if self.old_user_attributes is None:
-            settings.MAMA_CAS_USER_ATTRIBUTES = (('givenName', 'first_name'),
-                                                 ('surname', 'last_name'),
-                                                 ('email', 'email'))
+        settings.MAMA_CAS_USER_ATTRIBUTES = self.user_attr
 
     def tearDown(self):
         """
         Undo any modifications made to settings.
         """
-        if self.old_user_attributes is None:
-            settings.MAMA_CAS_USER_ATTRIBUTES = self.old_user_attributes
+        settings.MAMA_CAS_USER_ATTRIBUTES = self.old_user_attributes
 
     def test_proxy_validate_view_get(self):
         """
@@ -702,11 +705,16 @@ class ProxyValidateViewTests(TestCase):
         response = self.client.get(reverse('cas_service_validate') + query_str)
         tree = ElementTree(fromstring(response.content))
         elem = tree.find(XMLNS + 'authenticationSuccess/')
-        attribute = list(elem.getiterator(XMLNS + 'attribute'))
+        attributes = list(elem.getiterator(XMLNS + 'attribute'))
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get('Content-Type'), 'text/xml')
-        self.assertEqual(len(attribute), 4)
+        self.assertEqual(len(attributes), len(self.user_attr) + 1)
+        for attr in attributes:
+            self.assertTrue(attr.attrib['value'])
+            if attr.attrib['name'] == 'attraStyle':
+                continue
+            self.assertTrue(attr.attrib['name'] in name for name in self.user_attr)
 
 class ProxyViewTests(TestCase):
     """
