@@ -45,6 +45,8 @@ class LoginViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'mama_cas/login.html')
         self.assertTrue(isinstance(response.context['form'], LoginForm))
+        self.assertTrue('Cache-Control' in response)
+        self.assertEqual(response['Cache-Control'], 'max-age=0')
 
     def test_login_view_login(self):
         """
@@ -104,6 +106,8 @@ class WarnViewTests(TestCase):
 
         self.assertRedirects(response, reverse('cas_login'), status_code=302,
                              target_status_code=200)
+        self.assertTrue('Cache-Control' in response)
+        self.assertEqual(response['Cache-Control'], 'max-age=0')
 
     def test_warn_view_redirect(self):
         """
@@ -173,6 +177,8 @@ class LogoutViewTests(TestCase):
 
         self.assertRedirects(response, reverse('cas_login'),
                              status_code=302, target_status_code=200)
+        self.assertTrue('Cache-Control' in response)
+        self.assertEqual(response['Cache-Control'], 'max-age=0')
 
     def test_logout_view_post(self):
         """
@@ -227,6 +233,8 @@ class ValidateViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.content, self.validation_failure)
         self.assertEqual(response.get('Content-Type'), 'text/plain')
+        self.assertTrue('Cache-Control' in response)
+        self.assertEqual(response['Cache-Control'], 'max-age=0')
 
     def test_validate_view_post(self):
         """
@@ -318,7 +326,7 @@ class ServiceValidateViewTests(TestCase):
         """
         settings.MAMA_CAS_USER_ATTRIBUTES = self.old_user_attributes
 
-    def test_service_validate_view_get(self):
+    def test_service_validate_view(self):
         """
         When called with no parameters, a ``GET`` request to the view should
         return a validation failure.
@@ -331,6 +339,8 @@ class ServiceValidateViewTests(TestCase):
         self.assertEqual(elem.get('code'), 'INVALID_REQUEST')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get('Content-Type'), 'text/xml')
+        self.assertTrue('Cache-Control' in response)
+        self.assertEqual(response['Cache-Control'], 'max-age=0')
 
     def test_service_validate_view_post(self):
         """
@@ -509,7 +519,7 @@ class ProxyValidateViewTests(TestCase):
         """
         settings.MAMA_CAS_USER_ATTRIBUTES = self.old_user_attributes
 
-    def test_proxy_validate_view_get(self):
+    def test_proxy_validate_view(self):
         """
         When called with no parameters, a ``GET`` request to the view should
         return a validation failure.
@@ -522,6 +532,8 @@ class ProxyValidateViewTests(TestCase):
         self.assertEqual(elem.get('code'), 'INVALID_REQUEST')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get('Content-Type'), 'text/xml')
+        self.assertTrue('Cache-Control' in response)
+        self.assertEqual(response['Cache-Control'], 'max-age=0')
 
     def test_proxy_validate_view_post(self):
         """
@@ -739,7 +751,7 @@ class ProxyViewTests(TestCase):
                                                              user=self.user,
                                                              granted_by_st=self.st)
 
-    def test_proxy_view_get(self):
+    def test_proxy_view(self):
         """
         When called with no parameters, a ``GET`` request to the view should
         return a validation failure.
@@ -752,6 +764,8 @@ class ProxyViewTests(TestCase):
         self.assertEqual(elem.get('code'), 'INVALID_REQUEST')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get('Content-Type'), 'text/xml')
+        self.assertTrue('Cache-Control' in response)
+        self.assertEqual(response['Cache-Control'], 'max-age=0')
 
     def test_proxy_view_post(self):
         """
