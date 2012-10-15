@@ -1,7 +1,6 @@
 {% if attributes %}
 <cas:attributes>
     <cas:attraStyle>Jasig</cas:attraStyle>
-    <cas:attribute name='attraStyle' value='Name-Value' />
     {% for name, value in attributes %}
     <cas:{{ name }}>{{ value }}</cas:{{ name }}>
     {% endfor %}
