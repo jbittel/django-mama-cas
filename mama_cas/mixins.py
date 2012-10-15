@@ -125,15 +125,15 @@ class TicketValidateMixin(object):
                                                    granted_by_pgt=pgt)
             return pt, None
 
-class UserAttributesMixin(object):
+class CustomAttributesMixin(object):
     """
-    View mixin for including extra user attributes in a validation response.
+    View mixin for including custom user attributes in a validation response.
     """
-    def get_user_attributes(self, ticket):
+    def get_custom_attributes(self, ticket):
         """
-        Given a ``ticket``, build a list of user attributes to be returned
-        with a validation success. The attributes are selected with two
-        settings variables:
+        Given a ``ticket``, build a list of user attributes from either the
+        ``User`` or user profile object to be returned with a validation
+        success. The attributes are selected with two settings variables:
 
         ``MAMA_CAS_USER_ATTRIBUTES``
             This is a list of name and ``User`` attribute pairs. The name can
@@ -141,9 +141,9 @@ class UserAttributesMixin(object):
             an attribute on the ``User`` object.
 
         ``MAMA_CAS_PROFILE_ATTRIBUTES``
-            This is a list of name and ``Profile`` attribute pairs. The name
+            This is a list of name and user profile attribute pairs. The name
             can be any meaningful string, while the attribute must correspond
-            with an attribute on the ``Profile`` object.
+            with an attribute on the user profile object.
 
         One or both of the settings variables may be used, with all data
         returned as a single list. Ordering is not guaranteed.
