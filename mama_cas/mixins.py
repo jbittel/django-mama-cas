@@ -158,7 +158,7 @@ class CustomAttributesMixin(object):
             try:
                 attribute = [name, getattr(user, key)]
             except AttributeError:
-                pass
+                LOG.warn("User has no attribute named '%s'" % key)
             else:
                 attributes.append(attribute)
 
@@ -172,7 +172,7 @@ class CustomAttributesMixin(object):
                 try:
                     attribute = [name, getattr(profile, key)]
                 except AttributeError:
-                    pass
+                    LOG.warn("Profile has no attribute named '%s'" % key)
                 else:
                     attributes.append(attribute)
 
