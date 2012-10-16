@@ -153,12 +153,12 @@ class CustomAttributesMixin(object):
         user = ticket.user
         attributes = []
 
-        user_attr_list = getattr(settings, 'MAMA_CAS_USER_ATTRIBUTES', ())
-        for (name, key) in user_attr_list:
+        user_attr_list = getattr(settings, 'MAMA_CAS_USER_ATTRIBUTES', {})
+        for (name, attr) in user_attr_list.items():
             try:
-                attribute = [name, getattr(user, key)]
+                attribute = [name, getattr(user, attr)]
             except AttributeError:
-                LOG.warn("User has no attribute named '%s'" % key)
+                LOG.warn("User has no attribute named '%s'" % attr)
             else:
                 attributes.append(attribute)
 
@@ -167,12 +167,12 @@ class CustomAttributesMixin(object):
         except (ObjectDoesNotExist, SiteProfileNotAvailable):
             pass
         else:
-            profile_attr_list = getattr(settings, 'MAMA_CAS_PROFILE_ATTRIBUTES', ())
-            for (name, key) in profile_attr_list:
+            profile_attr_list = getattr(settings, 'MAMA_CAS_PROFILE_ATTRIBUTES', {})
+            for (name, attr) in profile_attr_list.items():
                 try:
-                    attribute = [name, getattr(profile, key)]
+                    attribute = [name, getattr(profile, attr)]
                 except AttributeError:
-                    LOG.warn("Profile has no attribute named '%s'" % key)
+                    LOG.warn("Profile has no attribute named '%s'" % attr)
                 else:
                     attributes.append(attribute)
 

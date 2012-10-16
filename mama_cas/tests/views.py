@@ -298,9 +298,9 @@ class ServiceValidateViewTests(TestCase):
     user_info = { 'username': 'ellen',
                   'password': 'mamas&papas',
                   'email': 'ellen@example.com' }
-    user_attr = (('givenName', 'first_name'),
-                 ('sn', 'last_name'),
-                 ('email', 'email'))
+    user_attr = { 'givenName': 'first_name',
+                  'sn': 'last_name',
+                  'email': 'email' }
     ticket_info = { 'service': valid_service }
     valid_pgt_url = 'https://www.example.com/'
     invalid_pgt_url = 'http://www.example.com/'
@@ -485,9 +485,9 @@ class ProxyValidateViewTests(TestCase):
     user_info = { 'username': 'ellen',
                   'password': 'mamas&papas',
                   'email': 'ellen@example.com' }
-    user_attr = (('givenName', 'first_name'),
-                 ('sn', 'last_name'),
-                 ('email', 'email'))
+    user_attr = { 'givenName': 'first_name',
+                  'sn': 'last_name',
+                  'email': 'email' }
     ticket_info = { 'service': valid_service }
     valid_pgt_url = 'https://www.example.com/'
     invalid_pgt_url = 'http://www.example.com/'
