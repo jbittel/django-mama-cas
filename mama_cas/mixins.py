@@ -21,7 +21,7 @@ LOG = logging.getLogger('mama_cas')
 
 class NeverCacheMixin(object):
     """
-    View mixin that disables caching
+    View mixin for disabling caching.
     """
     @method_decorator(never_cache)
     def dispatch(self, request, *args, **kwargs):
@@ -66,11 +66,11 @@ class TicketValidateMixin(object):
     def validate_proxy_ticket(self, request):
         """
         Given a ``request``, validate a proxy ticket string. On success, a
-        4-tuple is returned containing the ``ProxyTicket``, a list of all
-        services that proxied authentication and an optional
-        ``ProxyGrantingTicket``, with no error. On error, a triplet is
-        returned containing no ``ProxyTicket`` or ``ProxyGrantingTicket``,
-        but with an ``Error`` describing what went wrong.
+        4-tuple is returned containing the ``ProxyTicket``, an optional
+        ``ProxyGrantingTicket`` and a list of all services that proxied
+        authentication, with no error. On error, a 4-tuple is returned
+        containing no ``ProxyTicket``, ``ProxyGrantingTicket`` or list of
+        proxies, but with an ``Error`` describing what went wrong.
         """
         service = request.GET.get('service')
         ticket = request.GET.get('ticket')
@@ -131,9 +131,9 @@ class CustomAttributesMixin(object):
     """
     def get_custom_attributes(self, ticket):
         """
-        Given a ``ticket``, build a list of user attributes from either the
-        ``User`` or user profile object to be returned with a validation
-        success. The attributes are selected with two settings variables:
+        Given a ``ticket``, build a list of user attributes from the ``User``
+        and/or user profile object to be returned along with a validation
+        success. The attributes are defined using two settings variables:
 
         ``MAMA_CAS_USER_ATTRIBUTES``
             This is a list of name and ``User`` attribute pairs. The name can

@@ -164,13 +164,13 @@ class WarnView(NeverCacheMixin, FormView):
 
 class LogoutView(NeverCacheMixin, View):
     """
-    (2.3) End a client's single sign-on CAS session.
+    (2.3) End a client's single sign-on session.
 
     When this URI is accessed, any current single sign-on session is
     ended, requiring a new single sign-on session to be established
     for future authentication attempts.
 
-    If a URL is specified, it will be displayed on the page as a suggested
+    If ``url`` is specified, it will be displayed to the user as a recommended
     link to follow.
     """
     def get(self, request, *args, **kwargs):
