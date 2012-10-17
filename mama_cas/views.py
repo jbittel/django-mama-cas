@@ -284,6 +284,6 @@ class ProxyView(NeverCacheMixin, TicketValidateMixin, TemplateView):
     template_name = 'mama_cas/proxy.xml'
 
     def get(self, request, *args, **kwargs):
-        pgt, error = TicketValidateMixin.validate_proxy_granting_ticket(self, request)
-        context = { 'ticket': pgt, 'error': error }
+        pt, error = TicketValidateMixin.validate_proxy_granting_ticket(self, request)
+        context = { 'ticket': pt, 'error': error }
         return self.render_to_response(context, content_type='text/xml')
