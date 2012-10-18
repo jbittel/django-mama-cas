@@ -87,5 +87,10 @@ specification to take advantage of built-in Django functionality.
    instead uses Django sessions to determine whether or not a single sign-on
    session has been established.
 
+**Custom attributes**
+   Custom attributes can be returned along with a service or proxy validation
+   success. This is not part of the official CAS specification, but is widely
+   used in practice.
+
 These changes do not alter the contract between the client, service and CAS
 server.

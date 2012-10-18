@@ -64,19 +64,42 @@ to create the required database tables.
 Settings
 ~~~~~~~~
 
-django-mama-cas can be modified using several custom settings. None of them
-are required, but can be set if you wish to override the defaults.
+django-mama-cas can be modified using several custom settings. None are
+required, but can be used to override the defaults.
 
-**CAS_TICKET_EXPIRE (default: 5)**
-   This setting controls the length of time, in minutes, between when a service
-   or proxy ticket is generated and when it expires. If the ticket is not
-   validated before this time is up, it will become invalid. This does NOT
-   affect the duration of a user's single sign-on session.
+**MAMA_CAS_TICKET_EXPIRE (default: 5)**
+   Controls the length of time, in minutes, between when a service or proxy
+   ticket is generated and when it expires. If the ticket is not validated
+   before this time is up, it will become invalid. This does NOT affect the
+   duration of a user's single sign-on session.
 
-**CAS_TICKET_RAND_LEN (default: 32)**
-   This setting controls the number of random characters created as part of
-   the ticket string. It should be long enough that the ticket cannot be
-   brute forced within a reasonable amount of time.
+**MAMA_CAS_TICKET_RAND_LEN (default: 32)**
+   Sets the number of random characters created as part of the ticket string.
+   It should be long enough that the ticket cannot be brute forced within a
+   reasonable amount of time.
+
+**MAMA_CAS_USER_ATTRIBUTES (default: {})**
+   A dictionary of name and ``User`` attribute values to be returned along
+   with a service or proxy validation success. The name can be any meaningful
+   string, while the attribute must correspond with an attribute on the
+   ``User`` object. For example::
+
+      MAMA_CAS_USER_ATTRIBUTES = {
+          'givenName': 'first_name',
+          'sn': 'last_name',
+          'email': 'email',
+      }
+
+**MAMA_CAS_PROFILE_ATTRIBUTES (default: {})**
+   A dictionary of name and ``Profile`` attribute values to be returned along
+   with a service or proxy validation success. The name can be any meaningful
+   string, while the attribute must correspond with an attribute on the user
+   profile object. If no user profile is configured, this setting will be
+   ignored. For example::
+
+      MAMA_CAS_PROFILE_ATTRIBUTES = {
+          'employeeID': 'id_number',
+      }
 
 Sessions
 ~~~~~~~~
@@ -123,9 +146,12 @@ that will likely break standard CAS behavior.
 Templates
 ~~~~~~~~~
 
-django-mama-cas comes with a basic template implementing standard username and
-password authentication. It will work as provided, but is intended to be
-extended or replaced according to your needs.
+django-mama-cas comes with a basic login template implementing standard
+username and password authentication. It will work as provided, but can also
+be extended or replaced according to your needs.
+
+If you are returning custom user attributes, you may also need to change the
+validation XML template to return the attributes in the correct format.
 
 Read the :ref:`template documentation <templates>` for more information on the
 included templates and customization.

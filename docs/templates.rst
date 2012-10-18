@@ -7,8 +7,8 @@ django-mama-cas comes with generalized but functional templates to provide a
 working starting point. You will likely want to either extend the templates
 with your customizations or simply replace them entirely.
 
-Included templates
-------------------
+HTML templates
+--------------
 
 **mama_cas/login.html**
 
@@ -25,6 +25,55 @@ Included templates
    ``LoginFormWarn`` is in effect. This causes the login process to not be
    transparent to the user. When an authentication attempt occurs, this
    template is displayed to provide continue or cancel options for the user.
+
+.. note:: These template files should not be edited directly, as changes will be overwritten when django-mama-cas is updated.
+
+XML templates
+-------------
+
+**mama_cas/validate.xml**
+
+   This template is used for CAS 2.0 service and proxy validation responses.
+   In general, this file should not need to be modified as changes will likely
+   break expected CAS behavior. Within the body of the authentication success
+   block is the include for adding custom user attributes. This include path
+   can be changed to one of the following three templates implementing the
+   different standard attribute formats.
+
+**mama_cas/attributes-namevalue.xml**
+
+   Includes custom user attributes in the Name-Value format::
+
+      <cas:attribute name='attraStyle' value='Name-Value' />
+      <cas:attribute name='givenName' value='Ellen' />
+      <cas:attribute name='sn' value='Cohen' />
+      <cas:attribute name='email' value='ellen@example.com' />
+
+**mama_cas/attributes-rubycas.xml**
+
+   Includes custom user attributes in the RubyCAS format::
+
+      <cas:attraStyle>RubyCAS</cas:attraStyle>
+      <cas:givenName>Ellen</cas:givenName>
+      <cas:sn>Cohen</cas:sn>
+      <cas:email>ellen@example.com</cas:email>
+
+**mama_cas/attributes-jasig.xml**
+
+   Includes custom user attributes in the JASIG format::
+
+      <cas:attributes>
+          <cas:attraStyle>Jasig</cas:attraStyle>
+          <cas:givenName>Ellen</cas:givenName>
+          <cas:sn>Cohen</cas:sn>
+          <cas:email>ellen@example.com</cas:email>
+      </cas:attributes>
+
+**mama_cas/proxy.xml**
+
+   Used for CAS 2.0 proxy-granting ticket validation responses. In general,
+   this file should not need to be modified as changes will likely break
+   expected CAS behavior.
 
 .. note:: These template files should not be edited directly, as changes will be overwritten when django-mama-cas is updated.
 

@@ -1,8 +1,11 @@
 .. _forms:
 .. module:: mama_cas.forms
 
+Forms
+=====
+
 Authentication forms
-====================
+--------------------
 
 django-mama-cas includes a form class for implementing standard username and
 password authentication. In most cases, this will be the form of
@@ -37,7 +40,7 @@ suffice for most basic needs.
    Note that this form deviates slightly from the official CAS protocol
    specification, as documented in :ref:`protocol-deviations`.
 
-The following classes all inherit from ``LoginForm``, providing additional
+The following form classes all inherit from ``LoginForm``, providing additional
 or alternate behavior during the login process.
 
 .. class:: LoginFormWarn
@@ -56,3 +59,13 @@ or alternate behavior during the login process.
    is provided for the username, it extracts only the username portion of the
    string. Additionally, the username is converted to lowercase for
    consistency.
+
+Additional forms
+----------------
+
+.. class:: WarnForm
+
+   This form is used when warning the user that an authentication attempt is
+   taking place. It contains no visible form fields, but contains two hidden
+   fields, ``service`` and ``gateway``. This allows the value of these
+   parameters to be passed through the warning process.
