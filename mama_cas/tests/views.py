@@ -317,14 +317,19 @@ class ServiceValidateViewTests(TestCase):
         self.ticket_info.update({'user': self.user})
         self.st = ServiceTicket.objects.create_ticket(**self.ticket_info)
 
-        self.old_user_attributes = getattr(settings, 'MAMA_CAS_USER_ATTRIBUTES', None)
-        settings.MAMA_CAS_USER_ATTRIBUTES = self.user_attr
+        self.old_user_attributes = getattr(settings, 'MAMA_CAS_USER_ATTRIBUTES', {})
+        if not self.old_user_attributes:
+            settings.MAMA_CAS_USER_ATTRIBUTES = self.user_attr
+        self.old_profile_attributes = getattr(settings, 'MAMA_CAS_PROFILE_ATTRIBUTES', {})
+        if not self.old_profile_attributes:
+            settings.MAMA_CAS_PROFILE_ATTRIBUTES = {}
 
     def tearDown(self):
         """
         Undo any modifications made to settings.
         """
         settings.MAMA_CAS_USER_ATTRIBUTES = self.old_user_attributes
+        settings.MAMA_CAS_PROFILE_ATTRIBUTES = self.old_profile_attributes
 
     def test_service_validate_view(self):
         """
@@ -458,6 +463,8 @@ class ServiceValidateViewTests(TestCase):
         service validation success should include the list of configured user
         attributes.
         """
+        attr_names = settings.MAMA_CAS_USER_ATTRIBUTES.keys()
+        attr_names.extend(settings.MAMA_CAS_PROFILE_ATTRIBUTES.keys())
         query_str = "?service=%s&ticket=%s" % (self.valid_service, self.st.ticket)
         response = self.client.get(reverse('cas_service_validate') + query_str)
         tree = ElementTree(fromstring(response.content))
@@ -466,12 +473,18 @@ class ServiceValidateViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get('Content-Type'), 'text/xml')
-        self.assertEqual(len(attributes), len(self.user_attr) + 1)
+        # Because attribute order is not guaranteed, we take a list of all
+        # configured attributes, compare each attribute found to make sure
+        # it's present and then remove it from the temporary list.
+        #
+        # When done, check that the temporary list is empty to verify that
+        # all configured attributes were matched.
         for attr in attributes:
-            self.assertTrue(attr.attrib['value'])
             if attr.attrib['name'] == 'attraStyle':
                 continue
-            self.assertTrue(attr.attrib['name'] in name for name in self.user_attr)
+            self.assertTrue(attr.attrib['name'] in attr_names)
+            attr_names.remove(attr.attrib['name'])
+        self.assertEqual(len(attr_names), 0)
 
 class ProxyValidateViewTests(TestCase):
     """
@@ -510,14 +523,19 @@ class ProxyValidateViewTests(TestCase):
         self.pt = ProxyTicket.objects.create_ticket(granted_by_pgt=self.pgt,
                                                     **self.ticket_info)
 
-        self.old_user_attributes = getattr(settings, 'MAMA_CAS_USER_ATTRIBUTES', None)
-        settings.MAMA_CAS_USER_ATTRIBUTES = self.user_attr
+        self.old_user_attributes = getattr(settings, 'MAMA_CAS_USER_ATTRIBUTES', {})
+        if not self.old_user_attributes:
+            settings.MAMA_CAS_USER_ATTRIBUTES = self.user_attr
+        self.old_profile_attributes = getattr(settings, 'MAMA_CAS_PROFILE_ATTRIBUTES', {})
+        if not self.old_profile_attributes:
+            settings.MAMA_CAS_PROFILE_ATTRIBUTES = {}
 
     def tearDown(self):
         """
         Undo any modifications made to settings.
         """
         settings.MAMA_CAS_USER_ATTRIBUTES = self.old_user_attributes
+        settings.MAMA_CAS_PROFILE_ATTRIBUTES = self.old_profile_attributes
 
     def test_proxy_validate_view(self):
         """
@@ -713,6 +731,8 @@ class ProxyValidateViewTests(TestCase):
         proxy validation success should include the list of configured user
         attributes.
         """
+        attr_names = settings.MAMA_CAS_USER_ATTRIBUTES.keys()
+        attr_names.extend(settings.MAMA_CAS_PROFILE_ATTRIBUTES.keys())
         query_str = "?service=%s&ticket=%s" % (self.valid_service, self.st.ticket)
         response = self.client.get(reverse('cas_service_validate') + query_str)
         tree = ElementTree(fromstring(response.content))
@@ -721,12 +741,18 @@ class ProxyValidateViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get('Content-Type'), 'text/xml')
-        self.assertEqual(len(attributes), len(self.user_attr) + 1)
+        # Because attribute order is not guaranteed, we take a list of all
+        # configured attributes, compare each attribute found to make sure
+        # it's present and then remove it from the temporary list.
+        #
+        # When done, check that the temporary list is empty to verify that
+        # all configured attributes were matched.
         for attr in attributes:
-            self.assertTrue(attr.attrib['value'])
             if attr.attrib['name'] == 'attraStyle':
                 continue
-            self.assertTrue(attr.attrib['name'] in name for name in self.user_attr)
+            self.assertTrue(attr.attrib['name'] in attr_names)
+            attr_names.remove(attr.attrib['name'])
+        self.assertEqual(len(attr_names), 0)
 
 class ProxyViewTests(TestCase):
     """
