@@ -480,8 +480,6 @@ class ServiceValidateViewTests(TestCase):
         # When done, check that the temporary list is empty to verify that
         # all configured attributes were matched.
         for attr in attributes:
-            if attr.attrib['name'] == 'attraStyle':
-                continue
             self.assertTrue(attr.attrib['name'] in attr_names)
             attr_names.remove(attr.attrib['name'])
         self.assertEqual(len(attr_names), 0)
@@ -748,8 +746,6 @@ class ProxyValidateViewTests(TestCase):
         # When done, check that the temporary list is empty to verify that
         # all configured attributes were matched.
         for attr in attributes:
-            if attr.attrib['name'] == 'attraStyle':
-                continue
             self.assertTrue(attr.attrib['name'] in attr_names)
             attr_names.remove(attr.attrib['name'])
         self.assertEqual(len(attr_names), 0)

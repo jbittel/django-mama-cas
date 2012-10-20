@@ -1,6 +1,3 @@
-{% if attributes %}
-    <cas:attraStyle>RubyCAS</cas:attraStyle>
-    {% for name, value in attributes %}
+{% for name, value in attributes %}
     <cas:{{ name }}>{{ value }}</cas:{{ name }}>
-    {% endfor %}
-{% endif %}
+{% endfor %}
