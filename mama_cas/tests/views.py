@@ -468,8 +468,7 @@ class ServiceValidateViewTests(TestCase):
         query_str = "?service=%s&ticket=%s" % (self.valid_service, self.st.ticket)
         response = self.client.get(reverse('cas_service_validate') + query_str)
         tree = ElementTree(fromstring(response.content))
-        elem = tree.find(XMLNS + 'authenticationSuccess/')
-        attributes = list(elem.getiterator(XMLNS + 'attribute'))
+        elem = tree.find(XMLNS + 'authenticationSuccess/' + XMLNS + 'attributes')
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get('Content-Type'), 'text/xml')
@@ -479,9 +478,10 @@ class ServiceValidateViewTests(TestCase):
         #
         # When done, check that the temporary list is empty to verify that
         # all configured attributes were matched.
-        for attr in attributes:
-            self.assertTrue(attr.attrib['name'] in attr_names)
-            attr_names.remove(attr.attrib['name'])
+        for attribute in elem:
+            attribute.tag = attribute.tag[len(XMLNS):]
+            self.assertTrue(attribute.tag in attr_names)
+            attr_names.remove(attribute.tag)
         self.assertEqual(len(attr_names), 0)
 
 class ProxyValidateViewTests(TestCase):
@@ -734,8 +734,7 @@ class ProxyValidateViewTests(TestCase):
         query_str = "?service=%s&ticket=%s" % (self.valid_service, self.st.ticket)
         response = self.client.get(reverse('cas_service_validate') + query_str)
         tree = ElementTree(fromstring(response.content))
-        elem = tree.find(XMLNS + 'authenticationSuccess/')
-        attributes = list(elem.getiterator(XMLNS + 'attribute'))
+        elem = tree.find(XMLNS + 'authenticationSuccess/' + XMLNS + 'attributes')
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get('Content-Type'), 'text/xml')
@@ -745,9 +744,10 @@ class ProxyValidateViewTests(TestCase):
         #
         # When done, check that the temporary list is empty to verify that
         # all configured attributes were matched.
-        for attr in attributes:
-            self.assertTrue(attr.attrib['name'] in attr_names)
-            attr_names.remove(attr.attrib['name'])
+        for attribute in elem:
+            attribute.tag = attribute.tag[len(XMLNS):]
+            self.assertTrue(attribute.tag in attr_names)
+            attr_names.remove(attribute.tag)
         self.assertEqual(len(attr_names), 0)
 
 class ProxyViewTests(TestCase):
