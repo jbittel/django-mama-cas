@@ -5,6 +5,10 @@ from django.views.decorators.cache import never_cache
 from django.utils.decorators import method_decorator
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import SiteProfileNotAvailable
+from django.contrib.auth import logout
+from django.contrib import messages
+from django.utils.translation import ugettext_lazy as _
+from django.core.urlresolvers import reverse_lazy
 
 from mama_cas.models import ServiceTicket
 from mama_cas.models import ProxyTicket
@@ -177,3 +181,27 @@ class CustomAttributesMixin(object):
                     attributes.append(attribute)
 
         return attributes
+
+class LogoutMixin(object):
+    """
+    View mixin for logging a user out of a single sign-on session.
+    """
+    def logout_user(self, request):
+        """
+        Given a ``request``, end a single sign-on session for the current
+        user. This process occurs in two steps:
+
+        1. Consume all ``Ticket``s created for the user to ensure none of
+           them continue to be valid outside of the active session.
+
+        2. Call logout() to end the active session and completely remove all
+           existing session data for the current request.
+        """
+        if request.user.is_authenticated():
+            # Ensure all tickets created for this user are consumed
+            ServiceTicket.objects.consume_tickets(request.user)
+            ProxyTicket.objects.consume_tickets(request.user)
+            ProxyGrantingTicket.objects.consume_tickets(request.user)
+
+            logout(request)
+            messages.success(request, _("You have been successfully logged out"))

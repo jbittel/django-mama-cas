@@ -20,12 +20,13 @@ from mama_cas.utils import add_query_params
 from mama_cas.mixins import NeverCacheMixin
 from mama_cas.mixins import TicketValidateMixin
 from mama_cas.mixins import CustomAttributesMixin
+from mama_cas.mixins import LogoutMixin
 
 
 LOG = logging.getLogger('mama_cas')
 
 
-class LoginView(NeverCacheMixin, FormView):
+class LoginView(NeverCacheMixin, LogoutMixin, FormView):
     """
     (2.1 and 2.2) Credential requestor and acceptor.
 
@@ -53,7 +54,7 @@ class LoginView(NeverCacheMixin, FormView):
 
         if renew:
             LOG.debug("Renew request received by credential requestor")
-            auth.logout(request)
+            LogoutMixin.logout_user(self, request)
             login = add_query_params(reverse('cas_login'), { 'service': service })
             LOG.debug("Redirecting to %s" % login)
             return redirect(login)
@@ -162,7 +163,7 @@ class WarnView(NeverCacheMixin, FormView):
         kwargs['service'] = self.request.GET.get('service')
         return kwargs
 
-class LogoutView(NeverCacheMixin, View):
+class LogoutView(NeverCacheMixin, LogoutMixin, View):
     """
     (2.3) End a client's single sign-on session.
 
@@ -174,12 +175,8 @@ class LogoutView(NeverCacheMixin, View):
     link to follow.
     """
     def get(self, request, *args, **kwargs):
-        LOG.debug("Logout request received for user '%s'" % request.user)
-        if request.user.is_authenticated():
-            ProxyGrantingTicket.objects.consume_tickets(request.user)
-            auth.logout(request)
-            messages.success(request, _("You have been successfully logged out"))
-
+        LOG.debug("Logout request received for user %s" % request.user)
+        LogoutMixin.logout_user(self, request)
         url = request.GET.get('url', None)
         if url:
             messages.success(request, _("The application has provided this link to follow: " \
