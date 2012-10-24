@@ -18,6 +18,7 @@ from mama_cas.models import ProxyTicket
 from mama_cas.models import ProxyGrantingTicket
 from mama_cas.utils import add_query_params
 from mama_cas.mixins import NeverCacheMixin
+from mama_cas.mixins import LoginRequiredMixin
 from mama_cas.mixins import TicketValidateMixin
 from mama_cas.mixins import CustomAttributesMixin
 from mama_cas.mixins import LogoutMixin
@@ -129,7 +130,7 @@ class LoginView(NeverCacheMixin, LogoutMixin, FormView):
         if service:
             return { 'service': urlquote_plus(service) }
 
-class WarnView(NeverCacheMixin, FormView):
+class WarnView(NeverCacheMixin, LoginRequiredMixin, FormView):
     """
     (2.2.1) Disable transparent authentication by displaying a page indicating
     that authentication is taking place. The user can then choose to continue
@@ -137,11 +138,6 @@ class WarnView(NeverCacheMixin, FormView):
     """
     template_name = 'mama_cas/warn.html'
     form_class = WarnForm
-
-    def get(self, request, *args, **kwargs):
-        if not request.user.is_authenticated():
-            return redirect(reverse('cas_login'))
-        return super(WarnView, self).get(request, *args, **kwargs)
 
     def form_valid(self, form):
         return redirect(add_query_params(reverse('cas_login'),

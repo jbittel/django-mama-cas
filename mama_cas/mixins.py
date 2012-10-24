@@ -2,6 +2,7 @@ import logging
 
 from django.conf import settings
 from django.views.decorators.cache import never_cache
+from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import SiteProfileNotAvailable
@@ -30,6 +31,15 @@ class NeverCacheMixin(object):
     @method_decorator(never_cache)
     def dispatch(self, request, *args, **kwargs):
         return super(NeverCacheMixin, self).dispatch(request, *args, **kwargs)
+
+class LoginRequiredMixin(object):
+    """
+    View mixin to require a logged in user.
+    """
+    @method_decorator(login_required(login_url=reverse_lazy('cas_login'),
+                                     redirect_field_name=None))
+    def dispatch(self, request, *args, **kwargs):
+        return super(LoginRequiredMixin, self).dispatch(request, *args, **kwargs)
 
 class TicketValidateMixin(object):
     """
