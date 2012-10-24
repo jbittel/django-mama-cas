@@ -24,24 +24,24 @@ from mama_cas.exceptions import BadPGTError
 LOG = logging.getLogger('mama_cas')
 
 
-class NeverCacheMixin(object):
+class NeverCache(object):
     """
     View mixin for disabling caching.
     """
     @method_decorator(never_cache)
     def dispatch(self, request, *args, **kwargs):
-        return super(NeverCacheMixin, self).dispatch(request, *args, **kwargs)
+        return super(NeverCache, self).dispatch(request, *args, **kwargs)
 
-class LoginRequiredMixin(object):
+class LoginRequired(object):
     """
     View mixin to require a logged in user.
     """
     @method_decorator(login_required(login_url=reverse_lazy('cas_login'),
                                      redirect_field_name=None))
     def dispatch(self, request, *args, **kwargs):
-        return super(LoginRequiredMixin, self).dispatch(request, *args, **kwargs)
+        return super(LoginRequired, self).dispatch(request, *args, **kwargs)
 
-class TicketValidateMixin(object):
+class ValidateTicket(object):
     """
     View mixin providing ticket validation methods.
     """
@@ -139,7 +139,7 @@ class TicketValidateMixin(object):
                                                    granted_by_pgt=pgt)
             return pt, None
 
-class CustomAttributesMixin(object):
+class CustomAttributes(object):
     """
     View mixin for including custom user attributes in a validation response.
     """
@@ -192,7 +192,7 @@ class CustomAttributesMixin(object):
 
         return attributes
 
-class LogoutMixin(object):
+class LogoutUser(object):
     """
     View mixin for logging a user out of a single sign-on session.
     """
