@@ -6,33 +6,31 @@
 django-mama-cas documentation
 =============================
 
-django-mama-cas is an implementation of the CAS protocol specification,
-intended to provide single sign-on server functionality. It provides the
-required CAS URIs to receive and respond to CAS authentication and validation
-attempts.
+django-mama-cas is a Python implementation of the `Central Authentication
+Service (CAS) <http://en.wikipedia.org/wiki/Central_Authentication_Service>`_
+server protocol, providing single sign-on server functionality as a Django
+application. It implements the current CAS specification to handle CAS
+authentication and validation requests.
 
-`Central Authentication Service (CAS)
-<http://en.wikipedia.org/wiki/Central_Authentication_Service>`_ is an
-HTTP-based `protocol <http://www.jasig.org/cas/protocol>`_ that provides
-single sign-on functionality. It provides both a credential requestor and
-acceptor, as well as a validator for services to check for an existing single
-sign-on session.  This allows web services to authenticate a user without
-having access to the user's credentials.
+CAS is an HTTP-based protocol that provides single sign-on functionality to web
+services. It operates using tickets, unique text strings that are provided and
+validated by the server, allowing web services to authenticate a user without
+having access to the user's credentials. The :ref:`protocol <protocol>` page
+has more information about CAS and this implementation of it.
 
-For information on how to install and configure django-mama-cas, read the
-:ref:`getting started <getting-started>` document.
+Most likely, you'd like to know how to :ref:`get started <getting-started>`.
 
-To learn about the CAS server protocol and this implementation of it, read the
-:ref:`protocol <protocol>` document.
+You might also be interested in :ref:`what's changed <changelog>`.
 
-
-Contents:
+Contents
+--------
 
 .. toctree::
    :maxdepth: 1
 
    getting-started
+   changelog
    templates
-   forms
    management-commands
+   forms
    protocol

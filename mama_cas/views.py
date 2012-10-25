@@ -39,14 +39,18 @@ class LoginView(NeverCache, LogoutUser, FormView):
 
     def get(self, request, *args, **kwargs):
         """
-        As a credential requestor, /login takes up to three optional parameters:
+        As a credential requestor, /login accepts up to three optional
+        parameters:
 
-        1. service - the identifier of the application the client is accessing.
-           In most cases this will be a URL.
-        2. renew - if set, a client must present credentials regardless of any
-           existing single sign-on session. If set, its value should be "true".
-        3. gateway - if set, the client will not be prompted for credentials. If
-           set, its value should be "true".
+        1. ``service``: the identifier of the application the client is
+           accessing. In most cases this will be a URL.
+        2. ``renew``: requires a client to present credentials regardless of
+           any existing single sign-on session. If set, its value should be
+           "true".
+        3. ``gateway``: causes the client to not be prompted for credentials.
+           If a single sign-on session already exists, the user will be logged
+           in. Otherwise, the user is simply forwarded to the service, if
+           specified. If set, its value should be "true".
         """
         service = request.GET.get('service')
         renew = request.GET.get('renew')
@@ -97,8 +101,8 @@ class LoginView(NeverCache, LogoutUser, FormView):
         """
         As a credential acceptor, /login takes two required parameters:
 
-        1. username - the username provided by the client
-        2. password - the password provided by the client
+        1. ``username``: the username provided by the client
+        2. ``password``: the password provided by the client
 
         If authentication is successful, the user is logged in which creates
         the single sign-on session. If a service is provided, a corresponding
@@ -108,6 +112,11 @@ class LoginView(NeverCache, LogoutUser, FormView):
 
         If authentication fails, the login form is redisplayed with an appropriate
         error message displayed indicating the reason for failure.
+
+        The credential acceptor also accepts one optional parameter:
+
+        1. ``warn``: causes user input to be required whenever an
+           authentication attempt occurs within the single sign-on session.
         """
         auth.login(self.request, form.user)
         LOG.info("User logged in as '%s'" % self.request.user)

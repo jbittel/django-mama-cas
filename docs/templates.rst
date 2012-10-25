@@ -3,9 +3,9 @@
 Templates
 =========
 
-django-mama-cas comes with generalized but functional templates to provide a
-working starting point. You will likely want to either extend the templates
-with your customizations or simply replace them entirely.
+django-mama-cas comes with generalized templates to provide a functional
+starting point. You will likely want to either extend the templates with
+your customizations or simply replace them entirely.
 
 HTML templates
 --------------
@@ -38,36 +38,33 @@ XML templates
    break expected CAS behavior. Within the body of the authentication success
    block is the include for adding custom user attributes. This include path
    can be changed to one of the following three templates implementing the
-   different standard attribute formats.
-
-**mama_cas/attributes-namevalue.xml**
-
-   Includes custom user attributes in the Name-Value format::
-
-      <cas:attribute name='attraStyle' value='Name-Value' />
-      <cas:attribute name='givenName' value='Ellen' />
-      <cas:attribute name='sn' value='Cohen' />
-      <cas:attribute name='email' value='ellen@example.com' />
-
-**mama_cas/attributes-rubycas.xml**
-
-   Includes custom user attributes in the RubyCAS format::
-
-      <cas:attraStyle>RubyCAS</cas:attraStyle>
-      <cas:givenName>Ellen</cas:givenName>
-      <cas:sn>Cohen</cas:sn>
-      <cas:email>ellen@example.com</cas:email>
+   conventional attribute formats.
 
 **mama_cas/attributes-jasig.xml**
 
    Includes custom user attributes in the JASIG format::
 
       <cas:attributes>
-          <cas:attraStyle>Jasig</cas:attraStyle>
           <cas:givenName>Ellen</cas:givenName>
           <cas:sn>Cohen</cas:sn>
           <cas:email>ellen@example.com</cas:email>
       </cas:attributes>
+
+**mama_cas/attributes-rubycas.xml**
+
+   Includes custom user attributes in the RubyCAS format::
+
+      <cas:givenName>Ellen</cas:givenName>
+      <cas:sn>Cohen</cas:sn>
+      <cas:email>ellen@example.com</cas:email>
+
+**mama_cas/attributes-namevalue.xml**
+
+   Includes custom user attributes in the Name-Value format::
+
+      <cas:attribute name='givenName' value='Ellen' />
+      <cas:attribute name='sn' value='Cohen' />
+      <cas:attribute name='email' value='ellen@example.com' />
 
 **mama_cas/proxy.xml**
 
@@ -129,7 +126,8 @@ If the required changes are substantial, it is easier to replace the stock
 template entirely. Instead of extending the template as described in step two,
 replace it entirely.
 
-There are some things you'll likely want to include in a custom template:
+In addition to a standard form display, there are things you'll likely want to
+include in a custom template:
 
 **Messages**
    The ``messages`` framework is used to display information about the user's

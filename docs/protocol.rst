@@ -88,9 +88,9 @@ specification to take advantage of built-in Django functionality.
    session has been established.
 
 **Custom attributes**
-   Custom attributes can be returned along with a service or proxy validation
-   success. This is not part of the official CAS specification, but is widely
-   used in practice.
+   Custom attributes can be returned along with a CAS 2.0 service or proxy
+   validation success. This is not part of the official CAS specification, but
+   is widely used in practice.
 
 These changes do not alter the contract between the client, service and CAS
 server.

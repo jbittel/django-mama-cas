@@ -9,9 +9,8 @@ Authentication forms
 
 django-mama-cas includes a form class for implementing standard username and
 password authentication. In most cases, this will be the form of
-authentication required. CAS can be used with trust authentication, but the
-requirements would be highly implementation dependent. This class should
-suffice for most basic needs.
+authentication required. Trust authentication can be used with CAS, but the
+requirements are highly implementation dependent.
 
 .. class:: LoginForm
 
@@ -49,8 +48,9 @@ or alternate behavior during the login process.
 
    ``warn``
       A checkbox that indicates whether or not the single sign-on process
-      should be transparent. If selected, the user will be prompted before
-      being authenticated to another service.
+      should be transparent. This causes the user to be notified before being
+      authenticated to another service and provided the option to continue
+      with the authentication attempt or end the single sign-on session.
 
 .. class:: LoginFormEmail
 

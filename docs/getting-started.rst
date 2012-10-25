@@ -54,7 +54,8 @@ Configuration
 -------------
 
 Once installed, add django-mama-cas to your project by modifying the
-``INSTALLED_APPS`` setting within ``settings.py`` to include this line::
+``INSTALLED_APPS`` setting within your project's ``settings.py`` to include
+this line::
 
    'mama_cas',
 
@@ -76,7 +77,8 @@ required, but can be used to override the defaults.
 **MAMA_CAS_TICKET_RAND_LEN (default: 32)**
    Sets the number of random characters created as part of the ticket string.
    It should be long enough that the ticket cannot be brute forced within a
-   reasonable amount of time.
+   reasonable amount of time. Longer values are more secure, but could cause
+   compatibility problems with some clients.
 
 **MAMA_CAS_USER_ATTRIBUTES (default: {})**
    A dictionary of name and ``User`` attribute values to be returned along
@@ -91,11 +93,11 @@ required, but can be used to override the defaults.
       }
 
 **MAMA_CAS_PROFILE_ATTRIBUTES (default: {})**
-   A dictionary of name and ``Profile`` attribute values to be returned along
+   A dictionary of name and user profile attribute values to be returned along
    with a service or proxy validation success. The name can be any meaningful
    string, while the attribute must correspond with an attribute on the user
-   profile object. If no user profile is configured, this setting will be
-   ignored. For example::
+   profile object. If no user profile is configured or available, this setting
+   will be ignored. For example::
 
       MAMA_CAS_PROFILE_ATTRIBUTES = {
           'employeeID': 'id_number',
@@ -160,8 +162,9 @@ Authentication
 --------------
 
 django-mama-cas does not perform any authentication itself. It relies on the
-active Django authentication backends for that task. The process of configuring
-the authentication backend will change depending on the backend in use.
+configured Django authentication backends for that task. The process of
+configuring authentication backends will change depending on the backend in
+use.
 
 .. seealso::
 
