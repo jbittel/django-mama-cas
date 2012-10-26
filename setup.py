@@ -1,6 +1,8 @@
 from distutils.core import setup
 import os
 
+from mama_cas import get_version
+
 
 def split_relative_path(path):
     """
@@ -53,7 +55,7 @@ for dirpath, dirnames, filenames in os.walk('mama_cas'):
 
 setup(
     name = 'django-mama-cas',
-    version = '0.2',
+    version = get_version(),
     description = 'A CAS server single sign-on application for Django',
     long_description = get_readme('README'),
     author = 'Jason Bittel',
