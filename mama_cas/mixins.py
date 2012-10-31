@@ -215,3 +215,4 @@ class LogoutUser(object):
 
             logout(request)
             messages.success(request, _("You have been successfully logged out"))
+            LOG.debug("Single sign-on session ended for %s" % request.user)
