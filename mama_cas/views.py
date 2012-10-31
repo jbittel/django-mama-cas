@@ -119,7 +119,7 @@ class LoginView(NeverCache, LogoutUser, FormView):
            authentication attempt occurs within the single sign-on session.
         """
         auth.login(self.request, form.user)
-        LOG.info("User logged in as '%s'" % self.request.user)
+        LOG.info("Single sign-on session started for %s" % self.request.user)
 
         if form.cleaned_data.get('warn'):
             self.request.session['warn'] = True
@@ -180,7 +180,7 @@ class LogoutView(NeverCache, LogoutUser, View):
     link to follow.
     """
     def get(self, request, *args, **kwargs):
-        LOG.debug("Logout request received for user %s" % request.user)
+        LOG.debug("Logout request received for %s" % request.user)
         LogoutUser.logout_user(self, request)
         url = request.GET.get('url', None)
         if url:

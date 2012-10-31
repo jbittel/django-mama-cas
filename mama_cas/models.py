@@ -98,7 +98,7 @@ class TicketManager(models.Manager):
         if renew and not t.is_primary():
             raise InvalidTicketError("%s %s was not issued via primary credentials" % (title, ticket))
 
-        LOG.info("Validated %s %s" % (title, ticket))
+        LOG.debug("Validated %s %s" % (title, ticket))
         return t
 
     def delete_invalid_tickets(self):
@@ -306,7 +306,7 @@ class ProxyGrantingTicketManager(TicketManager):
         if t.is_expired():
             raise InvalidTicketError("%s %s has expired" % (title, ticket))
 
-        LOG.info("Validated %s %s" % (title, ticket))
+        LOG.debug("Validated %s %s" % (title, ticket))
         return t
 
 class ProxyGrantingTicket(Ticket):
