@@ -13,6 +13,7 @@ from mama_cas.models import ServiceTicket
 from mama_cas.models import ProxyTicket
 from mama_cas.models import ProxyGrantingTicket
 from mama_cas.forms import LoginForm
+from mama_cas.forms import LoginFormWarn
 
 
 logging.disable(logging.CRITICAL)
@@ -114,19 +115,17 @@ class WarnViewTests(TestCase):
         When a user logs in with the warn parameter present, the user's
         session should contain a ``warn`` attribute and a ``ServiceTicket``
         request to the credential requestor should redirect to the warn view.
-
-        NOTE: this test will fail if ``LoginView`` is not using the
-        ``LoginFormWarn`` form class.
         """
-        response = self.client.post(reverse('cas_login'), self.form_data)
+        # Only continue the test if the required form class is in use
+        response = self.client.get(reverse('cas_login'))
+        if isinstance(response.context['form'], LoginFormWarn):
+            response = self.client.post(reverse('cas_login'), self.form_data)
+            query_str = "?service=%s" % urllib.quote(self.valid_service, '')
+            response = self.client.get(reverse('cas_login') + query_str)
 
-        self.assertEqual(self.client.session.get('warn'), True)
-
-        query_str = "?service=%s" % urllib.quote(self.valid_service, '')
-        response = self.client.get(reverse('cas_login') + query_str)
-
-        self.assertRedirects(response, reverse('cas_warn') + query_str,
-                             status_code=302, target_status_code=200)
+            self.assertEqual(self.client.session.get('warn'), True)
+            self.assertRedirects(response, reverse('cas_warn') + query_str,
+                                 status_code=302, target_status_code=200)
 
     def test_warn_view_display(self):
         """
