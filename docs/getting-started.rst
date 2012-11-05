@@ -103,6 +103,17 @@ required, but can be used to override the defaults.
           'employeeID': 'id_number',
       }
 
+**MAMA_CAS_VALID_SERVICES (default: ())**
+   A list of valid service regular expressions that a service URL is tested
+   against when a ticket is validated. If none of the regular expressions
+   match the provided URL, the request fails. Any valid Python regular
+   expression is accepted. If no valid services are configured, this setting
+   will be ignored. For example::
+
+      MAMA_CAS_VALID_SERVICES = (
+          'https?://.*\.example\.com/.*',
+      )
+
 Sessions
 ~~~~~~~~
 
