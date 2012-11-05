@@ -471,6 +471,7 @@ class ServiceValidateViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get('Content-Type'), 'text/xml')
+        self.assertIsNotNone(elem)
         # Because attribute order is not guaranteed, we take a list of all
         # configured attributes, compare each attribute found to make sure
         # it's present and then remove it from the temporary list.
@@ -737,6 +738,7 @@ class ProxyValidateViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get('Content-Type'), 'text/xml')
+        self.assertIsNotNone(elem)
         # Because attribute order is not guaranteed, we take a list of all
         # configured attributes, compare each attribute found to make sure
         # it's present and then remove it from the temporary list.
