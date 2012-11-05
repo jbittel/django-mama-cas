@@ -130,7 +130,8 @@ class ValidateTicket(object):
         try:
             pgt = ProxyGrantingTicket.objects.validate_ticket(pgt,
                                                               target_service)
-        except (InvalidRequestError, BadPGTError, InternalError) as e:
+        except (InvalidRequestError, BadPGTError,
+                InvalidServiceError, InternalError) as e:
             LOG.warn("%s %s" % (e.code, e))
             return None, e
         else:

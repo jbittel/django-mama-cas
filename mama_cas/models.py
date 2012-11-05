@@ -64,15 +64,8 @@ class TicketManager(models.Manager):
         if not ticket:
             raise InvalidRequestError("No ticket string provided")
 
-        # If the model contains a ``service`` field, make sure we received
-        # a service parameter to compare against it
-        try:
-            self.model._meta.get_field('service')
-        except models.FieldDoesNotExist:
-            pass
-        else:
-            if not service:
-                raise InvalidRequestError("No service identifier provided")
+        if not service:
+            raise InvalidRequestError("No service identifier provided")
 
         if not self.model.TICKET_RE.match(ticket):
             raise InvalidTicketError("Ticket string %s is invalid" % ticket)
@@ -91,15 +84,32 @@ class TicketManager(models.Manager):
         if t.is_expired():
             raise InvalidTicketError("%s %s has expired" % (title, ticket))
 
-        if service and hasattr(t, 'service'):
-            if not same_origin(t.service, service):
-                raise InvalidServiceError("%s %s for service %s is invalid for service %s" % (title, ticket, t.service, service))
+        if not self.is_valid_service_url(service):
+            raise InvalidServiceError("Service %s is not a valid %s URL" % (service, title))
+
+        if not same_origin(t.service, service):
+            raise InvalidServiceError("%s %s for service %s is invalid for service %s" % (title, ticket, t.service, service))
 
         if renew and not t.is_primary():
             raise InvalidTicketError("%s %s was not issued via primary credentials" % (title, ticket))
 
         LOG.debug("Validated %s %s" % (title, ticket))
         return t
+
+    def is_valid_service_url(self, url):
+        """
+        Check the provided service URL against the configured list of valid
+        service URLs. If the service URL matches at least one valid service,
+        return ``True``, otherwise return ``False``. If no valid service URLs
+        are configured, return ``True``.
+        """
+        valid_services = map(re.compile, getattr(settings, 'MAMA_CAS_VALID_SERVICES', ()))
+        if len(valid_services) == 0:
+            return True
+        for service in valid_services:
+            if service.match(url):
+                return True
+        return False
 
     def delete_invalid_tickets(self):
         """
@@ -305,6 +315,9 @@ class ProxyGrantingTicketManager(TicketManager):
 
         if t.is_expired():
             raise InvalidTicketError("%s %s has expired" % (title, ticket))
+
+        if not self.is_valid_service_url(service):
+            raise InvalidServiceError("Service %s is not a valid %s URL" % (service, title))
 
         LOG.debug("Validated %s %s" % (title, ticket))
         return t

@@ -222,6 +222,15 @@ class ValidateViewTests(TestCase):
         self.ticket_info.update({ 'user': self.user })
         self.st = ServiceTicket.objects.create_ticket(**self.ticket_info)
 
+        self.old_valid_services = getattr(settings, 'MAMA_CAS_VALID_SERVICES', ())
+        settings.MAMA_CAS_VALID_SERVICES = ( self.valid_service, )
+
+    def tearDown(self):
+        """
+        Undo any modifications made to settings.
+        """
+        settings.MAMA_CAS_VALID_SERVICES = self.old_valid_services
+
     def test_validate_view(self):
         """
         When called with no parameters, a ``GET`` request to the view should
@@ -322,6 +331,8 @@ class ServiceValidateViewTests(TestCase):
         self.old_profile_attributes = getattr(settings, 'MAMA_CAS_PROFILE_ATTRIBUTES', {})
         if not self.old_profile_attributes:
             settings.MAMA_CAS_PROFILE_ATTRIBUTES = {}
+        self.old_valid_services = getattr(settings, 'MAMA_CAS_VALID_SERVICES', ())
+        settings.MAMA_CAS_VALID_SERVICES = ( self.valid_service, )
 
     def tearDown(self):
         """
@@ -329,6 +340,7 @@ class ServiceValidateViewTests(TestCase):
         """
         settings.MAMA_CAS_USER_ATTRIBUTES = self.old_user_attributes
         settings.MAMA_CAS_PROFILE_ATTRIBUTES = self.old_profile_attributes
+        settings.MAMA_CAS_VALID_SERVICES = self.old_valid_services
 
     def test_service_validate_view(self):
         """
@@ -484,6 +496,24 @@ class ServiceValidateViewTests(TestCase):
             attr_names.remove(attribute.tag)
         self.assertEqual(len(attr_names), 0)
 
+    def test_service_validate_view_invalid_service_url(self):
+        """
+        When ``MAMA_CAS_VALID_SERVICES`` is defined in the settings file, a
+        service string should be checked against the list of valid services.
+        If it does not match, a service authentication failure should be
+        returned.
+        """
+        query_str = "?service=%s&ticket=%s" % (self.invalid_service,
+                                               self.st.ticket)
+        response = self.client.get(reverse('cas_service_validate') + query_str)
+        tree = ElementTree(fromstring(response.content))
+        elem = tree.find(XMLNS + 'authenticationFailure')
+
+        self.assertIsNotNone(elem)
+        self.assertEqual(elem.get('code'), 'INVALID_SERVICE')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get('Content-Type'), 'text/xml')
+
 class ProxyValidateViewTests(TestCase):
     """
     Test the ``ProxyValidateView`` view.
@@ -527,6 +557,9 @@ class ProxyValidateViewTests(TestCase):
         self.old_profile_attributes = getattr(settings, 'MAMA_CAS_PROFILE_ATTRIBUTES', {})
         if not self.old_profile_attributes:
             settings.MAMA_CAS_PROFILE_ATTRIBUTES = {}
+        self.old_valid_services = getattr(settings, 'MAMA_CAS_VALID_SERVICES', ())
+        settings.MAMA_CAS_VALID_SERVICES = ( self.valid_service,
+                                             self.valid_service2 )
 
     def tearDown(self):
         """
@@ -534,6 +567,7 @@ class ProxyValidateViewTests(TestCase):
         """
         settings.MAMA_CAS_USER_ATTRIBUTES = self.old_user_attributes
         settings.MAMA_CAS_PROFILE_ATTRIBUTES = self.old_profile_attributes
+        settings.MAMA_CAS_VALID_SERVICES = self.old_valid_services
 
     def test_proxy_validate_view(self):
         """
@@ -565,7 +599,7 @@ class ProxyValidateViewTests(TestCase):
         When called with an invalid service identifier, a ``GET`` request
         to the view should return a validation failure.
         """
-        query_str = "?service=%s&ticket=%s" % (self.invalid_service, self.st.ticket)
+        query_str = "?service=%s&ticket=%s" % (self.invalid_service, self.pt.ticket)
         response = self.client.get(reverse('cas_proxy_validate') + query_str)
         tree = ElementTree(fromstring(response.content))
         elem = tree.find(XMLNS + 'authenticationFailure')
@@ -580,7 +614,7 @@ class ProxyValidateViewTests(TestCase):
         When called with an invalid ticket identifier, a ``GET`` request
         to the view should return a validation failure.
         """
-        query_str = "?service=%s&ticket=%s" % (self.valid_service, self.invalid_st_str)
+        query_str = "?service=%s&ticket=%s" % (self.valid_service, self.invalid_pt_str)
         response = self.client.get(reverse('cas_proxy_validate') + query_str)
         tree = ElementTree(fromstring(response.content))
         elem = tree.find(XMLNS + 'authenticationFailure')
@@ -688,7 +722,7 @@ class ProxyValidateViewTests(TestCase):
         a valid proxy callback URL.
         """
         query_str = "?service=%s&ticket=%s&pgtUrl=%s" % (self.valid_service,
-                                                         self.st.ticket,
+                                                         self.pt.ticket,
                                                          self.valid_pgt_url)
         response = self.client.get(reverse('cas_proxy_validate') + query_str)
         tree = ElementTree(fromstring(response.content))
@@ -709,7 +743,7 @@ class ProxyValidateViewTests(TestCase):
         success with no ``ProxyGrantingTicket`` (``pgtUrl`` must be HTTPS).
         """
         query_str = "?service=%s&ticket=%s&pgtUrl=%s" % (self.valid_service,
-                                                         self.st.ticket,
+                                                         self.pt.ticket,
                                                          self.invalid_pgt_url)
         response = self.client.get(reverse('cas_proxy_validate') + query_str)
         tree = ElementTree(fromstring(response.content))
@@ -731,8 +765,8 @@ class ProxyValidateViewTests(TestCase):
         """
         attr_names = settings.MAMA_CAS_USER_ATTRIBUTES.keys()
         attr_names.extend(settings.MAMA_CAS_PROFILE_ATTRIBUTES.keys())
-        query_str = "?service=%s&ticket=%s" % (self.valid_service, self.st.ticket)
-        response = self.client.get(reverse('cas_service_validate') + query_str)
+        query_str = "?service=%s&ticket=%s" % (self.valid_service, self.pt.ticket)
+        response = self.client.get(reverse('cas_proxy_validate') + query_str)
         tree = ElementTree(fromstring(response.content))
         elem = tree.find(XMLNS + 'authenticationSuccess/' + XMLNS + 'attributes')
 
@@ -751,12 +785,31 @@ class ProxyValidateViewTests(TestCase):
             attr_names.remove(attribute.tag)
         self.assertEqual(len(attr_names), 0)
 
+    def test_proxy_validate_view_invalid_service_url(self):
+        """
+        When ``MAMA_CAS_VALID_SERVICES`` is defined in the settings file, a
+        service string should be checked against the list of valid services.
+        If it does not match, a proxy authentication failure should be
+        returned.
+        """
+        query_str = "?service=%s&ticket=%s" % (self.invalid_service,
+                                               self.pt.ticket)
+        response = self.client.get(reverse('cas_proxy_validate') + query_str)
+        tree = ElementTree(fromstring(response.content))
+        elem = tree.find(XMLNS + 'authenticationFailure')
+
+        self.assertIsNotNone(elem)
+        self.assertEqual(elem.get('code'), 'INVALID_SERVICE')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get('Content-Type'), 'text/xml')
+
 class ProxyViewTests(TestCase):
     """
     Test the ``ProxyView`` view.
     """
     invalid_pgt_str = 'PGT-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
     valid_service = 'http://www.example.com/'
+    invalid_service = 'http://www.example.org/'
     user_info = { 'username': 'ellen',
                   'password': 'mamas&papas',
                   'email': 'ellen@example.com' }
@@ -773,6 +826,15 @@ class ProxyViewTests(TestCase):
                                                              validate=False,
                                                              user=self.user,
                                                              granted_by_st=self.st)
+
+        self.old_valid_services = getattr(settings, 'MAMA_CAS_VALID_SERVICES', ())
+        settings.MAMA_CAS_VALID_SERVICES = ( self.valid_service, )
+
+    def tearDown(self):
+        """
+        Undo any modifications made to settings.
+        """
+        settings.MAMA_CAS_VALID_SERVICES = self.old_valid_services
 
     def test_proxy_view(self):
         """
@@ -843,5 +905,23 @@ class ProxyViewTests(TestCase):
 
         self.assertIsNotNone(elem)
         self.assertNotEqual(elem.text, 0)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get('Content-Type'), 'text/xml')
+
+    def test_proxy_view_invalid_service_url(self):
+        """
+        When ``MAMA_CAS_VALID_SERVICES`` is defined in the settings file, a
+        service string should be checked against the list of valid services.
+        If it does not match, a proxy authentication failure should be
+        returned.
+        """
+        query_str = "?targetService=%s&pgt=%s" % (self.invalid_service,
+                                                  self.pgt.ticket)
+        response = self.client.get(reverse('cas_proxy') + query_str)
+        tree = ElementTree(fromstring(response.content))
+        elem = tree.find(XMLNS + 'proxyFailure')
+
+        self.assertIsNotNone(elem)
+        self.assertEqual(elem.get('code'), 'INVALID_SERVICE')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get('Content-Type'), 'text/xml')

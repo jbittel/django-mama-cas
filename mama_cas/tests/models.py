@@ -6,6 +6,7 @@ from django.test import TestCase
 from django.utils.timezone import now
 from django.core import management
 from django.contrib.auth.models import User
+from django.conf import settings
 
 from mama_cas.models import ServiceTicket
 from mama_cas.models import ProxyTicket
@@ -39,6 +40,15 @@ class ServiceTicketTests(TestCase):
         """
         self.user = User.objects.create_user(**self.user_info)
         self.ticket_info.update({'user': self.user})
+
+        self.old_valid_services = getattr(settings, 'MAMA_CAS_VALID_SERVICES', ())
+        settings.MAMA_CAS_VALID_SERVICES = ( self.valid_service, )
+
+    def tearDown(self):
+        """
+        Undo any modifications made to settings.
+        """
+        settings.MAMA_CAS_VALID_SERVICES = self.old_valid_services
 
     def test_create_ticket(self):
         """
@@ -219,6 +229,15 @@ class ProxyTicketTests(TestCase):
                                                              user=self.user)
         self.ticket_info.update({ 'user': self.user, 'granted_by_pgt': self.pgt })
 
+        self.old_valid_services = getattr(settings, 'MAMA_CAS_VALID_SERVICES', ())
+        settings.MAMA_CAS_VALID_SERVICES = ( self.valid_service, )
+
+    def tearDown(self):
+        """
+        Undo any modifications made to settings.
+        """
+        settings.MAMA_CAS_VALID_SERVICES = self.old_valid_services
+
     def test_create_ticket(self):
         """
         A new ``ProxyTicket`` ought to exist in the database with a valid
@@ -378,6 +397,15 @@ class ProxyGrantingTicketTests(TestCase):
         """
         self.user = User.objects.create_user(**self.user_info)
         self.ticket_info.update({'user': self.user})
+
+        self.old_valid_services = getattr(settings, 'MAMA_CAS_VALID_SERVICES', ())
+        settings.MAMA_CAS_VALID_SERVICES = ( self.valid_service, )
+
+    def tearDown(self):
+        """
+        Undo any modifications made to settings.
+        """
+        settings.MAMA_CAS_VALID_SERVICES = self.old_valid_services
 
     def test_create_ticket(self):
         """
