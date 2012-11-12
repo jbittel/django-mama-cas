@@ -445,7 +445,10 @@ class ServiceValidateViewTests(TestCase):
         self.assertEqual(response.get('Content-Type'), 'text/xml')
 
         elem = tree.find(XMLNS + 'authenticationSuccess/' + XMLNS + 'proxyGrantingTicket')
-        self.assertIsNotNone(elem)
+        if self.valid_pgt_url == 'https://www.example.com/':
+            self.assertIsNotNone(elem, "Set valid_pgt_url to a valid HTTPS URL to successfully run this test")
+        else:
+            self.assertIsNotNone(elem)
 
     def test_service_validate_view_pgturl_http(self):
         """
@@ -734,7 +737,10 @@ class ProxyValidateViewTests(TestCase):
         self.assertEqual(response.get('Content-Type'), 'text/xml')
 
         elem = tree.find(XMLNS + 'authenticationSuccess/' + XMLNS + 'proxyGrantingTicket')
-        self.assertIsNotNone(elem)
+        if self.valid_pgt_url == 'https://www.example.com/':
+            self.assertIsNotNone(elem, "Set valid_pgt_url to a valid HTTPS URL to successfully run this test")
+        else:
+            self.assertIsNotNone(elem)
 
     def test_proxy_validate_view_pgturl_http(self):
         """
