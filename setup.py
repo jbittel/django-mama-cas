@@ -61,7 +61,7 @@ setup(
     author = 'Jason Bittel',
     author_email = 'jason.bittel@gmail.com',
     url = 'http://github.com/jbittel/django-mama-cas',
-    download_url = 'https://github.com/jbittel/django-mama-cas/tarball/master',
+    download_url = 'http://github.com/jbittel/django-mama-cas/downloads',
     package_dir = { 'mama_cas': 'mama_cas' },
     packages = packages,
     package_data = { 'mama_cas': package_data },
