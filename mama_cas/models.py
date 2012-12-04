@@ -280,7 +280,8 @@ class ProxyGrantingTicketManager(TicketManager):
         pgturl = add_query_params(pgturl, { 'pgtId': pgtid, 'pgtIou': pgtiou })
         try:
             r = requests.get(pgturl, verify=True)
-        except (requests.exceptions.ConnectionError, requests.exceptions.SSLError) as e:
+        except (requests.exceptions.ConnectionError,
+                requests.exceptions.SSLError) as e:
             raise InternalError("%s" % e)
 
         # Check the returned HTTP status code

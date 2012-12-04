@@ -17,17 +17,17 @@ from mama_cas.models import ServiceTicket
 from mama_cas.models import ProxyTicket
 from mama_cas.models import ProxyGrantingTicket
 from mama_cas.utils import add_query_params
-from mama_cas.mixins import NeverCache
-from mama_cas.mixins import LoginRequired
-from mama_cas.mixins import ValidateTicket
-from mama_cas.mixins import CustomAttributes
-from mama_cas.mixins import LogoutUser
+from mama_cas.mixins import NeverCacheMixin
+from mama_cas.mixins import LoginRequiredMixin
+from mama_cas.mixins import ValidateTicketMixin
+from mama_cas.mixins import CustomAttributesMixin
+from mama_cas.mixins import LogoutUserMixin
 
 
 LOG = logging.getLogger('mama_cas')
 
 
-class LoginView(NeverCache, LogoutUser, FormView):
+class LoginView(NeverCacheMixin, LogoutUserMixin, FormView):
     """
     (2.1 and 2.2) Credential requestor and acceptor.
 
@@ -59,7 +59,7 @@ class LoginView(NeverCache, LogoutUser, FormView):
 
         if renew:
             LOG.debug("Renew request received by credential requestor")
-            LogoutUser.logout_user(self, request)
+            self.logout_user(request)
             login = add_query_params(reverse('cas_login'), { 'service': service })
             LOG.debug("Redirecting to %s" % login)
             return redirect(login)
@@ -87,7 +87,8 @@ class LoginView(NeverCache, LogoutUser, FormView):
                 LOG.debug("Redirecting to %s" % service)
                 return redirect(service)
             else:
-                messages.success(request, _("You are logged in as %s") % request.user)
+                messages.success(request,
+                    _("You are logged in as %s") % request.user)
         return super(LoginView, self).get(request, *args, **kwargs)
 
     def warn_user(self):
@@ -110,8 +111,8 @@ class LoginView(NeverCache, LogoutUser, FormView):
         service URL. If no service is provided, the user is redirected back
         to the login page with a message indicating a successful login.
 
-        If authentication fails, the login form is redisplayed with an appropriate
-        error message displayed indicating the reason for failure.
+        If authentication fails, the login form is redisplayed with an
+        appropriate error message displayed indicating the reason for failure.
 
         The credential acceptor also accepts one optional parameter:
 
@@ -139,7 +140,7 @@ class LoginView(NeverCache, LogoutUser, FormView):
         if service:
             return { 'service': urlquote_plus(service) }
 
-class WarnView(NeverCache, LoginRequired, FormView):
+class WarnView(NeverCacheMixin, LoginRequiredMixin, FormView):
     """
     (2.2.1) Disable transparent authentication by displaying a page indicating
     that authentication is taking place. The user can then choose to continue
@@ -168,7 +169,7 @@ class WarnView(NeverCache, LoginRequired, FormView):
         kwargs['service'] = self.request.GET.get('service')
         return kwargs
 
-class LogoutView(NeverCache, LogoutUser, View):
+class LogoutView(NeverCacheMixin, LogoutUserMixin, View):
     """
     (2.3) End a client's single sign-on session.
 
@@ -181,14 +182,16 @@ class LogoutView(NeverCache, LogoutUser, View):
     """
     def get(self, request, *args, **kwargs):
         LOG.debug("Logout request received for %s" % request.user)
-        LogoutUser.logout_user(self, request)
+        self.logout_user(request)
         url = request.GET.get('url', None)
         if url:
-            messages.success(request, _("The application has provided this link to follow: " \
-                "<a href=\"%(url)s\">%(url)s</a>") % { 'url': url }, extra_tags='safe')
+            messages.success(request,
+                _("The application has provided this link to follow: " \
+                "<a href=\"%(url)s\">%(url)s</a>") % { 'url': url },
+                extra_tags='safe')
         return redirect(reverse('cas_login'))
 
-class ValidateView(NeverCache, ValidateTicket, View):
+class ValidateView(NeverCacheMixin, ValidateTicketMixin, View):
     """
     (2.4) Check the validity of a service ticket. [CAS 1.0]
 
@@ -202,14 +205,15 @@ class ValidateView(NeverCache, ValidateTicket, View):
     credentials (i.e. not from an existing single sign-on session).
     """
     def get(self, request, *args, **kwargs):
-        st, pgt, error = ValidateTicket.validate_service_ticket(self, request)
+        st, pgt, error = self.validate_service_ticket(request)
         if st:
             return HttpResponse(content="yes\n%s\n" % st.user.username,
                                 content_type='text/plain')
         else:
             return HttpResponse(content="no\n\n", content_type='text/plain')
 
-class ServiceValidateView(NeverCache, ValidateTicket, CustomAttributes, TemplateView):
+class ServiceValidateView(NeverCacheMixin, ValidateTicketMixin,
+                          CustomAttributesMixin, TemplateView):
     """
     (2.5) Check the validity of a service ticket. [CAS 2.0]
 
@@ -229,12 +233,14 @@ class ServiceValidateView(NeverCache, ValidateTicket, CustomAttributes, Template
     template_name = 'mama_cas/validate.xml'
 
     def get(self, request, *args, **kwargs):
-        st, pgt, error = ValidateTicket.validate_service_ticket(self, request)
-        attributes = CustomAttributes.get_custom_attributes(self, st)
-        context = { 'ticket': st, 'pgt': pgt, 'error': error, 'attributes': attributes }
+        st, pgt, error = self.validate_service_ticket(request)
+        attributes = self.get_custom_attributes(st)
+        context = { 'ticket': st, 'pgt': pgt, 'error': error,
+                    'attributes': attributes }
         return self.render_to_response(context, content_type='text/xml')
 
-class ProxyValidateView(NeverCache, ValidateTicket, CustomAttributes, TemplateView):
+class ProxyValidateView(NeverCacheMixin, ValidateTicketMixin,
+                        CustomAttributesMixin, TemplateView):
     """
     (2.6) Check the validity of a service ticket, and additionally
     validate proxy tickets. [CAS 2.0]
@@ -260,18 +266,18 @@ class ProxyValidateView(NeverCache, ValidateTicket, CustomAttributes, TemplateVi
         if not ticket or ticket.startswith(ProxyTicket.TICKET_PREFIX):
             # If no ticket parameter is present, attempt to validate it anyway
             # so the appropriate error is raised
-            t, pgt, proxies, error = ValidateTicket.validate_proxy_ticket(self, request)
-            attributes = CustomAttributes.get_custom_attributes(self, t)
+            t, pgt, proxies, error = self.validate_proxy_ticket(request)
+            attributes = self.get_custom_attributes(t)
         else:
-            t, pgt, error = ValidateTicket.validate_service_ticket(self, request)
+            t, pgt, error = self.validate_service_ticket(request)
             proxies = None
-            attributes = CustomAttributes.get_custom_attributes(self, t)
+            attributes = self.get_custom_attributes(t)
 
-        context = { 'ticket': t, 'pgt': pgt, 'proxies': proxies, 'error': error,
-                    'attributes': attributes }
+        context = { 'ticket': t, 'pgt': pgt, 'proxies': proxies,
+                    'error': error, 'attributes': attributes }
         return self.render_to_response(context, content_type='text/xml')
 
-class ProxyView(NeverCache, ValidateTicket, TemplateView):
+class ProxyView(NeverCacheMixin, ValidateTicketMixin, TemplateView):
     """
     (2.7) Provide proxy tickets to services that have acquired proxy-
     granting tickets. [CAS 2.0]
@@ -284,6 +290,6 @@ class ProxyView(NeverCache, ValidateTicket, TemplateView):
     template_name = 'mama_cas/proxy.xml'
 
     def get(self, request, *args, **kwargs):
-        pt, error = ValidateTicket.validate_proxy_granting_ticket(self, request)
+        pt, error = self.validate_proxy_granting_ticket(request)
         context = { 'ticket': pt, 'error': error }
         return self.render_to_response(context, content_type='text/xml')
