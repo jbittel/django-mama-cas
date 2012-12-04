@@ -8,6 +8,7 @@ from django.conf import settings
 from django.test import TestCase
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
+from django.core.exceptions import ImproperlyConfigured
 
 from mama_cas.models import ServiceTicket
 from mama_cas.models import ProxyTicket
@@ -432,6 +433,11 @@ class ServiceValidateViewTests(TestCase):
         NOTE: this test will fail unless ``valid_pgt_url`` is configured with
         a valid proxy callback URL.
         """
+        if self.valid_pgt_url == 'https://www.example.com/':
+            raise ImproperlyConfigured("Set valid_pgt_url to a valid HTTPS URL"
+                "to successfully run this test"
+            )
+
         query_str = "?service=%s&ticket=%s&pgtUrl=%s" % (self.valid_service,
                                                          self.st.ticket,
                                                          self.valid_pgt_url)
@@ -445,10 +451,7 @@ class ServiceValidateViewTests(TestCase):
         self.assertEqual(response.get('Content-Type'), 'text/xml')
 
         elem = tree.find(XMLNS + 'authenticationSuccess/' + XMLNS + 'proxyGrantingTicket')
-        if self.valid_pgt_url == 'https://www.example.com/':
-            self.assertIsNotNone(elem, "Set valid_pgt_url to a valid HTTPS URL to successfully run this test")
-        else:
-            self.assertIsNotNone(elem)
+        self.assertIsNotNone(elem)
 
     def test_service_validate_view_pgturl_http(self):
         """
@@ -724,6 +727,11 @@ class ProxyValidateViewTests(TestCase):
         NOTE: this test will fail unless ``valid_pgt_url`` is configured with
         a valid proxy callback URL.
         """
+        if self.valid_pgt_url == 'https://www.example.com/':
+            raise ImproperlyConfigured("Set valid_pgt_url to a valid HTTPS URL"
+                "to successfully run this test"
+            )
+
         query_str = "?service=%s&ticket=%s&pgtUrl=%s" % (self.valid_service,
                                                          self.pt.ticket,
                                                          self.valid_pgt_url)
@@ -737,10 +745,7 @@ class ProxyValidateViewTests(TestCase):
         self.assertEqual(response.get('Content-Type'), 'text/xml')
 
         elem = tree.find(XMLNS + 'authenticationSuccess/' + XMLNS + 'proxyGrantingTicket')
-        if self.valid_pgt_url == 'https://www.example.com/':
-            self.assertIsNotNone(elem, "Set valid_pgt_url to a valid HTTPS URL to successfully run this test")
-        else:
-            self.assertIsNotNone(elem)
+        self.assertIsNotNone(elem)
 
     def test_proxy_validate_view_pgturl_http(self):
         """
