@@ -1,7 +1,7 @@
 from distutils.core import setup
 import os
 
-from mama_cas import get_version
+from mama_cas import __version__ as version
 
 
 def split_relative_path(path):
@@ -54,19 +54,19 @@ for dirpath, dirnames, filenames in os.walk('mama_cas'):
             package_data.append(os.path.join(relative_path, f))
 
 setup(
-    name = 'django-mama-cas',
-    version = get_version(),
-    description = 'A CAS server single sign-on application for Django',
-    long_description = get_readme('README'),
-    author = 'Jason Bittel',
-    author_email = 'jason.bittel@gmail.com',
-    url = 'http://github.com/jbittel/django-mama-cas',
-    download_url = 'http://github.com/jbittel/django-mama-cas/downloads',
-    package_dir = { 'mama_cas': 'mama_cas' },
-    packages = packages,
-    package_data = { 'mama_cas': package_data },
-    license = 'BSD',
-    classifiers = [
+    name='django-mama-cas',
+    version=version,
+    description='A CAS server single sign-on application for Django',
+    long_description=get_readme('README'),
+    author='Jason Bittel',
+    author_email='jason.bittel@gmail.com',
+    url='http://github.com/jbittel/django-mama-cas',
+    download_url='http://github.com/jbittel/django-mama-cas/downloads',
+    package_dir={'mama_cas': 'mama_cas'},
+    packages=packages,
+    package_data={'mama_cas': package_data},
+    license='BSD',
+    classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
         'Programming Language :: Python',
@@ -77,6 +77,6 @@ setup(
         'Topic :: System :: Systems Administration :: Authentication/Directory',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
-    keywords = ['django', 'cas', 'single sign-on', 'authentication', 'auth'],
-    install_requires = [ 'requests == 1.0.4' ],
+    keywords=['django', 'cas', 'single sign-on', 'authentication', 'auth'],
+    install_requires=['requests == 1.0.4'],
 )
