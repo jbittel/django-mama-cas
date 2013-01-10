@@ -126,7 +126,8 @@ class ValidateTicketMixin(object):
         pgt = request.GET.get('pgt')
         target_service = request.GET.get('targetService')
 
-        LOG.debug("Proxy ticket request received")
+        LOG.debug("Proxy ticket request received for %s using %s" %
+                  (target_service, pgt))
         try:
             pgt = ProxyGrantingTicket.objects.validate_ticket(pgt,
                                                               target_service)
