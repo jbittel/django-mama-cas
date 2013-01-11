@@ -15,9 +15,9 @@ class LoginFormTests(TestCase):
     """
     Test the ``LoginForm`` and its subclasses.
     """
-    user_info = { 'username': 'ellen',
-                  'password': 'mamas&papas',
-                  'email': 'ellen@example.com' }
+    user_info = {'username': 'ellen',
+                 'password': 'mamas&papas',
+                 'email': 'ellen@example.com'}
 
     def setUp(self):
         """
@@ -29,8 +29,8 @@ class LoginFormTests(TestCase):
         """
         When provided with correct data, the form should validate.
         """
-        form = LoginForm(data={ 'username': 'ellen',
-                                'password': 'mamas&papas' })
+        form = LoginForm(data={'username': 'ellen',
+                               'password': 'mamas&papas'})
 
         self.assertTrue(form.is_valid())
 
@@ -38,12 +38,12 @@ class LoginFormTests(TestCase):
         """
         When provided with incorrect data, the form should not validate.
         """
-        form = LoginForm(data={ 'username': 'denny',
-                                'password': 'mamas&papas' })
+        form = LoginForm(data={'username': 'denny',
+                               'password': 'mamas&papas'})
         self.assertFalse(form.is_valid())
 
-        form = LoginForm(data={ 'username': 'ellen',
-                                'password': 'journeymen' })
+        form = LoginForm(data={'username': 'ellen',
+                               'password': 'journeymen'})
         self.assertFalse(form.is_valid())
 
     def test_login_form_username(self):
@@ -51,8 +51,8 @@ class LoginFormTests(TestCase):
         When a mixed-case username is provided, it should be converted to
         lowercase.
         """
-        form = LoginForm(data={ 'username': 'Ellen',
-                                'password': 'mamas&papas' })
+        form = LoginForm(data={'username': 'Ellen',
+                               'password': 'mamas&papas'})
 
         self.assertTrue(form.is_valid())
         self.assertEqual(form.cleaned_data['username'], 'ellen')
@@ -61,8 +61,8 @@ class LoginFormTests(TestCase):
         """
         The form should contain an additional ``warn`` field.
         """
-        form = LoginFormWarn(data={ 'username': 'ellen',
-                                    'password': 'mamas&papas' })
+        form = LoginFormWarn(data={'username': 'ellen',
+                                   'password': 'mamas&papas'})
 
         self.assertTrue(form.is_valid())
         self.assertTrue('warn' in form.fields)
@@ -72,8 +72,8 @@ class LoginFormTests(TestCase):
         If an email address is provided, the username portion should be
         extracted, converted to lowercase and returned as the username.
         """
-        form = LoginFormEmail(data={ 'username': 'Ellen@example.com',
-                                     'password': 'mamas&papas' })
+        form = LoginFormEmail(data={'username': 'Ellen@example.com',
+                                    'password': 'mamas&papas'})
 
         self.assertTrue(form.is_valid())
         self.assertEqual(form.cleaned_data['username'], 'ellen')

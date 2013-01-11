@@ -28,10 +28,10 @@ class ServiceTicketTests(TestCase):
     valid_st_regexp = '^ST-[0-9]{10,}-[a-zA-Z0-9]{32}$'
     valid_service = 'http://www.example.com/'
     invalid_service = 'http://www.example.org/'
-    user_info = { 'username': 'ellen',
-                  'password': 'mamas&papas',
-                  'email': 'ellen@example.com' }
-    ticket_info = { 'service': valid_service }
+    user_info = {'username': 'ellen',
+                 'password': 'mamas&papas',
+                 'email': 'ellen@example.com'}
+    ticket_info = {'service': valid_service}
 
     def setUp(self):
         """
@@ -212,10 +212,10 @@ class ProxyTicketTests(TestCase):
     valid_pt_regexp = '^PT-[0-9]{10,}-[a-zA-Z0-9]{32}$'
     valid_service = 'http://www.example.com/'
     invalid_service = 'http://www.example.org/'
-    user_info = { 'username': 'ellen',
-                  'password': 'mamas&papas',
-                  'email': 'ellen@example.com' }
-    ticket_info = { 'service': valid_service }
+    user_info = {'username': 'ellen',
+                 'password': 'mamas&papas',
+                 'email': 'ellen@example.com'}
+    ticket_info = {'service': valid_service}
 
     def setUp(self):
         """
@@ -227,7 +227,7 @@ class ProxyTicketTests(TestCase):
         self.pgt = ProxyGrantingTicket.objects.create_ticket(self.valid_service,
                                                              validate=False,
                                                              user=self.user)
-        self.ticket_info.update({ 'user': self.user, 'granted_by_pgt': self.pgt })
+        self.ticket_info.update({'user': self.user, 'granted_by_pgt': self.pgt})
 
         self.old_valid_services = getattr(settings, 'MAMA_CAS_VALID_SERVICES', ())
         settings.MAMA_CAS_VALID_SERVICES = ( self.valid_service, )
@@ -385,9 +385,9 @@ class ProxyGrantingTicketTests(TestCase):
     valid_pgtiou_str = 'PGTIOU-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
     valid_pgtiou_regexp = '^PGTIOU-[0-9]{10,}-[a-zA-Z0-9]{32}$'
     valid_service = 'http://www.example.com/'
-    user_info = { 'username': 'ellen',
-                  'password': 'mamas&papas',
-                  'email': 'ellen@example.com' }
+    user_info = {'username': 'ellen',
+                 'password': 'mamas&papas',
+                 'email': 'ellen@example.com'}
     ticket_info = {}
 
     def setUp(self):
@@ -414,8 +414,8 @@ class ProxyGrantingTicketTests(TestCase):
         the ``User`` that authorized its creation.
         """
         pgt = ProxyGrantingTicket.objects.create_ticket(self.valid_service,
-                                                       validate=False,
-                                                       **self.ticket_info)
+                                                        validate=False,
+                                                        **self.ticket_info)
 
         self.assertEqual(ProxyGrantingTicket.objects.count(), 1)
         self.assertTrue(re.search(self.valid_pgt_regexp, pgt.ticket))
@@ -476,8 +476,8 @@ class ProxyGrantingTicketTests(TestCase):
         ticket is provided.
         """
         pgt = ProxyGrantingTicket.objects.create_ticket(self.valid_service,
-                                                       validate=False,
-                                                       **self.ticket_info)
+                                                        validate=False,
+                                                        **self.ticket_info)
         pgt.created = now() - timedelta(minutes=pgt.TICKET_EXPIRE + 1)
         pgt.save()
         self.assertRaises(InvalidTicketError, ProxyGrantingTicket.objects.validate_ticket,

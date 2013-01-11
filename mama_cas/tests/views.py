@@ -26,10 +26,10 @@ class LoginViewTests(TestCase):
     """
     Test the ``LoginView`` view.
     """
-    user_info = { 'username': 'ellen',
-                  'password': 'mamas&papas',
-                  'email': 'ellen@example.com' }
-    service = { 'service': 'http://www.example.com/' }
+    user_info = {'username': 'ellen',
+                 'password': 'mamas&papas',
+                 'email': 'ellen@example.com'}
+    service = {'service': 'http://www.example.com/'}
 
     def setUp(self):
         """
@@ -86,12 +86,12 @@ class WarnViewTests(TestCase):
     """
     Test the ``WarnView`` view.
     """
-    user_info = { 'username': 'ellen',
-                  'password': 'mamas&papas',
-                  'email': 'ellen@example.com' }
+    user_info = {'username': 'ellen',
+                 'password': 'mamas&papas',
+                 'email': 'ellen@example.com'}
     valid_service = 'http://www.example.com/'
     form_data = user_info.copy()
-    form_data.update({ 'warn': 'true' })
+    form_data.update({'warn': 'true'})
 
     def setUp(self):
         """
@@ -158,9 +158,9 @@ class LogoutViewTests(TestCase):
     """
     Test the ``LogoutView`` view.
     """
-    user_info = { 'username': 'ellen',
-                  'password': 'mamas&papas',
-                  'email': 'ellen@example.com' }
+    user_info = {'username': 'ellen',
+                 'password': 'mamas&papas',
+                 'email': 'ellen@example.com'}
 
     def setUp(self):
         """
@@ -208,10 +208,10 @@ class ValidateViewTests(TestCase):
     invalid_st_str = 'ST-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
     valid_service = 'http://www.example.com/'
     invalid_service = 'http://www.example.org/'
-    user_info = { 'username': 'ellen',
-                  'password': 'mamas&papas',
-                  'email': 'ellen@example.com' }
-    ticket_info = { 'service': valid_service }
+    user_info = {'username': 'ellen',
+                 'password': 'mamas&papas',
+                 'email': 'ellen@example.com'}
+    ticket_info = {'service': valid_service}
     validation_failure = "no\n\n"
     validation_success = "yes\n%s\n" % user_info['username']
 
@@ -220,7 +220,7 @@ class ValidateViewTests(TestCase):
         Create a valid user and service ticket for testing purposes.
         """
         self.user = User.objects.create_user(**self.user_info)
-        self.ticket_info.update({ 'user': self.user })
+        self.ticket_info.update({'user': self.user})
         self.st = ServiceTicket.objects.create_ticket(**self.ticket_info)
 
         self.old_valid_services = getattr(settings, 'MAMA_CAS_VALID_SERVICES', ())
@@ -304,13 +304,13 @@ class ServiceValidateViewTests(TestCase):
     invalid_st_str = 'ST-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
     valid_service = 'http://www.example.com/'
     invalid_service = 'http://www.example.org/'
-    user_info = { 'username': 'ellen',
-                  'password': 'mamas&papas',
-                  'email': 'ellen@example.com' }
-    user_attr = { 'givenName': 'first_name',
-                  'sn': 'last_name',
-                  'email': 'email' }
-    ticket_info = { 'service': valid_service }
+    user_info = {'username': 'ellen',
+                 'password': 'mamas&papas',
+                 'email': 'ellen@example.com'}
+    user_attr = {'givenName': 'first_name',
+                 'sn': 'last_name',
+                 'email': 'email'}
+    ticket_info = {'service': valid_service}
     valid_pgt_url = 'https://www.example.com/'
     invalid_pgt_url = 'http://www.example.com/'
 
@@ -435,8 +435,7 @@ class ServiceValidateViewTests(TestCase):
         """
         if self.valid_pgt_url == 'https://www.example.com/':
             raise ImproperlyConfigured("Set valid_pgt_url to a valid HTTPS URL"
-                "to successfully run this test"
-            )
+                                       "to successfully run this test")
 
         query_str = "?service=%s&ticket=%s&pgtUrl=%s" % (self.valid_service,
                                                          self.st.ticket,
@@ -529,13 +528,13 @@ class ProxyValidateViewTests(TestCase):
     valid_service = 'http://www.example.com/'
     valid_service2 = 'http://ww2.example.com/'
     invalid_service = 'http://www.example.org/'
-    user_info = { 'username': 'ellen',
-                  'password': 'mamas&papas',
-                  'email': 'ellen@example.com' }
-    user_attr = { 'givenName': 'first_name',
-                  'sn': 'last_name',
-                  'email': 'email' }
-    ticket_info = { 'service': valid_service }
+    user_info = {'username': 'ellen',
+                 'password': 'mamas&papas',
+                 'email': 'ellen@example.com'}
+    user_attr = {'givenName': 'first_name',
+                 'sn': 'last_name',
+                 'email': 'email'}
+    ticket_info = {'service': valid_service}
     valid_pgt_url = 'https://www.example.com/'
     invalid_pgt_url = 'http://www.example.com/'
 
@@ -698,8 +697,8 @@ class ProxyValidateViewTests(TestCase):
                                                          validate=False,
                                                          user=self.user,
                                                          granted_by_pt=self.pt)
-        ticket_info2 = { 'service': self.valid_service2,
-                         'user': self.user }
+        ticket_info2 = {'service': self.valid_service2,
+                        'user': self.user}
         pt2 = ProxyTicket.objects.create_ticket(granted_by_pgt=pgt2,
                                                 **ticket_info2)
         query_str = "?service=%s&ticket=%s" % (self.valid_service2, pt2)
@@ -729,8 +728,7 @@ class ProxyValidateViewTests(TestCase):
         """
         if self.valid_pgt_url == 'https://www.example.com/':
             raise ImproperlyConfigured("Set valid_pgt_url to a valid HTTPS URL"
-                "to successfully run this test"
-            )
+                                       "to successfully run this test")
 
         query_str = "?service=%s&ticket=%s&pgtUrl=%s" % (self.valid_service,
                                                          self.pt.ticket,
@@ -821,10 +819,10 @@ class ProxyViewTests(TestCase):
     invalid_pgt_str = 'PGT-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
     valid_service = 'http://www.example.com/'
     invalid_service = 'http://www.example.org/'
-    user_info = { 'username': 'ellen',
-                  'password': 'mamas&papas',
-                  'email': 'ellen@example.com' }
-    ticket_info = { 'service': valid_service }
+    user_info = {'username': 'ellen',
+                 'password': 'mamas&papas',
+                 'email': 'ellen@example.com'}
+    ticket_info = {'service': valid_service}
 
     def setUp(self):
         """

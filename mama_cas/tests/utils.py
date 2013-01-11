@@ -16,7 +16,7 @@ class UtilsTests(TestCase):
         should insert the parameters into the existing URL.
         """
         url = 'http://www.example.com/?test3=blue'
-        params = { 'test1': 'red', 'test2': '', 'test3': 'indigo' }
+        params = {'test1': 'red', 'test2': '', 'test3': 'indigo'}
         url = add_query_params(url, params)
 
         self.assertIn('test1=red', url)

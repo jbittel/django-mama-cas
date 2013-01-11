@@ -60,7 +60,8 @@ class LoginView(NeverCacheMixin, LogoutUserMixin, FormView):
         if renew:
             LOG.debug("Renew request received by credential requestor")
             self.logout_user(request)
-            login = add_query_params(reverse('cas_login'), { 'service': service })
+            login = add_query_params(reverse('cas_login'),
+                                     {'service': service})
             LOG.debug("Redirecting to %s" % login)
             return redirect(login)
         elif gateway and service:
@@ -68,11 +69,11 @@ class LoginView(NeverCacheMixin, LogoutUserMixin, FormView):
             if request.user.is_authenticated():
                 if self.warn_user() and not warned:
                     return redirect(add_query_params(reverse('cas_warn'),
-                                                     { 'service': service,
-                                                       'gateway': gateway }))
+                                                     {'service': service,
+                                                      'gateway': gateway}))
                 st = ServiceTicket.objects.create_ticket(service=service,
                                                          user=request.user)
-                service = add_query_params(service, { 'ticket': st.ticket })
+                service = add_query_params(service, {'ticket': st.ticket})
             LOG.debug("Redirecting to %s" % service)
             return redirect(service)
         elif request.user.is_authenticated():
@@ -80,15 +81,15 @@ class LoginView(NeverCacheMixin, LogoutUserMixin, FormView):
                 LOG.debug("Service ticket request received by credential requestor")
                 if self.warn_user() and not warned:
                     return redirect(add_query_params(reverse('cas_warn'),
-                                                     { 'service': service }))
+                                                     {'service': service}))
                 st = ServiceTicket.objects.create_ticket(service=service,
                                                          user=request.user)
-                service = add_query_params(service, { 'ticket': st.ticket })
+                service = add_query_params(service, {'ticket': st.ticket})
                 LOG.debug("Redirecting to %s" % service)
                 return redirect(service)
             else:
                 messages.success(request,
-                    _("You are logged in as %s") % request.user)
+                                 _("You are logged in as %s") % request.user)
         return super(LoginView, self).get(request, *args, **kwargs)
 
     def warn_user(self):
@@ -130,7 +131,7 @@ class LoginView(NeverCacheMixin, LogoutUserMixin, FormView):
             st = ServiceTicket.objects.create_ticket(service=service,
                                                      user=self.request.user,
                                                      primary=True)
-            service = add_query_params(service, { 'ticket': st.ticket })
+            service = add_query_params(service, {'ticket': st.ticket})
             LOG.debug("Redirecting to %s" % service)
             return redirect(service)
         return redirect(reverse('cas_login'))
@@ -138,7 +139,7 @@ class LoginView(NeverCacheMixin, LogoutUserMixin, FormView):
     def get_initial(self):
         service = self.request.GET.get('service')
         if service:
-            return { 'service': urlquote_plus(service) }
+            return {'service': urlquote_plus(service)}
 
 class WarnView(NeverCacheMixin, LoginRequiredMixin, FormView):
     """
@@ -151,9 +152,9 @@ class WarnView(NeverCacheMixin, LoginRequiredMixin, FormView):
 
     def form_valid(self, form):
         return redirect(add_query_params(reverse('cas_login'),
-                                        { 'service': form.cleaned_data.get('service'),
+                                         {'service': form.cleaned_data.get('service'),
                                           'gateway': form.cleaned_data.get('gateway'),
-                                          'warned': 'true' }))
+                                          'warned': 'true'}))
 
     def get_initial(self):
         initial = {}
@@ -186,9 +187,9 @@ class LogoutView(NeverCacheMixin, LogoutUserMixin, View):
         url = request.GET.get('url', None)
         if url:
             messages.success(request,
-                _("The application has provided this link to follow: " \
-                "<a href=\"%(url)s\">%(url)s</a>") % { 'url': url },
-                extra_tags='safe')
+                             _("The application provided this link to follow: "
+                             "<a href=\"%(url)s\">%(url)s</a>") % {'url': url},
+                             extra_tags='safe')
         return redirect(reverse('cas_login'))
 
 class ValidateView(NeverCacheMixin, ValidateTicketMixin, View):
@@ -235,8 +236,8 @@ class ServiceValidateView(NeverCacheMixin, ValidateTicketMixin,
     def get(self, request, *args, **kwargs):
         st, pgt, error = self.validate_service_ticket(request)
         attributes = self.get_custom_attributes(st)
-        context = { 'ticket': st, 'pgt': pgt, 'error': error,
-                    'attributes': attributes }
+        context = {'ticket': st, 'pgt': pgt, 'error': error,
+                   'attributes': attributes}
         return self.render_to_response(context, content_type='text/xml')
 
 class ProxyValidateView(NeverCacheMixin, ValidateTicketMixin,
@@ -264,8 +265,8 @@ class ProxyValidateView(NeverCacheMixin, ValidateTicketMixin,
     def get(self, request, *args, **kwargs):
         ticket = request.GET.get('ticket')
         if not ticket or ticket.startswith(ProxyTicket.TICKET_PREFIX):
-            # If no ticket parameter is present, attempt to validate it anyway
-            # so the appropriate error is raised
+            # If no ticket parameter is present, attempt to validate it
+            # anyway so the appropriate error is raised
             t, pgt, proxies, error = self.validate_proxy_ticket(request)
             attributes = self.get_custom_attributes(t)
         else:
@@ -273,8 +274,8 @@ class ProxyValidateView(NeverCacheMixin, ValidateTicketMixin,
             proxies = None
             attributes = self.get_custom_attributes(t)
 
-        context = { 'ticket': t, 'pgt': pgt, 'proxies': proxies,
-                    'error': error, 'attributes': attributes }
+        context = {'ticket': t, 'pgt': pgt, 'proxies': proxies,
+                   'error': error, 'attributes': attributes}
         return self.render_to_response(context, content_type='text/xml')
 
 class ProxyView(NeverCacheMixin, ValidateTicketMixin, TemplateView):
@@ -291,5 +292,5 @@ class ProxyView(NeverCacheMixin, ValidateTicketMixin, TemplateView):
 
     def get(self, request, *args, **kwargs):
         pt, error = self.validate_proxy_granting_ticket(request)
-        context = { 'ticket': pt, 'error': error }
+        context = {'ticket': pt, 'error': error}
         return self.render_to_response(context, content_type='text/xml')

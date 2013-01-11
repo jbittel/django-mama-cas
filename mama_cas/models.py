@@ -35,7 +35,8 @@ class TicketManager(models.Manager):
             ticket = self.create_rand_str(prefix=self.model.TICKET_PREFIX)
         now = timezone.now()
         new_ticket = self.create(ticket=ticket, created=now, **kwargs)
-        LOG.debug("Created %s %s" % (self.model._meta.verbose_name.title(), new_ticket.ticket))
+        LOG.debug("Created %s %s" %
+                  (self.model._meta.verbose_name.title(), new_ticket.ticket))
         return new_ticket
 
     def create_rand_str(self, prefix=None):
@@ -78,14 +79,16 @@ class TicketManager(models.Manager):
             raise InvalidTicketError("%s %s does not exist" % (title, ticket))
 
         if t.is_consumed():
-            raise InvalidTicketError("%s %s has already been used" % (title, ticket))
+            raise InvalidTicketError("%s %s has already been used" %
+                                     (title, ticket))
         t.consume()
 
         if t.is_expired():
             raise InvalidTicketError("%s %s has expired" % (title, ticket))
 
         if not self.is_valid_service_url(service):
-            raise InvalidServiceError("Service %s is not a valid %s URL" % (service, title))
+            raise InvalidServiceError("Service %s is not a valid %s URL" %
+                                      (service, title))
 
         if not same_origin(t.service, service):
             raise InvalidServiceError("%s %s for service %s is invalid for service %s" % (title, ticket, t.service, service))
@@ -277,7 +280,7 @@ class ProxyGrantingTicketManager(TicketManager):
             raise InternalError("Proxy callback URL scheme is not HTTPS")
 
         # Connect to proxy callback URL, checking the SSL certificate
-        pgturl = add_query_params(pgturl, { 'pgtId': pgtid, 'pgtIou': pgtiou })
+        pgturl = add_query_params(pgturl, {'pgtId': pgtid, 'pgtIou': pgtiou})
         try:
             r = requests.get(pgturl, verify=True)
         except (requests.exceptions.ConnectionError,
@@ -312,13 +315,15 @@ class ProxyGrantingTicketManager(TicketManager):
             raise BadPGTError("%s %s does not exist" % (title, ticket))
 
         if t.is_consumed():
-            raise InvalidTicketError("%s %s has already been used" % (title, ticket))
+            raise InvalidTicketError("%s %s has already been used" %
+                                     (title, ticket))
 
         if t.is_expired():
             raise InvalidTicketError("%s %s has expired" % (title, ticket))
 
         if not self.is_valid_service_url(service):
-            raise InvalidServiceError("Service %s is not a valid %s URL" % (service, title))
+            raise InvalidServiceError("Service %s is not a valid %s URL" %
+                                      (service, title))
 
         LOG.debug("Validated %s %s" % (title, ticket))
         return t
