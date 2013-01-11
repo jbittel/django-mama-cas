@@ -210,11 +210,11 @@ class LogoutUserMixin(object):
            existing session data for the current request.
         """
         if request.user.is_authenticated():
-            # Ensure all tickets created for this user are consumed
             ServiceTicket.objects.consume_tickets(request.user)
             ProxyTicket.objects.consume_tickets(request.user)
             ProxyGrantingTicket.objects.consume_tickets(request.user)
 
-            logout(request)
-            messages.success(request, _("You have been successfully logged out"))
             LOG.debug("Single sign-on session ended for %s" % request.user)
+            logout(request)
+            messages.success(request,
+                             _("You have been successfully logged out"))
