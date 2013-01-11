@@ -15,7 +15,6 @@ from mama_cas.forms import LoginForm
 from mama_cas.forms import WarnForm
 from mama_cas.models import ServiceTicket
 from mama_cas.models import ProxyTicket
-from mama_cas.models import ProxyGrantingTicket
 from mama_cas.utils import add_query_params
 from mama_cas.mixins import NeverCacheMixin
 from mama_cas.mixins import LoginRequiredMixin
