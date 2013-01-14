@@ -32,6 +32,7 @@ class NeverCacheMixin(object):
     def dispatch(self, request, *args, **kwargs):
         return super(NeverCacheMixin, self).dispatch(request, *args, **kwargs)
 
+
 class LoginRequiredMixin(object):
     """
     View mixin to require a logged in user.
@@ -40,6 +41,7 @@ class LoginRequiredMixin(object):
                                      redirect_field_name=None))
     def dispatch(self, request, *args, **kwargs):
         return super(LoginRequiredMixin, self).dispatch(request, *args, **kwargs)
+
 
 class ValidateTicketMixin(object):
     """
@@ -141,6 +143,7 @@ class ValidateTicketMixin(object):
                                                    granted_by_pgt=pgt)
             return pt, None
 
+
 class CustomAttributesMixin(object):
     """
     View mixin for including custom user attributes in a validation response.
@@ -193,6 +196,7 @@ class CustomAttributesMixin(object):
                     attributes.append(attribute)
 
         return attributes
+
 
 class LogoutUserMixin(object):
     """

@@ -59,6 +59,7 @@ class LoginForm(forms.Form):
                 raise forms.ValidationError(_("The username or password is not correct"))
         return self.cleaned_data
 
+
 class LoginFormWarn(LoginForm):
     """
     Subclass of ``LoginForm`` adding an optional checkbox allowing the user to
@@ -67,6 +68,7 @@ class LoginFormWarn(LoginForm):
     warn = forms.BooleanField(widget=forms.CheckboxInput(),
                               label=_("Warn before automatic login to additional services"),
                               required=False)
+
 
 class LoginFormEmail(LoginForm):
     """
@@ -80,6 +82,7 @@ class LoginFormEmail(LoginForm):
         """
         username = self.cleaned_data.get('username').split('@')[0]
         return lower(username)
+
 
 class WarnForm(forms.Form):
     """

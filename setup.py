@@ -25,12 +25,14 @@ def split_relative_path(path):
     else:
         return ''
 
+
 def get_readme(filename):
     """
     Utility function to print the README file, used for the long_description
     setup argument below.
     """
     return open(os.path.join(os.path.dirname(__file__), filename)).read()
+
 
 packages, package_data = [], []
 root_dir = os.path.dirname(__file__)

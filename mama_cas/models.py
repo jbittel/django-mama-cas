@@ -91,10 +91,12 @@ class TicketManager(models.Manager):
                                       (service, title))
 
         if not same_origin(t.service, service):
-            raise InvalidServiceError("%s %s for service %s is invalid for service %s" % (title, ticket, t.service, service))
+            raise InvalidServiceError("%s %s for service %s is invalid for service %s" %
+                                      (title, ticket, t.service, service))
 
         if renew and not t.is_primary():
-            raise InvalidTicketError("%s %s was not issued via primary credentials" % (title, ticket))
+            raise InvalidTicketError("%s %s was not issued via primary credentials" %
+                                     (title, ticket))
 
         LOG.debug("Validated %s %s" % (title, ticket))
         return t
@@ -106,7 +108,8 @@ class TicketManager(models.Manager):
         return ``True``, otherwise return ``False``. If no valid service URLs
         are configured, return ``True``.
         """
-        valid_services = map(re.compile, getattr(settings, 'MAMA_CAS_VALID_SERVICES', ()))
+        valid_services = map(re.compile,
+                             getattr(settings, 'MAMA_CAS_VALID_SERVICES', ()))
         if len(valid_services) == 0:
             return True
         for service in valid_services:
@@ -139,6 +142,7 @@ class TicketManager(models.Manager):
         for ticket in self.filter(user=user):
             if not ticket.is_consumed() and not ticket.is_expired():
                 ticket.consume()
+
 
 class Ticket(models.Model):
     """
@@ -194,6 +198,7 @@ class Ticket(models.Model):
             return True
         return False
 
+
 class ServiceTicket(Ticket):
     """
     (3.1) A ``ServiceTicket`` is used by the client as a credential to
@@ -219,6 +224,7 @@ class ServiceTicket(Ticket):
             return True
         return False
 
+
 class ProxyTicket(Ticket):
     """
     (3.2) A ``ProxyTicket`` is used by a service as a credential to obtain
@@ -235,6 +241,7 @@ class ProxyTicket(Ticket):
     class Meta:
         verbose_name = _('proxy ticket')
         verbose_name_plural = _('proxy tickets')
+
 
 class ProxyGrantingTicketManager(TicketManager):
     def create_ticket(self, pgturl, validate=True, **kwargs):
@@ -261,7 +268,9 @@ class ProxyGrantingTicketManager(TicketManager):
         else:
             # pgtUrl validation succeeded, so create a new PGT with the
             # already created ticket strings
-            return super(ProxyGrantingTicketManager, self).create_ticket(ticket=pgtid, iou=pgtiou, **kwargs)
+            return super(ProxyGrantingTicketManager, self).create_ticket(ticket=pgtid,
+                                                                         iou=pgtiou,
+                                                                         **kwargs)
 
     def validate_pgturl(self, pgturl, pgtid, pgtiou):
         """
@@ -327,6 +336,7 @@ class ProxyGrantingTicketManager(TicketManager):
 
         LOG.debug("Validated %s %s" % (title, ticket))
         return t
+
 
 class ProxyGrantingTicket(Ticket):
     """

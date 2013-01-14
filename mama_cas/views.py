@@ -77,7 +77,8 @@ class LoginView(NeverCacheMixin, LogoutUserMixin, FormView):
             return redirect(service)
         elif request.user.is_authenticated():
             if service:
-                LOG.debug("Service ticket request received by credential requestor")
+                LOG.debug("Service ticket request received "
+                          "by credential requestor")
                 if self.warn_user() and not warned:
                     return redirect(add_query_params(reverse('cas_warn'),
                                                      {'service': service}))
@@ -140,6 +141,7 @@ class LoginView(NeverCacheMixin, LogoutUserMixin, FormView):
         if service:
             return {'service': urlquote_plus(service)}
 
+
 class WarnView(NeverCacheMixin, LoginRequiredMixin, FormView):
     """
     (2.2.1) Disable transparent authentication by displaying a page indicating
@@ -150,9 +152,11 @@ class WarnView(NeverCacheMixin, LoginRequiredMixin, FormView):
     form_class = WarnForm
 
     def form_valid(self, form):
+        service = form.cleaned_data.get('service')
+        gateway = form.cleaned_data.get('gateway')
         return redirect(add_query_params(reverse('cas_login'),
-                                         {'service': form.cleaned_data.get('service'),
-                                          'gateway': form.cleaned_data.get('gateway'),
+                                         {'service': service,
+                                          'gateway': gateway,
                                           'warned': 'true'}))
 
     def get_initial(self):
@@ -168,6 +172,7 @@ class WarnView(NeverCacheMixin, LoginRequiredMixin, FormView):
     def get_context_data(self, **kwargs):
         kwargs['service'] = self.request.GET.get('service')
         return kwargs
+
 
 class LogoutView(NeverCacheMixin, LogoutUserMixin, View):
     """
@@ -191,6 +196,7 @@ class LogoutView(NeverCacheMixin, LogoutUserMixin, View):
                              extra_tags='safe')
         return redirect(reverse('cas_login'))
 
+
 class ValidateView(NeverCacheMixin, ValidateTicketMixin, View):
     """
     (2.4) Check the validity of a service ticket. [CAS 1.0]
@@ -211,6 +217,7 @@ class ValidateView(NeverCacheMixin, ValidateTicketMixin, View):
                                 content_type='text/plain')
         else:
             return HttpResponse(content="no\n\n", content_type='text/plain')
+
 
 class ServiceValidateView(NeverCacheMixin, ValidateTicketMixin,
                           CustomAttributesMixin, TemplateView):
@@ -238,6 +245,7 @@ class ServiceValidateView(NeverCacheMixin, ValidateTicketMixin,
         context = {'ticket': st, 'pgt': pgt, 'error': error,
                    'attributes': attributes}
         return self.render_to_response(context, content_type='text/xml')
+
 
 class ProxyValidateView(NeverCacheMixin, ValidateTicketMixin,
                         CustomAttributesMixin, TemplateView):
@@ -276,6 +284,7 @@ class ProxyValidateView(NeverCacheMixin, ValidateTicketMixin,
         context = {'ticket': t, 'pgt': pgt, 'proxies': proxies,
                    'error': error, 'attributes': attributes}
         return self.render_to_response(context, content_type='text/xml')
+
 
 class ProxyView(NeverCacheMixin, ValidateTicketMixin, TemplateView):
     """

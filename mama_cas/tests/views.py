@@ -82,6 +82,7 @@ class LoginViewTests(TestCase):
         self.assertEqual(destination, self.user_info['service'])
         self.assertTrue('ticket' in query)
 
+
 class WarnViewTests(TestCase):
     """
     Test the ``WarnView`` view.
@@ -154,6 +155,7 @@ class WarnViewTests(TestCase):
         self.assertRedirects(response, reverse('cas_login') + '?warned=true',
                              status_code=302, target_status_code=200)
 
+
 class LogoutViewTests(TestCase):
     """
     Test the ``LogoutView`` view.
@@ -201,6 +203,7 @@ class LogoutViewTests(TestCase):
                              status_code=302, target_status_code=200)
         self.assertFalse('_auth_user_id' in self.client.session)
 
+
 class ValidateViewTests(TestCase):
     """
     Test the ``ValidateView`` view.
@@ -224,7 +227,7 @@ class ValidateViewTests(TestCase):
         self.st = ServiceTicket.objects.create_ticket(**self.ticket_info)
 
         self.old_valid_services = getattr(settings, 'MAMA_CAS_VALID_SERVICES', ())
-        settings.MAMA_CAS_VALID_SERVICES = ( self.valid_service, )
+        settings.MAMA_CAS_VALID_SERVICES = (self.valid_service,)
 
     def tearDown(self):
         """
@@ -297,6 +300,7 @@ class ValidateViewTests(TestCase):
         self.assertEqual(response.content, self.validation_failure)
         self.assertEqual(response.get('Content-Type'), 'text/plain')
 
+
 class ServiceValidateViewTests(TestCase):
     """
     Test the ``ServiceValidateView`` view.
@@ -333,7 +337,7 @@ class ServiceValidateViewTests(TestCase):
         if not self.old_profile_attributes:
             settings.MAMA_CAS_PROFILE_ATTRIBUTES = {}
         self.old_valid_services = getattr(settings, 'MAMA_CAS_VALID_SERVICES', ())
-        settings.MAMA_CAS_VALID_SERVICES = ( self.valid_service, )
+        settings.MAMA_CAS_VALID_SERVICES = (self.valid_service,)
 
     def tearDown(self):
         """
@@ -434,8 +438,8 @@ class ServiceValidateViewTests(TestCase):
         a valid proxy callback URL.
         """
         if self.valid_pgt_url == 'https://www.example.com/':
-            raise ImproperlyConfigured("Set valid_pgt_url to a valid HTTPS URL"
-                                       "to successfully run this test")
+            raise ImproperlyConfigured("Set valid_pgt_url to a valid HTTPS "
+                                       "URL to successfully run this test")
 
         query_str = "?service=%s&ticket=%s&pgtUrl=%s" % (self.valid_service,
                                                          self.st.ticket,
@@ -519,6 +523,7 @@ class ServiceValidateViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get('Content-Type'), 'text/xml')
 
+
 class ProxyValidateViewTests(TestCase):
     """
     Test the ``ProxyValidateView`` view.
@@ -563,8 +568,8 @@ class ProxyValidateViewTests(TestCase):
         if not self.old_profile_attributes:
             settings.MAMA_CAS_PROFILE_ATTRIBUTES = {}
         self.old_valid_services = getattr(settings, 'MAMA_CAS_VALID_SERVICES', ())
-        settings.MAMA_CAS_VALID_SERVICES = ( self.valid_service,
-                                             self.valid_service2 )
+        settings.MAMA_CAS_VALID_SERVICES = (self.valid_service,
+                                            self.valid_service2)
 
     def tearDown(self):
         """
@@ -727,8 +732,8 @@ class ProxyValidateViewTests(TestCase):
         a valid proxy callback URL.
         """
         if self.valid_pgt_url == 'https://www.example.com/':
-            raise ImproperlyConfigured("Set valid_pgt_url to a valid HTTPS URL"
-                                       "to successfully run this test")
+            raise ImproperlyConfigured("Set valid_pgt_url to a valid HTTPS "
+                                       "URL to successfully run this test")
 
         query_str = "?service=%s&ticket=%s&pgtUrl=%s" % (self.valid_service,
                                                          self.pt.ticket,
@@ -812,6 +817,7 @@ class ProxyValidateViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get('Content-Type'), 'text/xml')
 
+
 class ProxyViewTests(TestCase):
     """
     Test the ``ProxyView`` view.
@@ -837,7 +843,7 @@ class ProxyViewTests(TestCase):
                                                              granted_by_st=self.st)
 
         self.old_valid_services = getattr(settings, 'MAMA_CAS_VALID_SERVICES', ())
-        settings.MAMA_CAS_VALID_SERVICES = ( self.valid_service, )
+        settings.MAMA_CAS_VALID_SERVICES = (self.valid_service,)
 
     def tearDown(self):
         """

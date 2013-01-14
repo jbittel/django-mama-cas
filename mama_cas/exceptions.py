@@ -11,6 +11,7 @@ class Error(Exception):
     def __str__(self):
         return self.msg
 
+
 class InvalidRequestError(Error):
     """
     Not all of the required parameters are present.
@@ -18,6 +19,7 @@ class InvalidRequestError(Error):
     def __init__(self, msg):
         self.code = 'INVALID_REQUEST'
         self.msg = msg
+
 
 class InvalidTicketError(Error):
     """
@@ -28,6 +30,7 @@ class InvalidTicketError(Error):
         self.code = 'INVALID_TICKET'
         self.msg = msg
 
+
 class InvalidServiceError(Error):
     """
     The service specified does not match the service identifier
@@ -37,6 +40,7 @@ class InvalidServiceError(Error):
         self.code = 'INVALID_SERVICE'
         self.msg = msg
 
+
 class InternalError(Error):
     """
     An internal error occurred during ticket validation.
@@ -44,6 +48,7 @@ class InternalError(Error):
     def __init__(self, msg):
         self.code = 'INTERNAL_ERROR'
         self.msg = msg
+
 
 class BadPGTError(Error):
     """

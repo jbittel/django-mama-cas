@@ -42,7 +42,7 @@ class ServiceTicketTests(TestCase):
         self.ticket_info.update({'user': self.user})
 
         self.old_valid_services = getattr(settings, 'MAMA_CAS_VALID_SERVICES', ())
-        settings.MAMA_CAS_VALID_SERVICES = ( self.valid_service, )
+        settings.MAMA_CAS_VALID_SERVICES = (self.valid_service)
 
     def tearDown(self):
         """
@@ -204,6 +204,7 @@ class ServiceTicketTests(TestCase):
         self.assertRaises(ServiceTicket.DoesNotExist, ServiceTicket.objects.get,
                           ticket=consumed_st.ticket)
 
+
 class ProxyTicketTests(TestCase):
     """
     Test the model and manager used for ``ProxyTicket``s.
@@ -230,7 +231,7 @@ class ProxyTicketTests(TestCase):
         self.ticket_info.update({'user': self.user, 'granted_by_pgt': self.pgt})
 
         self.old_valid_services = getattr(settings, 'MAMA_CAS_VALID_SERVICES', ())
-        settings.MAMA_CAS_VALID_SERVICES = ( self.valid_service, )
+        settings.MAMA_CAS_VALID_SERVICES = (self.valid_service)
 
     def tearDown(self):
         """
@@ -376,6 +377,7 @@ class ProxyTicketTests(TestCase):
         self.assertRaises(ProxyTicket.DoesNotExist, ProxyTicket.objects.get,
                           ticket=consumed_pt.ticket)
 
+
 class ProxyGrantingTicketTests(TestCase):
     """
     Test the model and manager used for ``ProxyGrantingTicket``s.
@@ -399,7 +401,7 @@ class ProxyGrantingTicketTests(TestCase):
         self.ticket_info.update({'user': self.user})
 
         self.old_valid_services = getattr(settings, 'MAMA_CAS_VALID_SERVICES', ())
-        settings.MAMA_CAS_VALID_SERVICES = ( self.valid_service, )
+        settings.MAMA_CAS_VALID_SERVICES = (self.valid_service)
 
     def tearDown(self):
         """
