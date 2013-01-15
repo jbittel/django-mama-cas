@@ -177,7 +177,7 @@ class CustomAttributesMixin(object):
             try:
                 attribute = [name, getattr(user, attr)]
             except AttributeError:
-                LOG.warn("User has no attribute named '%s'" % attr)
+                LOG.error("User has no attribute named '%s'" % attr)
             else:
                 attributes.append(attribute)
 
@@ -191,7 +191,7 @@ class CustomAttributesMixin(object):
                 try:
                     attribute = [name, getattr(profile, attr)]
                 except AttributeError:
-                    LOG.warn("Profile has no attribute named '%s'" % attr)
+                    LOG.error("Profile has no attribute named '%s'" % attr)
                 else:
                     attributes.append(attribute)
 
@@ -218,7 +218,7 @@ class LogoutUserMixin(object):
             ProxyTicket.objects.consume_tickets(request.user)
             ProxyGrantingTicket.objects.consume_tickets(request.user)
 
-            LOG.debug("Single sign-on session ended for %s" % request.user)
+            LOG.info("Single sign-on session ended for %s" % request.user)
             logout(request)
             messages.success(request,
                              _("You have been successfully logged out"))
