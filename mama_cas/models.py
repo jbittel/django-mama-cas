@@ -21,7 +21,7 @@ from mama_cas.utils import add_query_params
 from mama_cas.utils import is_scheme_https
 
 
-LOG = logging.getLogger('mama_cas')
+logger = logging.getLogger(__name__)
 
 
 class TicketManager(models.Manager):
@@ -35,8 +35,8 @@ class TicketManager(models.Manager):
             ticket = self.create_rand_str(prefix=self.model.TICKET_PREFIX)
         now = timezone.now()
         new_ticket = self.create(ticket=ticket, created=now, **kwargs)
-        LOG.debug("Created %s %s" %
-                  (self.model._meta.verbose_name.title(), new_ticket.ticket))
+        logger.debug("Created %s %s" %
+                     (self.model._meta.verbose_name.title(), new_ticket.ticket))
         return new_ticket
 
     def create_rand_str(self, prefix=None):
@@ -98,7 +98,7 @@ class TicketManager(models.Manager):
             raise InvalidTicketError("%s %s was not issued via primary credentials" %
                                      (title, ticket))
 
-        LOG.debug("Validated %s %s" % (title, ticket))
+        logger.debug("Validated %s %s" % (title, ticket))
         return t
 
     def is_valid_service_url(self, url):
@@ -263,7 +263,7 @@ class ProxyGrantingTicketManager(TicketManager):
                 self.validate_pgturl(pgturl, pgtid, pgtiou)
         except InternalError as e:
             # pgtUrl validation failed, so nothing has been created
-            LOG.warn("%s %s" % (e.code, e))
+            logger.warn("%s %s" % (e.code, e))
             return None
         else:
             # pgtUrl validation succeeded, so create a new PGT with the
@@ -334,7 +334,7 @@ class ProxyGrantingTicketManager(TicketManager):
             raise InvalidServiceError("Service %s is not a valid %s URL" %
                                       (service, title))
 
-        LOG.debug("Validated %s %s" % (title, ticket))
+        logger.debug("Validated %s %s" % (title, ticket))
         return t
 
 

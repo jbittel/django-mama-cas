@@ -7,7 +7,7 @@ from django.contrib import auth
 from django.utils.translation import ugettext_lazy as _
 
 
-LOG = logging.getLogger('mama_cas')
+logger = logging.getLogger(__name__)
 
 
 class LoginForm(forms.Form):
@@ -52,10 +52,10 @@ class LoginForm(forms.Form):
                 if user.is_active:
                     self.user = user
                 else:
-                    LOG.warn("User account '%s' is disabled" % username)
+                    logger.warn("User account '%s' is disabled" % username)
                     raise forms.ValidationError(_("This user account is disabled"))
             else:
-                LOG.warn("Error authenticating user %s" % username)
+                logger.warn("Error authenticating user %s" % username)
                 raise forms.ValidationError(_("The username or password is not correct"))
         return self.cleaned_data
 

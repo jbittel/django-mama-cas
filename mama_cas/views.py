@@ -23,7 +23,7 @@ from mama_cas.mixins import CustomAttributesMixin
 from mama_cas.mixins import LogoutUserMixin
 
 
-LOG = logging.getLogger('mama_cas')
+logger = logging.getLogger(__name__)
 
 
 class LoginView(NeverCacheMixin, LogoutUserMixin, FormView):
@@ -57,14 +57,14 @@ class LoginView(NeverCacheMixin, LogoutUserMixin, FormView):
         warned = request.GET.get('warned')
 
         if renew:
-            LOG.debug("Renew request received by credential requestor")
+            logger.debug("Renew request received by credential requestor")
             self.logout_user(request)
             login = add_query_params(reverse('cas_login'),
                                      {'service': service})
-            LOG.debug("Redirecting to %s" % login)
+            logger.debug("Redirecting to %s" % login)
             return redirect(login)
         elif gateway and service:
-            LOG.debug("Gateway request received by credential requestor")
+            logger.debug("Gateway request received by credential requestor")
             if request.user.is_authenticated():
                 if self.warn_user() and not warned:
                     return redirect(add_query_params(reverse('cas_warn'),
@@ -73,19 +73,19 @@ class LoginView(NeverCacheMixin, LogoutUserMixin, FormView):
                 st = ServiceTicket.objects.create_ticket(service=service,
                                                          user=request.user)
                 service = add_query_params(service, {'ticket': st.ticket})
-            LOG.debug("Redirecting to %s" % service)
+            logger.debug("Redirecting to %s" % service)
             return redirect(service)
         elif request.user.is_authenticated():
             if service:
-                LOG.debug("Service ticket request received "
-                          "by credential requestor")
+                logger.debug("Service ticket request received "
+                             "by credential requestor")
                 if self.warn_user() and not warned:
                     return redirect(add_query_params(reverse('cas_warn'),
                                                      {'service': service}))
                 st = ServiceTicket.objects.create_ticket(service=service,
                                                          user=request.user)
                 service = add_query_params(service, {'ticket': st.ticket})
-                LOG.debug("Redirecting to %s" % service)
+                logger.debug("Redirecting to %s" % service)
                 return redirect(service)
             else:
                 messages.success(request,
@@ -121,7 +121,7 @@ class LoginView(NeverCacheMixin, LogoutUserMixin, FormView):
            authentication attempt occurs within the single sign-on session.
         """
         auth.login(self.request, form.user)
-        LOG.info("Single sign-on session started for %s" % self.request.user)
+        logger.info("Single sign-on session started for %s" % self.request.user)
 
         if form.cleaned_data.get('warn'):
             self.request.session['warn'] = True
@@ -132,7 +132,7 @@ class LoginView(NeverCacheMixin, LogoutUserMixin, FormView):
                                                      user=self.request.user,
                                                      primary=True)
             service = add_query_params(service, {'ticket': st.ticket})
-            LOG.debug("Redirecting to %s" % service)
+            logger.debug("Redirecting to %s" % service)
             return redirect(service)
         return redirect(reverse('cas_login'))
 
@@ -186,7 +186,7 @@ class LogoutView(NeverCacheMixin, LogoutUserMixin, View):
     link to follow.
     """
     def get(self, request, *args, **kwargs):
-        LOG.debug("Logout request received for %s" % request.user)
+        logger.debug("Logout request received for %s" % request.user)
         self.logout_user(request)
         url = request.GET.get('url', None)
         if url:

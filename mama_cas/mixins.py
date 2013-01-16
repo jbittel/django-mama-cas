@@ -21,7 +21,7 @@ from mama_cas.exceptions import InternalError
 from mama_cas.exceptions import BadPGTError
 
 
-LOG = logging.getLogger('mama_cas')
+logger = logging.getLogger(__name__)
 
 
 class NeverCacheMixin(object):
@@ -60,18 +60,19 @@ class ValidateTicketMixin(object):
         renew = request.GET.get('renew')
         pgturl = request.GET.get('pgtUrl')
 
-        LOG.debug("Service validation request received for %s" % ticket)
+        logger.debug("Service validation request received for %s" % ticket)
         try:
             st = ServiceTicket.objects.validate_ticket(ticket,
                                                        service=service,
                                                        renew=renew)
         except (InvalidRequestError, InvalidTicketError,
                 InvalidServiceError, InternalError) as e:
-            LOG.warn("%s %s" % (e.code, e))
+            logger.warn("%s %s" % (e.code, e))
             return None, None, e
         else:
             if pgturl:
-                LOG.debug("Proxy-granting ticket request received for %s" % pgturl)
+                logger.debug("Proxy-granting ticket request received for %s" %
+                             pgturl)
                 pgt = ProxyGrantingTicket.objects.create_ticket(pgturl,
                                                                 user=st.user,
                                                                 granted_by_st=st)
@@ -92,13 +93,13 @@ class ValidateTicketMixin(object):
         ticket = request.GET.get('ticket')
         pgturl = request.GET.get('pgtUrl')
 
-        LOG.debug("Proxy validation request received for %s" % ticket)
+        logger.debug("Proxy validation request received for %s" % ticket)
         try:
             pt = ProxyTicket.objects.validate_ticket(ticket,
                                                      service=service)
         except (InvalidRequestError, InvalidTicketError,
                 InvalidServiceError, InternalError) as e:
-            LOG.warn("%s %s" % (e.code, e))
+            logger.warn("%s %s" % (e.code, e))
             return None, None, None, e
         else:
             # Build a list of all services that proxied authentication,
@@ -110,7 +111,8 @@ class ValidateTicketMixin(object):
                 prior_pt = prior_pt.granted_by_pgt.granted_by_pt
 
             if pgturl:
-                LOG.debug("Proxy-granting ticket request received for %s" % pgturl)
+                logger.debug("Proxy-granting ticket request received for %s" %
+                             pgturl)
                 pgt = ProxyGrantingTicket.objects.create_ticket(pgturl,
                                                                 user=pt.user,
                                                                 granted_by_pt=pt)
@@ -128,14 +130,14 @@ class ValidateTicketMixin(object):
         pgt = request.GET.get('pgt')
         target_service = request.GET.get('targetService')
 
-        LOG.debug("Proxy ticket request received for %s using %s" %
-                  (target_service, pgt))
+        logger.debug("Proxy ticket request received for %s using %s" %
+                     (target_service, pgt))
         try:
             pgt = ProxyGrantingTicket.objects.validate_ticket(pgt,
                                                               target_service)
         except (InvalidRequestError, BadPGTError,
                 InvalidServiceError, InternalError) as e:
-            LOG.warn("%s %s" % (e.code, e))
+            logger.warn("%s %s" % (e.code, e))
             return None, e
         else:
             pt = ProxyTicket.objects.create_ticket(service=target_service,
@@ -177,7 +179,7 @@ class CustomAttributesMixin(object):
             try:
                 attribute = [name, getattr(user, attr)]
             except AttributeError:
-                LOG.error("User has no attribute named '%s'" % attr)
+                logger.error("User has no attribute named '%s'" % attr)
             else:
                 attributes.append(attribute)
 
@@ -191,7 +193,7 @@ class CustomAttributesMixin(object):
                 try:
                     attribute = [name, getattr(profile, attr)]
                 except AttributeError:
-                    LOG.error("Profile has no attribute named '%s'" % attr)
+                    logger.error("Profile has no attribute named '%s'" % attr)
                 else:
                     attributes.append(attribute)
 
@@ -218,7 +220,7 @@ class LogoutUserMixin(object):
             ProxyTicket.objects.consume_tickets(request.user)
             ProxyGrantingTicket.objects.consume_tickets(request.user)
 
-            LOG.info("Single sign-on session ended for %s" % request.user)
+            logger.info("Single sign-on session ended for %s" % request.user)
             logout(request)
             messages.success(request,
                              _("You have been successfully logged out"))
