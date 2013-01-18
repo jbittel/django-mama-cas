@@ -33,16 +33,15 @@ class TicketManager(models.Manager):
         Return the newly created ``Ticket``.
         """
         if not ticket:
-            ticket = self.create_rand_str(prefix=self.model.TICKET_PREFIX)
+            ticket = self.create_ticket_str()
         if 'service' in kwargs:
             kwargs['service'] = clean_service_url(kwargs['service'])
-        now = timezone.now()
-        new_ticket = self.create(ticket=ticket, created=now, **kwargs)
+        t = self.create(ticket=ticket, created=timezone.now(), **kwargs)
         logger.debug("Created %s %s" %
-                     (self.model._meta.verbose_name.title(), new_ticket.ticket))
-        return new_ticket
+                     (self.model._meta.verbose_name.title(), t.ticket))
+        return t
 
-    def create_rand_str(self, prefix=None):
+    def create_ticket_str(self, prefix=None):
         """
         Generate a sufficiently opaque ticket string to ensure the ticket is
         not guessable. If a prefix is provided, prepend it to the string.
@@ -259,8 +258,8 @@ class ProxyGrantingTicketManager(TicketManager):
         This is intended only for testing purposes, so a PGT can be created
         without a valid callback URL present.
         """
-        pgtid = self.create_rand_str(prefix=self.model.TICKET_PREFIX)
-        pgtiou = self.create_rand_str(prefix=self.model.IOU_PREFIX)
+        pgtid = self.create_ticket_str()
+        pgtiou = self.create_ticket_str(prefix=self.model.IOU_PREFIX)
         try:
             if validate:
                 self.validate_pgturl(pgturl, pgtid, pgtiou)
