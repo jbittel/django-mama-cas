@@ -480,19 +480,6 @@ class ProxyGrantingTicketTests(TestCase):
         self.assertRaises(BadPGTError, ProxyGrantingTicket.objects.validate_ticket,
                           self.valid_pgt_str, service=self.valid_service)
 
-    def test_validate_ticket_expired_ticket(self):
-        """
-        The ``ProxyGrantingTicket`` validation process ought to fail when an expired
-        ticket is provided.
-        """
-        pgt = ProxyGrantingTicket.objects.create_ticket(self.valid_service,
-                                                        validate=False,
-                                                        **self.ticket_info)
-        pgt.created = now() - timedelta(minutes=pgt.TICKET_EXPIRE + 1)
-        pgt.save()
-        self.assertRaises(InvalidTicketError, ProxyGrantingTicket.objects.validate_ticket,
-                          pgt.ticket, service=self.valid_service)
-
     def test_validate_ticket_consumed_ticket(self):
         """
         The ``ProxyGrantingTicket`` validation process ought to fail when a consumed

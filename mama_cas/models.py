@@ -329,9 +329,6 @@ class ProxyGrantingTicketManager(TicketManager):
             raise InvalidTicketError("%s %s has already been used" %
                                      (title, ticket))
 
-        if t.is_expired():
-            raise InvalidTicketError("%s %s has expired" % (title, ticket))
-
         if not self.is_valid_service_url(service):
             raise InvalidServiceError("Service %s is not a valid %s URL" %
                                       (service, title))
