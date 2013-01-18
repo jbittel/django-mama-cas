@@ -679,7 +679,7 @@ class ProxyValidateViewTests(TestCase):
         elem = tree.find(XMLNS + 'authenticationSuccess/' + XMLNS + 'proxies')
         proxy = list(elem.getiterator(XMLNS + 'proxy'))
         self.assertEqual(len(proxy), 1)
-        self.assertEqual(proxy[0].text, self.valid_service)
+        self.assertEqual(proxy[0].text, 'http://www.example.com')
 
         # This request should fail as the ticket was consumed in the preceeding test
         response = self.client.get(reverse('cas_proxy_validate') + query_str)
@@ -719,8 +719,8 @@ class ProxyValidateViewTests(TestCase):
         elem = tree.find(XMLNS + 'authenticationSuccess/' + XMLNS + 'proxies')
         proxy = list(elem.getiterator(XMLNS + 'proxy'))
         self.assertEqual(len(proxy), 2)
-        self.assertEqual(proxy[0].text, self.valid_service2)
-        self.assertEqual(proxy[1].text, self.valid_service)
+        self.assertEqual(proxy[0].text, 'http://ww2.example.com')
+        self.assertEqual(proxy[1].text, 'http://www.example.com')
 
     def test_proxy_validate_view_pgturl(self):
         """

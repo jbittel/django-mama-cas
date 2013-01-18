@@ -19,6 +19,7 @@ from mama_cas.exceptions import InternalError
 from mama_cas.exceptions import BadPGTError
 from mama_cas.utils import add_query_params
 from mama_cas.utils import is_scheme_https
+from mama_cas.utils import clean_service_url
 
 
 logger = logging.getLogger(__name__)
@@ -33,6 +34,8 @@ class TicketManager(models.Manager):
         """
         if not ticket:
             ticket = self.create_rand_str(prefix=self.model.TICKET_PREFIX)
+        if 'service' in kwargs:
+            kwargs['service'] = clean_service_url(kwargs['service'])
         now = timezone.now()
         new_ticket = self.create(ticket=ticket, created=now, **kwargs)
         logger.debug("Created %s %s" %

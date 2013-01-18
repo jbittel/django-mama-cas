@@ -144,15 +144,17 @@ class ServiceTicketTests(TestCase):
         the presentation of the user's primary credentials.
         """
         st = ServiceTicket.objects.create_ticket(**self.ticket_info)
-        self.assertRaises(InvalidTicketError, ServiceTicket.objects.validate_ticket,
+        self.assertRaises(InvalidTicketError,
+                          ServiceTicket.objects.validate_ticket,
                           st.ticket,
                           service=self.valid_service,
                           renew=True)
 
-        st = ServiceTicket.objects.create_ticket(primary=True, **self.ticket_info)
-        self.assertTrue(ServiceTicket.objects.validate_ticket(st.ticket,
-                                                              service=st.service,
-                                                              renew=True), st)
+        st = ServiceTicket.objects.create_ticket(primary=True,
+                                                 **self.ticket_info)
+        self.assertEqual(ServiceTicket.objects.validate_ticket(st.ticket,
+                                                               service=self.valid_service,
+                                                               renew=True), st)
 
     def test_invalid_ticket_deletion(self):
         """

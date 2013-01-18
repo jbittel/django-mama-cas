@@ -8,17 +8,13 @@ def add_query_params(url, params):
     parameters already exist with the same name, they will be
     overwritten. Return the modified URL as a string.
     """
-    # If any of the additional parameters have empty values,
-    # ignore them
+    # Ignore additional parameters with empty values
     params = dict([(k, v) for k, v in params.items() if v])
-
     parts = list(urlparse.urlparse(url))
     query = dict(urlparse.parse_qsl(parts[4]))
     query.update(params)
     parts[4] = urllib.urlencode(query)
-    url = urlparse.urlunparse(parts)
-
-    return url
+    return urlparse.urlunparse(parts)
 
 
 def is_scheme_https(url):
@@ -27,3 +23,12 @@ def is_scheme_https(url):
     it is HTTPS return True, otherwise return False.
     """
     return 'https' == urlparse.urlparse(url).scheme
+
+
+def clean_service_url(url):
+    """
+    Return only the scheme, hostname and (optional) port components
+    of the parameter URL.
+    """
+    parts = urlparse.urlparse(url)
+    return urlparse.urlunparse((parts.scheme, parts.netloc, '', '', '', ''))

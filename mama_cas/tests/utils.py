@@ -4,6 +4,7 @@ from django.test import TestCase
 
 from mama_cas.utils import add_query_params
 from mama_cas.utils import is_scheme_https
+from mama_cas.utils import clean_service_url
 
 
 logging.disable(logging.CRITICAL)
@@ -32,3 +33,13 @@ class UtilsTests(TestCase):
         """
         self.assertTrue(is_scheme_https('https://www.example.com/'))
         self.assertFalse(is_scheme_https('http://www.example.com/'))
+
+    def test_clean_service_url(self):
+        """
+        When called with a URL, ``clean_service_url()`` should return
+        only the scheme and netloc components of the original URL.
+        """
+        url = 'http://www.example.com:8080/test?test3=blue#green'
+        self.assertEqual('http://www.example.com:8080', clean_service_url(url))
+        url = 'https://www.example.com/'
+        self.assertEqual('https://www.example.com', clean_service_url(url))
