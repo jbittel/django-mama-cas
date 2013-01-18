@@ -85,10 +85,13 @@ class ServiceTicketTests(TestCase):
     def test_validate_ticket_no_service(self):
         """
         The ``ServiceTicket`` validation process ought to fail when no service
-        identifier is provided.
+        identifier is provided and the ticket ought to be consumed.
         """
-        self.assertRaises(InvalidRequestError, ServiceTicket.objects.validate_ticket,
-                          self.valid_st_str, service=None)
+        st = ServiceTicket.objects.create_ticket(**self.ticket_info)
+        self.assertRaises(InvalidRequestError,
+                          ServiceTicket.objects.validate_ticket,
+                          st.ticket, service=None)
+        self.assertTrue(ServiceTicket.objects.get(ticket=st.ticket).is_consumed())
 
     def test_validate_ticket_invalid_ticket(self):
         """
@@ -277,10 +280,13 @@ class ProxyTicketTests(TestCase):
     def test_validate_ticket_no_service(self):
         """
         The ``ProxyTicket`` validation process ought to fail when no service
-        identifier is provided.
+        identifier is provided and the ticket ought to be consumed.
         """
-        self.assertRaises(InvalidRequestError, ProxyTicket.objects.validate_ticket,
-                          self.valid_pt_str, service=None)
+        pt = ProxyTicket.objects.create_ticket(**self.ticket_info)
+        self.assertRaises(InvalidRequestError,
+                          ProxyTicket.objects.validate_ticket,
+                          pt.ticket, service=None)
+        self.assertTrue(ProxyTicket.objects.get(ticket=pt.ticket).is_consumed())
 
     def test_validate_ticket_invalid_ticket(self):
         """

@@ -68,9 +68,6 @@ class TicketManager(models.Manager):
         if not ticket:
             raise InvalidRequestError("No ticket string provided")
 
-        if not service:
-            raise InvalidRequestError("No service identifier provided")
-
         if not self.model.TICKET_RE.match(ticket):
             raise InvalidTicketError("Ticket string %s is invalid" % ticket)
 
@@ -88,6 +85,9 @@ class TicketManager(models.Manager):
 
         if t.is_expired():
             raise InvalidTicketError("%s %s has expired" % (title, ticket))
+
+        if not service:
+            raise InvalidRequestError("No service identifier provided")
 
         if not self.is_valid_service_url(service):
             raise InvalidServiceError("Service %s is not a valid %s URL" %
