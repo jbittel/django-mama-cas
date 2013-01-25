@@ -82,8 +82,8 @@ required, but can be used to override the defaults.
 
 **MAMA_CAS_USER_ATTRIBUTES (default: {})**
    A dictionary of name and ``User`` attribute values to be returned along
-   with a service or proxy validation success. The name can be any meaningful
-   string, while the attribute must correspond with an attribute on the
+   with a service or proxy validation success. The key can be any meaningful
+   string, while the value must correspond with an attribute on the
    ``User`` object. For example::
 
       MAMA_CAS_USER_ATTRIBUTES = {
@@ -94,8 +94,8 @@ required, but can be used to override the defaults.
 
 **MAMA_CAS_PROFILE_ATTRIBUTES (default: {})**
    A dictionary of name and user profile attribute values to be returned along
-   with a service or proxy validation success. The name can be any meaningful
-   string, while the attribute must correspond with an attribute on the user
+   with a service or proxy validation success. The key can be any meaningful
+   string, while the value must correspond with an attribute on the user
    profile object. If no user profile is configured or available, this setting
    will be ignored. For example::
 
@@ -107,11 +107,12 @@ required, but can be used to override the defaults.
    A list of valid service regular expressions that a service URL is tested
    against when a ticket is validated. If none of the regular expressions
    match the provided URL, the request fails. Any valid Python regular
-   expression is accepted. If no valid services are configured, this setting
-   will be ignored. For example::
+   expression is accepted. If no valid services are configured, any service
+   URL will be allowed. For example::
 
       MAMA_CAS_VALID_SERVICES = (
-          'https?://.*\.example\.com/.*',
+          'https?://www\.example\.edu/secure/.*',
+          'https://.*\.example\.com/.*',
       )
 
 Sessions
@@ -163,8 +164,9 @@ django-mama-cas comes with a basic login template implementing standard
 username and password authentication. It will work as provided, but can also
 be extended or replaced according to your needs.
 
-If you are returning custom user attributes, you may also need to change the
-validation XML template to return the attributes in the correct format.
+If you are returning custom user attributes with a service or proxy validation
+response, you may also need to change the validation XML template to return
+the attributes in the correct format.
 
 Read the :ref:`template documentation <templates>` for more information on the
 included templates and customization.
@@ -182,5 +184,6 @@ use.
    * `Django user authentication
      <https://docs.djangoproject.com/en/dev/topics/auth/>`_: the official
      documentation for the user authentication system in Django.
-   * `django-ldap <https://bitbucket.org/psagers/django-auth-ldap/>`_: an
-     authentication backend that authenticates against an LDAP service.
+   * `Django authentication packages
+     <http://www.djangopackages.com/grids/g/authentication/>`_: an unofficial
+     list of packages for user authentication.

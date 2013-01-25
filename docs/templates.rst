@@ -4,8 +4,8 @@ Templates
 =========
 
 django-mama-cas comes with generalized templates to provide a functional
-starting point. You will likely want to either extend the templates with
-your customizations or simply replace them entirely.
+starting point. Most likely you will want to either extend the HTML templates
+with your own customizations or replace them entirely.
 
 HTML templates
 --------------
@@ -17,7 +17,7 @@ HTML templates
    credentials are required. It displays appropriate messages or errors to
    indicate success or failure during the login process. When the user logs
    out, they are redirected back to this template, with a message indicating
-   they were successfully logged out.
+   a successful logout.
 
 **mama_cas/warn.html**
 
@@ -42,7 +42,7 @@ XML templates
 
 **mama_cas/attributes-jasig.xml**
 
-   Includes custom user attributes in the JASIG format::
+   Includes custom user attributes in JASIG format::
 
       <cas:attributes>
           <cas:givenName>Ellen</cas:givenName>
@@ -50,9 +50,11 @@ XML templates
           <cas:email>ellen@example.com</cas:email>
       </cas:attributes>
 
+   django-mama-cas defaults to this custom attributes format.
+
 **mama_cas/attributes-rubycas.xml**
 
-   Includes custom user attributes in the RubyCAS format::
+   Includes custom user attributes in RubyCAS format::
 
       <cas:givenName>Ellen</cas:givenName>
       <cas:sn>Cohen</cas:sn>
@@ -60,7 +62,7 @@ XML templates
 
 **mama_cas/attributes-namevalue.xml**
 
-   Includes custom user attributes in the Name-Value format::
+   Includes custom user attributes in Name-Value format::
 
       <cas:attribute name='givenName' value='Ellen' />
       <cas:attribute name='sn' value='Cohen' />
@@ -119,22 +121,21 @@ extend what is already provided. Here are the basic steps involved:
           name='cas_login'),
           ...
 
-Replacing the template
-----------------------
+Replacing templates
+-------------------
 
-If the required changes are substantial, it is easier to replace the stock
+If the required changes are substantial, it may be easier to replace the stock
 template entirely. Instead of extending the template as described in step two,
 replace it entirely.
 
 In addition to a standard form display, there are things you'll likely want to
-include in a custom template:
+include in a custom login template:
 
 **Messages**
-   The ``messages`` framework is used to display information about the user's
-   logged in or logged out status. When the message contains HTML, it is
-   passed to the template with a ``safe`` tag so the message can be rendered
-   with the HTML intact.
+   The ``messages`` framework displays information about the user's logon
+   status. When the message contains HTML, it is passed to the template with
+   a ``safe`` tag so the message is rendered with the HTML intact.
 
 **Non-field errors**
-   The ``non_field_errors`` are how the user is informed of authentication
-   failures and other login problems.
+   The ``non_field_errors`` inform the user of authentication failures and
+   other login problems.
