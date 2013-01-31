@@ -46,6 +46,17 @@ class LoginFormTests(TestCase):
                                'password': 'journeymen'})
         self.assertFalse(form.is_valid())
 
+    def test_login_form_inactive(self):
+        """
+        When provided with an inactive user, the form should not
+        validate.
+        """
+        self.user.is_active = False
+        self.user.save()
+        form = LoginForm(data={'username': 'ellen',
+                               'password': 'mamas&papas'})
+        self.assertFalse(form.is_valid())
+
     def test_login_form_username(self):
         """
         When a mixed-case username is provided, it should be converted to
