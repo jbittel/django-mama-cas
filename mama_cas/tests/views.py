@@ -1,4 +1,6 @@
 import logging
+import random
+import string
 import urlparse
 import urllib
 from xml.etree.ElementTree import ElementTree
@@ -317,6 +319,8 @@ class ServiceValidateViewTests(TestCase):
     ticket_info = {'service': valid_service}
     valid_pgt_url = 'https://www.example.com/'
     invalid_pgt_url = 'http://www.example.com/'
+    invalid_attr = {'invalid':
+            ''.join(random.choice(string.ascii_letters) for x in range(10))}
 
     def setUp(self):
         """
@@ -333,6 +337,7 @@ class ServiceValidateViewTests(TestCase):
         self.old_user_attributes = getattr(settings, 'MAMA_CAS_USER_ATTRIBUTES', {})
         if not self.old_user_attributes:
             settings.MAMA_CAS_USER_ATTRIBUTES = self.user_attr
+        settings.MAMA_CAS_USER_ATTRIBUTES.update(self.invalid_attr)
         self.old_profile_attributes = getattr(settings, 'MAMA_CAS_PROFILE_ATTRIBUTES', {})
         if not self.old_profile_attributes:
             settings.MAMA_CAS_PROFILE_ATTRIBUTES = {}
@@ -542,6 +547,9 @@ class ProxyValidateViewTests(TestCase):
     ticket_info = {'service': valid_service}
     valid_pgt_url = 'https://www.example.com/'
     invalid_pgt_url = 'http://www.example.com/'
+    invalid_attr = {'invalid':
+            ''.join(random.choice(string.ascii_letters) for x in range(10))}
+
 
     def setUp(self):
         """
@@ -564,6 +572,7 @@ class ProxyValidateViewTests(TestCase):
         self.old_user_attributes = getattr(settings, 'MAMA_CAS_USER_ATTRIBUTES', {})
         if not self.old_user_attributes:
             settings.MAMA_CAS_USER_ATTRIBUTES = self.user_attr
+        settings.MAMA_CAS_USER_ATTRIBUTES.update(self.invalid_attr)
         self.old_profile_attributes = getattr(settings, 'MAMA_CAS_PROFILE_ATTRIBUTES', {})
         if not self.old_profile_attributes:
             settings.MAMA_CAS_PROFILE_ATTRIBUTES = {}
