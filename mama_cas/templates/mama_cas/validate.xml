@@ -6,6 +6,14 @@
     {% elif ticket %}
     <cas:authenticationSuccess>
         <cas:user>{{ ticket.user.username }}</cas:user>
+        {% comment %}
+            The following include can be one of the following:
+                * 'mama_cas/attributes-jasig.xml'
+                * 'mama_cas/attributes-rubycas.xml'
+                * 'mama_cas/attributes-namevalue.xml'
+
+            See the included docs/templates.rst for more information.
+        {% endcomment %}
         {% include 'mama_cas/attributes-jasig.xml' %}
         {% if pgt %}
         <cas:proxyGrantingTicket>{{ pgt }}</cas:proxyGrantingTicket>
