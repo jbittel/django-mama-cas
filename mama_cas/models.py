@@ -20,6 +20,7 @@ from mama_cas.exceptions import BadPGTError
 from mama_cas.utils import add_query_params
 from mama_cas.utils import is_scheme_https
 from mama_cas.utils import clean_service_url
+from mama_cas.utils import is_valid_service_url
 
 
 logger = logging.getLogger(__name__)
@@ -88,7 +89,7 @@ class TicketManager(models.Manager):
         if not service:
             raise InvalidRequestError("No service identifier provided")
 
-        if not self.is_valid_service_url(service):
+        if not is_valid_service_url(service):
             raise InvalidServiceError("Service %s is not a valid %s URL" %
                                       (service, title))
 
@@ -102,22 +103,6 @@ class TicketManager(models.Manager):
 
         logger.debug("Validated %s %s" % (title, ticket))
         return t
-
-    def is_valid_service_url(self, url):
-        """
-        Check the provided service URL against the configured list of valid
-        service URLs. If the service URL matches at least one valid service,
-        return ``True``, otherwise return ``False``. If no valid service URLs
-        are configured, return ``True``.
-        """
-        valid_services = map(re.compile,
-                             getattr(settings, 'MAMA_CAS_VALID_SERVICES', ()))
-        if len(valid_services) == 0:
-            return True
-        for service in valid_services:
-            if service.match(url):
-                return True
-        return False
 
     def delete_invalid_tickets(self):
         """
@@ -329,7 +314,7 @@ class ProxyGrantingTicketManager(TicketManager):
             raise InvalidTicketError("%s %s has already been used" %
                                      (title, ticket))
 
-        if not self.is_valid_service_url(service):
+        if not is_valid_service_url(service):
             raise InvalidServiceError("Service %s is not a valid %s URL" %
                                       (service, title))
 

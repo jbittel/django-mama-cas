@@ -1,5 +1,8 @@
+import re
 import urllib
 import urlparse
+
+from django.conf import settings
 
 
 def add_query_params(url, params):
@@ -32,3 +35,20 @@ def clean_service_url(url):
     """
     parts = urlparse.urlparse(url)
     return urlparse.urlunparse((parts.scheme, parts.netloc, '', '', '', ''))
+
+
+def is_valid_service_url(url):
+    """
+    Check the provided URL against the configured list of valid service
+    URLs. If the service URL matches at least one valid service, return
+    ``True``, otherwise return ``False``. If no valid service URLs are
+    configured, return ``True``.
+    """
+    valid_services = map(re.compile,
+                         getattr(settings, 'MAMA_CAS_VALID_SERVICES', ()))
+    if len(valid_services) == 0:
+        return True
+    for service in valid_services:
+        if service.match(url):
+            return True
+    return False

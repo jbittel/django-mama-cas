@@ -115,6 +115,10 @@ required, but can be used to override the defaults.
           'https://.*\.example\.com/.*',
       )
 
+   The logout ``url`` parameter is also checked against this list of services.
+   If this setting is active, you will need to ensure that the URLs supplied
+   to the user are also on this list.
+
 Sessions
 ~~~~~~~~
 

@@ -21,6 +21,7 @@ from mama_cas.mixins import LoginRequiredMixin
 from mama_cas.mixins import ValidateTicketMixin
 from mama_cas.mixins import CustomAttributesMixin
 from mama_cas.mixins import LogoutUserMixin
+from mama_cas.utils import is_valid_service_url
 
 
 logger = logging.getLogger(__name__)
@@ -189,7 +190,7 @@ class LogoutView(NeverCacheMixin, LogoutUserMixin, View):
         logger.debug("Logout request received for %s" % request.user)
         self.logout_user(request)
         url = request.GET.get('url', None)
-        if url:
+        if url and is_valid_service_url(url):
             messages.success(request, _("The application provided this "
                              "link to follow: %s") % url)
         return redirect(reverse('cas_login'))
