@@ -52,13 +52,7 @@
         {% if messages %}
             <div class="messagelist"><ul>
                 {% for message in messages %}
-                <li class="{{ message.tags }}">
-                    {% if 'safe' in message.tags %}
-                        {{ message|safe }}
-                    {% else %}
-                        {{ message }}
-                    {% endif %}
-                </li>
+                    <li class="{{ message.tags }}">{{ message|striptags|urlize }}</li>
                 {% endfor %}
             </ul></div>
         {% endif %}

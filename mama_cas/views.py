@@ -190,10 +190,8 @@ class LogoutView(NeverCacheMixin, LogoutUserMixin, View):
         self.logout_user(request)
         url = request.GET.get('url', None)
         if url:
-            messages.success(request,
-                             _("The application provided this link to follow: "
-                             "<a href=\"%(url)s\">%(url)s</a>") % {'url': url},
-                             extra_tags='safe')
+            messages.success(request, _("The application provided this "
+                             "link to follow: %s") % url)
         return redirect(reverse('cas_login'))
 
 
