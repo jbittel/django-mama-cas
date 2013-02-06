@@ -31,7 +31,7 @@ class LoginViewTests(TestCase):
     user_info = {'username': 'ellen',
                  'password': 'mamas&papas',
                  'email': 'ellen@example.com'}
-    service = {'service': 'http://www.example.com/'}
+    valid_service = 'http://www.example.com/'
 
     def setUp(self):
         """
@@ -65,24 +65,80 @@ class LoginViewTests(TestCase):
 
     def test_login_view_login_service(self):
         """
-        When called with a valid username, password and service, a ``POST``
-        request to the view should authenticate and login the user, create a
-        ``ServiceTicket`` and redirect to the supplied service URL with a
-        ticket parameter.
+        When called with a logged in user, a ``GET`` request to the
+        view with the ``service`` parameter set should create a
+        ``ServiceTicket`` and redirect to the supplied service URL
+        with the ticket included.
         """
-        self.user_info.update(self.service)
         response = self.client.post(reverse('cas_login'), self.user_info)
+        query_str = "?service=%s" % urllib.quote(self.valid_service, '')
+        response = self.client.get(reverse('cas_login') + query_str)
+
+        self.assertEqual(ServiceTicket.objects.count(), 1)
+        st = ServiceTicket.objects.latest('id')
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response['Location'].startswith(self.valid_service))
+        self.assertTrue(st.ticket in response['Location'])
+
+    def test_login_view_login_post(self):
+        """
+        When called with a valid username, password and service, a
+        ``POST`` request to the view should authenticate and login the
+        user, create a ``ServiceTicket`` and redirect to the supplied
+        service URL with the ticket included.
+        """
+        params = self.user_info.copy()
+        params.update({'service': self.valid_service})
+        response = self.client.post(reverse('cas_login'), params)
 
         self.assertEqual(self.client.session['_auth_user_id'], self.user.pk)
         self.assertEqual(ServiceTicket.objects.count(), 1)
-        # Check that the client is redirected properly without actually
-        # trying to load the destination page
-        parts = list(urlparse.urlparse(response['Location']))
-        query = dict(urlparse.parse_qsl(parts[4]))
-        destination = "%s://%s%s" % (parts[0], parts[1], parts[2])
+        st = ServiceTicket.objects.latest('id')
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(destination, self.user_info['service'])
-        self.assertTrue('ticket' in query)
+        self.assertTrue(response['Location'].startswith(self.valid_service))
+        self.assertTrue(st.ticket in response['Location'])
+
+    def test_login_view_renew(self):
+        """
+        When called with a logged in user, a ``GET`` request to the
+        view with the ``renew`` parameter set should log the user out
+        and redirect them to the login page.
+        """
+        response = self.client.post(reverse('cas_login'), self.user_info)
+        query_str = "?renew=true"
+        response = self.client.get(reverse('cas_login') + query_str)
+
+        self.assertNotIn('_auth_user_id', self.client.session)
+        self.assertRedirects(response, reverse('cas_login'))
+
+    def test_login_view_gateway(self):
+        """
+        When called without a logged in user, a ``GET`` request to the
+        view with the ``gateway`` and ``service`` parameters set
+        should simply redirect the user to the supplied service URL.
+        """
+        query_str = "?gateway=true&service=%s" % urllib.quote(self.valid_service, '')
+        response = self.client.get(reverse('cas_login') + query_str)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['Location'], self.valid_service)
+
+    def test_login_view_gateway_auth(self):
+        """
+        When called with a logged in user, a ``GET`` request to the
+        view with the ``gateway`` and ``service`` parameters set
+        should create a ``ServiceTicket`` and redirect to the supplied
+        service URL with the ticket included.
+        """
+        response = self.client.post(reverse('cas_login'), self.user_info)
+        query_str = "?gateway=true&service=%s" % urllib.quote(self.valid_service, '')
+        response = self.client.get(reverse('cas_login') + query_str)
+
+        self.assertEqual(ServiceTicket.objects.count(), 1)
+        st = ServiceTicket.objects.latest('id')
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response['Location'].startswith(self.valid_service))
+        self.assertTrue(st.ticket in response['Location'])
 
 
 class WarnViewTests(TestCase):
