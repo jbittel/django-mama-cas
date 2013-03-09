@@ -1,6 +1,7 @@
 from datetime import timedelta
 import time
 import logging
+import os
 import re
 import requests
 
@@ -278,7 +279,8 @@ class ProxyGrantingTicketManager(TicketManager):
         # Connect to proxy callback URL, checking the SSL certificate
         pgturl = add_query_params(pgturl, {'pgtId': pgtid, 'pgtIou': pgtiou})
         try:
-            r = requests.get(pgturl, verify=True)
+            verify = os.environ.get('REQUESTS_CA_BUNDLE', True)
+            r = requests.get(pgturl, verify=verify)
         except (requests.exceptions.ConnectionError,
                 requests.exceptions.SSLError) as e:
             raise InternalError("%s" % e)
