@@ -52,7 +52,7 @@
         {% if messages %}
             <div class="messagelist"><ul>
                 {% for message in messages %}
-                    <li class="{{ message.tags }}">{{ message|striptags|urlize }}</li>
+                    <li class="{{ message.tags }}">{{ message|urlize }}</li>
                 {% endfor %}
             </ul></div>
         {% endif %}
