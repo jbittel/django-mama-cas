@@ -1,9 +1,8 @@
-from string import lower
 import logging
 
 from django import forms
-from django.utils.http import urlunquote_plus
 from django.contrib import auth
+from django.utils.http import urlunquote_plus
 from django.utils.translation import ugettext_lazy as _
 
 
@@ -23,13 +22,6 @@ class LoginForm(forms.Form):
     password = forms.CharField(label=_("Password"), widget=forms.PasswordInput,
                                error_messages={'required': _("Please enter your password")})
     service = forms.CharField(widget=forms.HiddenInput, required=False)
-
-    def clean_username(self):
-        """
-        Lowercase the username for consistency.
-        """
-        username = self.cleaned_data.get('username')
-        return lower(username)
 
     def clean_service(self):
         """
@@ -72,16 +64,16 @@ class LoginFormWarn(LoginForm):
 
 class LoginFormEmail(LoginForm):
     """
-    Subclass of ``LoginForm`` that extracts only the username if an email
-    address is provided.
+    Subclass of ``LoginForm`` that extracts only the username if an
+    email address is provided.
     """
     def clean_username(self):
         """
-        If an email address is provided, remove the '@<domain>' portion
-        and return only the lowercase username.
+        If an email address is provided, remove the '@<domain>' suffix
+        and return only the username.
         """
         username = self.cleaned_data.get('username').split('@')[0]
-        return lower(username)
+        return username
 
 
 class WarnForm(forms.Form):

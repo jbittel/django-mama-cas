@@ -56,16 +56,6 @@ class LoginFormTests(TestCase):
                                'password': 'mamas&papas'})
         self.assertFalse(form.is_valid())
 
-    def test_login_form_username(self):
-        """
-        When a mixed-case username is provided, it should be converted
-        to lowercase.
-        """
-        form = LoginForm(data={'username': 'Ellen',
-                               'password': 'mamas&papas'})
-        self.assertTrue(form.is_valid())
-        self.assertEqual(form.cleaned_data['username'], 'ellen')
-
     def test_login_form_warn(self):
         """
         The form should contain an additional ``warn`` field.
@@ -77,9 +67,9 @@ class LoginFormTests(TestCase):
     def test_login_form_email(self):
         """
         If an email address is provided, the username portion should be
-        extracted, converted to lowercase and returned as the username.
+        extracted and returned as the username.
         """
-        form = LoginFormEmail(data={'username': 'Ellen@example.com',
+        form = LoginFormEmail(data={'username': 'ellen@example.com',
                                     'password': 'mamas&papas'})
         self.assertTrue(form.is_valid())
         self.assertEqual(form.cleaned_data['username'], 'ellen')

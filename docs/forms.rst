@@ -18,9 +18,8 @@ requirements are highly implementation dependent.
    following fields:
 
    ``username``
-      The username of the client requesting authentication. The provided
-      string is automatically converted to lowercase for consistency. This
-      field is required.
+      The username of the client requesting authentication. This field is
+      required.
 
    ``password``
       The password of the client requesting authentication. This field is
@@ -57,8 +56,7 @@ or alternate behavior during the login process.
    A subclass of :class:`LoginForm` which adds no additional fields but
    performs additional cleanup on the ``username`` field. If an email address
    is provided for the username, it extracts only the username portion of the
-   string. Additionally, the username is converted to lowercase for
-   consistency.
+   string.
 
 Additional forms
 ----------------
