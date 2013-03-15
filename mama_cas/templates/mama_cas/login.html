@@ -50,9 +50,9 @@
 
         {% if messages %}
             <div class="messagelist"><ul>
-                {% for message in messages %}
-                    <li class="{{ message.tags }}">{{ message|urlize }}</li>
-                {% endfor %}
+            {% for message in messages %}
+                <li class="{{ message.tags }}">{{ message|urlize }}</li>
+            {% endfor %}
             </ul></div>
         {% endif %}
 
@@ -62,9 +62,9 @@
                 <li>{{ error }}</li>
             {% endfor %}
             {% for field in form %}
-                {% if field.errors %}
-                    <li>{{ field.errors|striptags }}</li>
-                {% endif %}
+                {% for error in field.errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
             {% endfor %}
             </ul></div>
         {% endif %}
