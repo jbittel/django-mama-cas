@@ -1,7 +1,7 @@
 import logging
 
-from django.contrib import auth
 from django.contrib import messages
+from django.contrib.auth import login
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse
 from django.shortcuts import redirect
@@ -124,7 +124,7 @@ class LoginView(NeverCacheMixin, LogoutUserMixin, FormView):
            authentication attempts occur within the single sign-on
            session.
         """
-        auth.login(self.request, form.user)
+        login(self.request, form.user)
         logger.info("Single sign-on session started for %s" % form.user)
 
         if form.cleaned_data.get('warn'):
