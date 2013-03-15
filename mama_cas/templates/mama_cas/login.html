@@ -1,5 +1,4 @@
 {% load i18n %}
-{% load mama_cas_tags %}
 
 <!DOCTYPE html>
 <html>
@@ -76,17 +75,17 @@
                 {{ field }}
             {% endfor %}
             <fieldset class="inputs">
-            {% for field in form.visible_fields %}
-                {% if field|field_type = 'charfield' %}
-                    <div class="field group box{% if field.errors %} errorfield{% endif %}">
-                        <span class="fieldlabel">{{ field.label_tag }}</span>{{ field }}
-                    </div>
-                {% else %}
+                <div class="field group box{% if form.username.errors %} errorfield{% endif %}">
+                    <span class="fieldlabel">{{ form.username.label_tag }}</span>{{ form.username }}
+                </div>
+                <div class="field group box{% if form.password.errors %} errorfield{% endif %}">
+                    <span class="fieldlabel">{{ form.password.label_tag }}</span>{{ form.password }}
+                </div>
+                {% if form.warn %}
                     <div class="field group">
-                        {{ field }}<span class="label">{{ field.label_tag }}</span>
+                        {{ form.warn }}<span class="label">{{ form.warn.label_tag }}</span>
                     </div>
                 {% endif %}
-            {% endfor %}
             </fieldset>
             <fieldset class="actions">
                 <input class="button box" type="submit" name="submit_login" value="{% trans "Login" %}" />
