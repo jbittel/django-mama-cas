@@ -1,17 +1,21 @@
 from datetime import timedelta
-import time
 import logging
 import os
 import re
 import requests
+import time
 
-from django.db import models
 from django.conf import settings
+from django.db import models
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.http import same_origin
-from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
+try:
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+except ImportError: # Django version < 1.5
+    from django.contrib.auth.models import User
 
 from mama_cas.exceptions import InvalidRequestError
 from mama_cas.exceptions import InvalidTicketError

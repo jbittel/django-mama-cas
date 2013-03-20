@@ -2,10 +2,14 @@ import re
 from datetime import timedelta
 
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.core import management
 from django.test import TestCase
 from django.utils.timezone import now
+try:
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+except ImportError: # Django version < 1.5
+    from django.contrib.auth.models import User
 
 from mama_cas.models import ProxyGrantingTicket
 from mama_cas.models import ProxyTicket

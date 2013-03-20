@@ -3,10 +3,14 @@ from xml.etree.ElementTree import ElementTree
 from xml.etree.ElementTree import fromstring
 
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.core.exceptions import ImproperlyConfigured
 from django.core.urlresolvers import reverse
 from django.test import TestCase
+try:
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+except ImportError: # Django version < 1.5
+    from django.contrib.auth.models import User
 
 from mama_cas.forms import LoginForm
 from mama_cas.forms import LoginFormWarn

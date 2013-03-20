@@ -185,10 +185,11 @@ class CustomAttributesMixin(object):
 
         try:
             profile = user.get_profile()
-        except (ObjectDoesNotExist, SiteProfileNotAvailable):
+        except (ObjectDoesNotExist, SiteProfileNotAvailable, AttributeError):
             pass
         else:
-            profile_attr_list = getattr(settings, 'MAMA_CAS_PROFILE_ATTRIBUTES', {})
+            profile_attr_list = getattr(settings,
+                                        'MAMA_CAS_PROFILE_ATTRIBUTES', {})
             for (name, attr) in profile_attr_list.items():
                 try:
                     attribute = [name, getattr(profile, attr)]
