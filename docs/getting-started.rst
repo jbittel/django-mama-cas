@@ -81,10 +81,10 @@ required, but can be used to override the defaults.
    compatibility problems with some clients.
 
 **MAMA_CAS_USER_ATTRIBUTES (default: {})**
-   A dictionary of name and ``User`` attribute values to be returned along
-   with a service or proxy validation success. The key can be any meaningful
-   string, while the value must correspond with an attribute on the
-   ``User`` object. For example::
+   A dictionary of name and User attribute values to be returned along with a
+   service or proxy validation success. The key can be any meaningful string,
+   while the value must correspond with an attribute on the User object. For
+   example::
 
       MAMA_CAS_USER_ATTRIBUTES = {
           'givenName': 'first_name',
@@ -102,6 +102,13 @@ required, but can be used to override the defaults.
       MAMA_CAS_PROFILE_ATTRIBUTES = {
           'employeeID': 'id_number',
       }
+
+   .. note::
+
+      This setting is intended for use with Django 1.4. In Django 1.5 and
+      later, the recommended method for storing custom profile information
+      is through a `custom User model
+      <https://docs.djangoproject.com/en/1.5/topics/auth/customizing/#auth-custom-user>`_.
 
 **MAMA_CAS_VALID_SERVICES (default: ())**
    A list of valid service regular expressions that a service URL is tested
