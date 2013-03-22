@@ -7,30 +7,27 @@ django-mama-cas documentation
 =============================
 
 django-mama-cas is a Python implementation of the `Central Authentication
-Service (CAS) <http://en.wikipedia.org/wiki/Central_Authentication_Service>`_
-server protocol, providing single sign-on server functionality as a Django
-application. It implements the current CAS specification to handle CAS
-authentication and validation requests.
+Service (CAS)`_ server protocol, providing single sign-on server functionality
+as a Django application. It implements the CAS 1.0 and 2.0 specifications, as
+well as some commonly used extensions to the protocol.
 
 CAS is an HTTP-based protocol that provides single sign-on functionality to web
 services. It operates using tickets, unique text strings that are provided and
 validated by the server, allowing web services to authenticate a user without
-having access to the user's credentials. The :ref:`protocol <protocol>` page
-has more information about CAS and this implementation of it.
+having access to the user's credentials.
 
-Most likely, you'd like to know how to :ref:`get started <getting-started>`.
-
-You might also be interested in :ref:`what's changed <changelog>`.
+.. _Central Authentication Service (CAS): http://en.wikipedia.org/wiki/Central_Authentication_Service
 
 Contents
 --------
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
-   getting-started
-   changelog
+   installation
+   settings
    templates
    management-commands
    forms
    protocol
+   changelog

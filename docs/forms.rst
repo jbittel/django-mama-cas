@@ -1,21 +1,22 @@
 .. _forms:
+
 .. module:: mama_cas.forms
 
 Forms
 =====
 
-Authentication forms
---------------------
-
-django-mama-cas includes a form class for implementing standard username and
+django-mama-cas includes a form class implementing standard username and
 password authentication. In most cases, this will be the form of
 authentication required. Trust authentication can be used with CAS, but the
-requirements are highly implementation dependent.
+requirements will be highly implementation dependent.
+
+Authentication Forms
+--------------------
 
 .. class:: LoginForm
 
-   This is the base form for handling user authentication. It contains the
-   following fields:
+   This is the base form for handling standard username and password
+   authentication credentials. It contains the following fields:
 
    ``username``
       The username of the client requesting authentication. This field is
@@ -30,16 +31,13 @@ requirements are highly implementation dependent.
       as a URL. This is a hidden, optional field and is automatically added
       to the form when provided.
 
-   The form's ``clean()`` method attempts authentication against the configured
-   authentication backends and verifies that the user account is active.
-   If either check fails, a ``FormValidation`` error is raised with an
-   appropriate error message.
+   The form's ``clean()`` method attempts authentication against the
+   configured authentication backends and verifies that the user account is
+   active.  If either check fails, a ``FormValidation`` error is raised with
+   an appropriate error message.
 
-   Note that this form deviates slightly from the official CAS protocol
-   specification, as documented in :ref:`protocol-deviations`.
-
-The following form classes all inherit from ``LoginForm``, providing additional
-or alternate behavior during the login process.
+The following form classes all inherit from ``LoginForm``, providing
+additional or alternate behavior during the login process.
 
 .. class:: LoginFormWarn
 
@@ -58,7 +56,7 @@ or alternate behavior during the login process.
    is provided for the username, it extracts only the username portion of the
    string.
 
-Additional forms
+Additional Forms
 ----------------
 
 .. class:: WarnForm
