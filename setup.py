@@ -59,7 +59,7 @@ setup(
     name='django-mama-cas',
     version=version,
     description='A CAS server single sign-on application for Django',
-    long_description=get_readme('README'),
+    long_description=get_readme('README.rst'),
     author='Jason Bittel',
     author_email='jason.bittel@gmail.com',
     url='http://github.com/jbittel/django-mama-cas',
