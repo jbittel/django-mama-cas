@@ -80,5 +80,5 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
     keywords=['django', 'cas', 'single sign-on', 'authentication', 'auth'],
-    install_requires=['requests == 1.0.4'],
+    install_requires=['requests == 1.1.0'],
 )
