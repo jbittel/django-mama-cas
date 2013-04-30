@@ -3,8 +3,8 @@
 Management Commands
 ===================
 
-django-mama-cas ships with management commands to aid in some common tasks.
-You can see what custom managment commands are available by running::
+django-mama-cas ships with custom management commands to aid in some common
+tasks. You can see which management commands are available by running::
 
     manage.py
 
