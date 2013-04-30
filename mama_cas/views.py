@@ -61,34 +61,40 @@ class LoginView(NeverCacheMixin, LogoutUserMixin, FormView):
         if renew:
             logger.debug("Renew request received by credential requestor")
             self.logout_user(request)
-            login = add_query_params(reverse('cas_login'),
-                                     {'service': service})
-            logger.debug("Redirecting to %s" % login)
-            return redirect(login)
+            login_url = add_query_params(reverse('cas_login'),
+                                         {'service': service})
+            logger.debug("Redirecting to %s" % login_url)
+            return redirect(login_url)
         elif gateway and service:
             logger.debug("Gateway request received by credential requestor")
             if request.user.is_authenticated():
                 if self.warn_user() and not warned:
-                    return redirect(add_query_params(reverse('cas_warn'),
-                                                     {'service': service,
-                                                      'gateway': gateway}))
+                    warn_url = add_query_params(reverse('cas_warn'),
+                                                {'service': service,
+                                                 'gateway': gateway})
+                    return redirect(warn_url)
+
                 st = ServiceTicket.objects.create_ticket(service=service,
                                                          user=request.user)
-                service = add_query_params(service, {'ticket': st.ticket})
-            logger.debug("Redirecting to %s" % service)
-            return redirect(service)
+                service_url = add_query_params(service, {'ticket': st.ticket})
+            else:
+                service_url = service
+            logger.debug("Redirecting to %s" % service_url)
+            return redirect(service_url)
         elif request.user.is_authenticated():
             if service:
                 logger.debug("Service ticket request received "
                              "by credential requestor")
                 if self.warn_user() and not warned:
-                    return redirect(add_query_params(reverse('cas_warn'),
-                                                     {'service': service}))
+                    warn_url = add_query_params(reverse('cas_warn'),
+                                                {'service': service})
+                    return redirect(warn_url)
+
                 st = ServiceTicket.objects.create_ticket(service=service,
                                                          user=request.user)
-                service = add_query_params(service, {'ticket': st.ticket})
-                logger.debug("Redirecting to %s" % service)
-                return redirect(service)
+                service_url = add_query_params(service, {'ticket': st.ticket})
+                logger.debug("Redirecting to %s" % service_url)
+                return redirect(service_url)
             else:
                 msg = _("You are logged in as %s") % request.user
                 messages.success(request, msg)
