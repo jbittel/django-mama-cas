@@ -12,7 +12,7 @@ brackets (e.g. ``[CAS 2.0]``) corresponding to the CAS version that defines
 that particular URI.
 
 CAS 1.0 is primarily a text-based protocol that returns a simple "yes" or "no"
-response to indicate a validation success or failure. CAS 2.0 returns XML
+response indicating a validation success or failure. CAS 2.0 returns XML
 fragments for validation responses and is capable of including a great deal of
 additional data in the process.
 
@@ -37,13 +37,13 @@ There are some areas where django-mama-cas deviates from the official CAS
 specification to take advantage of built-in Django functionality. These
 changes do not alter the contract between the client, service and CAS server.
 
-**Login ticket**
+**Login ticket (3.5)**
    This ticket string created for the login form is passed along with the
    username and password to prevent the replaying of credentials.
    django-mama-cas does not implement login tickets and instead relies on the
    built-in CSRF protection for the login form.
 
-**Ticket-granting ticket**
+**Ticket-granting ticket (3.6)**
    This ticket string is stored on the server and keys to a ticket-granting
    cookie provided by the client to identify an existing single sign-on
    session. django-mama-cas does not implement ticket-granting tickets and

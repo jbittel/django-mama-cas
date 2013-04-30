@@ -61,23 +61,22 @@ required and have sane defaults, but can be used to customize the behavior.
       the recommended method for storing custom profile information is through a
       `custom User model`_.
 
-.. _custom user model: https://docs.djangoproject.com/en/1.5/topics/auth/customizing/#auth-custom-user
-
-
 .. attribute:: MAMA_CAS_VALID_SERVICES
 
    :default: ``()``
 
    A list of valid Python regular expressions that a service URL is tested
    against when a ticket is validated. If none of the regular expressions
-   match the provided URL, the request fails. If no valid services are
-   configured, any service URL is allowed. For example::
+   match the provided URL, the validation request fails. If no valid services
+   are configured, any service URL is allowed. For example::
 
       MAMA_CAS_VALID_SERVICES = (
           'https?://www\.example\.edu/secure/.*',
           'https://.*\.example\.com/.*',
       )
 
-   The logout ``url`` parameter is also checked against this list of services.
-   If the provided URL does not match one of these regular expressions, it
-   will not be displayed to the user.
+   The ``url`` parameter is also checked against this list of services. If the
+   provided URL does not match one of these regular expressions, it will not
+   be displayed to the user at logout.
+
+.. _custom User model: https://docs.djangoproject.com/en/1.5/topics/auth/customizing/#auth-custom-user

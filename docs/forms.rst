@@ -29,12 +29,12 @@ Authentication Forms
    ``service``
       The service the client is attempting to access, typically represented
       as a URL. This is a hidden, optional field and is automatically added
-      to the form when provided.
+      to the form when present.
 
    The form's ``clean()`` method attempts authentication against the
-   configured authentication backends and verifies that the user account is
-   active.  If either check fails, a ``FormValidation`` error is raised with
-   an appropriate error message.
+   configured authentication backends and verifies the user account is active.
+   If either check fails, a ``FormValidation`` error is raised with an
+   appropriate error message.
 
 The following form classes all inherit from ``LoginForm``, providing
 additional or alternate behavior during the login process.
@@ -46,8 +46,8 @@ additional or alternate behavior during the login process.
    ``warn``
       A checkbox that indicates whether or not the single sign-on process
       should be transparent. This causes the user to be notified before being
-      authenticated to another service and provided the option to continue
-      with the authentication attempt or end the single sign-on session.
+      authenticated to another service and provides the option to continue
+      the authentication attempt or end the single sign-on session.
 
 .. class:: LoginFormEmail
 
@@ -63,5 +63,5 @@ Additional Forms
 
    This form is used when warning the user that an authentication attempt is
    taking place. It contains no visible form fields, but contains two hidden
-   fields, ``service`` and ``gateway``. This allows the value of these
+   fields, ``service`` and ``gateway``. This allows the values of these
    parameters to be passed through the warning process.

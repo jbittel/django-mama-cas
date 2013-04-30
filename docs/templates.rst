@@ -45,7 +45,9 @@ either customize the HTML templates or replace them entirely.
              <cas:email>ellen@example.com</cas:email>
          </cas:attributes>
 
-      This is the default custom attributes format.
+      .. note::
+
+         This is the default custom attributes format.
 
    **mama_cas/attributes-rubycas.xml**
 
@@ -76,7 +78,7 @@ existing template. Here are the basic steps:
 
 #. Create a new template file within a templates directory of your project.
    For example, to add a header above the login form with additional styling,
-   create a file with this content::
+   create a file with the additional content::
 
       {% extends "mama_cas/login.html" %}
 
@@ -114,17 +116,17 @@ Replacing
 ---------
 
 If the required changes are substantial, it may be easier to replace the stock
-template entirely. Instead of extending the template as described in step one,
-replace it entirely. If it is located in a similar path to the original
-template and appears earlier in the template search order, it will be used
-in place of the stock template.
+template. Instead of extending the template as described in step one, replace
+it entirely. If it is located in a similar path to the original template and
+appears earlier in the template search order, it will be used in place of the
+stock template.
 
 In addition to the login form, some elements a custom login template should
-also include are:
+include are:
 
 **Messages**
-   The ``messages`` framework displays information to the user for a logon or
-   logoff event.
+   The ``messages`` framework displays information to the user for a login or
+   logout event.
 
 **Non-field errors**
    The form's ``non_field_errors`` inform the user of authentication failures
