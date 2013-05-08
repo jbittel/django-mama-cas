@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from datetime import timedelta
 import logging
 import os
@@ -9,6 +11,7 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from django.utils.crypto import get_random_string
+from django.utils.encoding import python_2_unicode_compatible
 from django.utils.http import same_origin
 from django.utils.translation import ugettext_lazy as _
 try:
@@ -136,6 +139,7 @@ class TicketManager(models.Manager):
                 ticket.consume()
 
 
+@python_2_unicode_compatible
 class Ticket(models.Model):
     """
     ``Ticket`` is an abstract base class implementing common methods
@@ -160,8 +164,8 @@ class Ticket(models.Model):
     class Meta:
         abstract = True
 
-    def __unicode__(self):
-        return u'%s' % unicode(self.ticket)
+    def __str__(self):
+        return self.ticket
 
     def consume(self):
         """

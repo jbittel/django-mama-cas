@@ -1,4 +1,10 @@
-import urllib
+from __future__ import unicode_literals
+
+try:
+    from urllib.parse import quote
+except ImportError:  # pragma: no cover
+    from urllib import quote
+
 from xml.etree.ElementTree import ElementTree
 from xml.etree.ElementTree import fromstring
 
@@ -80,7 +86,7 @@ class LoginViewTests(TestCase):
         with the ticket included.
         """
         response = self.client.post(reverse('cas_login'), self.user_info)
-        query_str = "?service=%s" % urllib.quote(self.service_url, '')
+        query_str = "?service=%s" % quote(self.service_url, '')
         response = self.client.get(reverse('cas_login') + query_str)
         self.assertEqual(ServiceTicket.objects.count(), 1)
         st = ServiceTicket.objects.latest('id')
@@ -122,7 +128,7 @@ class LoginViewTests(TestCase):
         view with the ``gateway`` and ``service`` parameters set
         should simply redirect the user to the supplied service URL.
         """
-        query_str = "?gateway=true&service=%s" % urllib.quote(self.service_url, '')
+        query_str = "?gateway=true&service=%s" % quote(self.service_url, '')
         response = self.client.get(reverse('cas_login') + query_str)
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response['Location'], self.service_url)
@@ -135,7 +141,7 @@ class LoginViewTests(TestCase):
         service URL with the ticket included.
         """
         response = self.client.post(reverse('cas_login'), self.user_info)
-        query_str = "?gateway=true&service=%s" % urllib.quote(self.service_url, '')
+        query_str = "?gateway=true&service=%s" % quote(self.service_url, '')
         response = self.client.get(reverse('cas_login') + query_str)
         self.assertEqual(ServiceTicket.objects.count(), 1)
         st = ServiceTicket.objects.latest('id')
@@ -189,7 +195,7 @@ class WarnViewTests(TestCase):
             form_data = self.user_info.copy()
             form_data.update({'warn': 'true'})
             response = self.client.post(reverse('cas_login'), form_data)
-            query_str = "?service=%s" % urllib.quote(self.service_url, '')
+            query_str = "?service=%s" % quote(self.service_url, '')
             response = self.client.get(reverse('cas_login') + query_str)
             self.assertEqual(self.client.session.get('warn'), True)
             self.assertRedirects(response, reverse('cas_warn') + query_str,
@@ -203,7 +209,7 @@ class WarnViewTests(TestCase):
         """
         self.client.login(username=self.user_info['username'],
                           password=self.user_info['password'])
-        query_str = "?service=%s" % urllib.quote(self.service_url, '')
+        query_str = "?service=%s" % quote(self.service_url, '')
         response = self.client.get(reverse('cas_warn') + query_str)
         self.assertContains(response, self.service_url, status_code=200)
         self.assertTemplateUsed(response, 'mama_cas/warn.html')
@@ -305,8 +311,7 @@ class ValidateViewTests(TestCase):
         should return a validation failure.
         """
         response = self.client.get(reverse('cas_validate'))
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, "no\n\n")
+        self.assertContains(response, "no\n\n", status_code=200)
         self.assertEqual(response.get('Content-Type'), 'text/plain')
         self.assertTrue('Cache-Control' in response)
         self.assertEqual(response['Cache-Control'], 'max-age=0')
@@ -327,8 +332,7 @@ class ValidateViewTests(TestCase):
         query_str = "?service=%s&ticket=%s" % ('http://www.example.org/',
                                                self.st.ticket)
         response = self.client.get(reverse('cas_validate') + query_str)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, "no\n\n")
+        self.assertContains(response, "no\n\n", status_code=200)
         self.assertEqual(response.get('Content-Type'), 'text/plain')
 
     def test_validate_view_invalid_ticket(self):
@@ -339,8 +343,7 @@ class ValidateViewTests(TestCase):
         query_str = "?service=%s&ticket=%s" % (self.service_url,
                     'ST-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
         response = self.client.get(reverse('cas_validate') + query_str)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, "no\n\n")
+        self.assertContains(response, "no\n\n", status_code=200)
         self.assertEqual(response.get('Content-Type'), 'text/plain')
 
     def test_validate_view_success(self):
@@ -352,13 +355,12 @@ class ValidateViewTests(TestCase):
         query_str = "?service=%s&ticket=%s" % (self.service_url,
                                                self.st.ticket)
         response = self.client.get(reverse('cas_validate') + query_str)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, "yes\nellen\n")
+        self.assertContains(response, "yes\nellen\n", status_code=200)
         self.assertEqual(response.get('Content-Type'), 'text/plain')
 
         # This should fail as the ticket was consumed in the preceeding test
         response = self.client.get(reverse('cas_validate') + query_str)
-        self.assertEqual(response.content, "no\n\n")
+        self.assertContains(response, "no\n\n", status_code=200)
         self.assertEqual(response.get('Content-Type'), 'text/plain')
 
 
@@ -531,7 +533,7 @@ class ServiceValidateViewTests(TestCase):
         file, a service validation success should include the list of
         configured user attributes.
         """
-        attr_names = settings.MAMA_CAS_USER_ATTRIBUTES.keys()
+        attr_names = list(settings.MAMA_CAS_USER_ATTRIBUTES.keys())
         query_str = "?service=%s&ticket=%s" % (self.service_url,
                                                self.st.ticket)
         response = self.client.get(reverse('cas_service_validate') + query_str)
@@ -811,7 +813,7 @@ class ProxyValidateViewTests(TestCase):
         file, a proxy validation success should include the list of
         configured user attributes.
         """
-        attr_names = settings.MAMA_CAS_USER_ATTRIBUTES.keys()
+        attr_names = list(settings.MAMA_CAS_USER_ATTRIBUTES.keys())
         query_str = "?service=%s&ticket=%s" % (self.service_url,
                                                self.pt.ticket)
         response = self.client.get(reverse('cas_proxy_validate') + query_str)

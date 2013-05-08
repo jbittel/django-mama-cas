@@ -175,7 +175,7 @@ class CustomAttributesMixin(object):
         attributes = []
 
         user_attr_list = getattr(settings, 'MAMA_CAS_USER_ATTRIBUTES', {})
-        for (name, attr) in user_attr_list.items():
+        for name, attr in user_attr_list.items():
             try:
                 attribute = [name, getattr(user, attr)]
             except AttributeError:
@@ -190,7 +190,7 @@ class CustomAttributesMixin(object):
         else:
             profile_attr_list = getattr(settings,
                                         'MAMA_CAS_PROFILE_ATTRIBUTES', {})
-            for (name, attr) in profile_attr_list.items():
+            for name, attr in profile_attr_list.items():
                 try:
                     attribute = [name, getattr(profile, attr)]
                 except AttributeError:
