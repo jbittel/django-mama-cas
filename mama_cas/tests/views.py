@@ -15,7 +15,7 @@ from django.test import TestCase
 try:
     from django.contrib.auth import get_user_model
     User = get_user_model()
-except ImportError: # Django version < 1.5
+except ImportError:  # Django version < 1.5
     from django.contrib.auth.models import User
 
 from mama_cas.forms import LoginForm
@@ -721,7 +721,8 @@ class ProxyValidateViewTests(TestCase):
         self.assertEqual(len(proxy), 1)
         self.assertEqual(proxy[0].text, 'http://www.example.com')
 
-        # This request should fail as the ticket was consumed in the preceeding test
+        # This second validation request attempt should fail as the
+        # ticket was consumed in the preceeding test
         response = self.client.get(reverse('cas_proxy_validate') + query_str)
         tree = ElementTree(fromstring(response.content))
         elem = tree.find(XMLNS + 'authenticationFailure')

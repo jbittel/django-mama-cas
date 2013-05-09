@@ -8,7 +8,7 @@ from django.utils.timezone import now
 try:
     from django.contrib.auth import get_user_model
     User = get_user_model()
-except ImportError: # Django version < 1.5
+except ImportError:  # Django version < 1.5
     from django.contrib.auth.models import User
 
 from mama_cas.models import ProxyGrantingTicket
@@ -207,8 +207,8 @@ class ServiceTicketTests(TestCase):
         st2 = ServiceTicket.objects.create_ticket(**self.ticket_info)
 
         ServiceTicket.objects.consume_tickets(self.user)
-        self.assertEqual(ServiceTicket.objects.get(ticket=st1).is_consumed(), True)
-        self.assertEqual(ServiceTicket.objects.get(ticket=st2).is_consumed(), True)
+        self.assertTrue(ServiceTicket.objects.get(ticket=st1).is_consumed())
+        self.assertTrue(ServiceTicket.objects.get(ticket=st2).is_consumed())
 
     def test_cleanupcas_management_command(self):
         """
@@ -325,7 +325,7 @@ class ProxyTicketTests(TestCase):
         """
         self.assertRaises(InvalidTicketError,
                           ProxyTicket.objects.validate_ticket,
-                          'PT-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 
+                          'PT-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
                           service=self.service_url)
 
     def test_validate_ticket_invalid_service(self):
@@ -402,8 +402,8 @@ class ProxyTicketTests(TestCase):
         pt2 = ProxyTicket.objects.create_ticket(**self.ticket_info)
 
         ProxyTicket.objects.consume_tickets(self.user)
-        self.assertEqual(ProxyTicket.objects.get(ticket=pt1).is_consumed(), True)
-        self.assertEqual(ProxyTicket.objects.get(ticket=pt2).is_consumed(), True)
+        self.assertTrue(ProxyTicket.objects.get(ticket=pt1).is_consumed())
+        self.assertTrue(ProxyTicket.objects.get(ticket=pt2).is_consumed())
 
     def test_cleanupcas_management_command(self):
         """
@@ -501,7 +501,7 @@ class ProxyGrantingTicketTests(TestCase):
         """
         self.assertRaises(InvalidRequestError,
                           ProxyGrantingTicket.objects.validate_ticket,
-                          'PGT-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 
+                          'PGT-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
                           service=None)
 
     def test_validate_ticket_invalid_ticket(self):
@@ -576,8 +576,8 @@ class ProxyGrantingTicketTests(TestCase):
                                                          **self.ticket_info)
 
         ProxyGrantingTicket.objects.consume_tickets(self.user)
-        self.assertEqual(ProxyGrantingTicket.objects.get(ticket=pgt1).is_consumed(), True)
-        self.assertEqual(ProxyGrantingTicket.objects.get(ticket=pgt2).is_consumed(), True)
+        self.assertTrue(ProxyGrantingTicket.objects.get(ticket=pgt1).is_consumed())
+        self.assertTrue(ProxyGrantingTicket.objects.get(ticket=pgt2).is_consumed())
 
     def test_cleanupcas_management_command(self):
         """
