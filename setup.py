@@ -17,7 +17,7 @@ packages = [
     'mama_cas',
     'mama_cas.management',
     'mama_cas.management.commands',
-    'mama_cas.tests'
+    'mama_cas.tests',
 ]
 
 package_data = {
@@ -32,8 +32,8 @@ setup(
     long_description=read_file('README.rst'),
     author='Jason Bittel',
     author_email='jason.bittel@gmail.com',
-    url='http://github.com/jbittel/django-mama-cas',
-    download_url='http://github.com/jbittel/django-mama-cas/downloads',
+    url='https://github.com/jbittel/django-mama-cas',
+    download_url='https://github.com/jbittel/django-mama-cas/downloads',
     package_dir={'mama_cas': 'mama_cas'},
     packages=packages,
     package_data=package_data,
