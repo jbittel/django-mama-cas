@@ -67,7 +67,7 @@ class ValidateTicketMixin(object):
                                                        renew=renew)
         except (InvalidRequestError, InvalidTicketError,
                 InvalidServiceError, InternalError) as e:
-            logger.warn("%s %s" % (e.code, e))
+            logger.warning("%s %s" % (e.code, e))
             return None, None, e
         else:
             if pgturl:
@@ -99,7 +99,7 @@ class ValidateTicketMixin(object):
                                                      service=service)
         except (InvalidRequestError, InvalidTicketError,
                 InvalidServiceError, InternalError) as e:
-            logger.warn("%s %s" % (e.code, e))
+            logger.warning("%s %s" % (e.code, e))
             return None, None, None, e
         else:
             # Build a list of all services that proxied authentication,
@@ -137,7 +137,7 @@ class ValidateTicketMixin(object):
                                                               target_service)
         except (InvalidRequestError, BadPGTError,
                 InvalidServiceError, InternalError) as e:
-            logger.warn("%s %s" % (e.code, e))
+            logger.warning("%s %s" % (e.code, e))
             return None, e
         else:
             pt = ProxyTicket.objects.create_ticket(service=target_service,

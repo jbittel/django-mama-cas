@@ -259,7 +259,7 @@ class ProxyGrantingTicketManager(TicketManager):
                 self.validate_pgturl(pgturl, pgtid, pgtiou)
         except InternalError as e:
             # pgtUrl validation failed, so nothing has been created
-            logger.warn("%s %s" % (e.code, e))
+            logger.warning("%s %s" % (e.code, e))
             return None
         else:
             # pgtUrl validation succeeded, so create a new PGT with the

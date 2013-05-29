@@ -43,11 +43,11 @@ class LoginForm(forms.Form):
                 if user.is_active:
                     self.user = user
                 else:
-                    logger.warn("User account '%s' is disabled" % username)
+                    logger.warning("User account '%s' is disabled" % username)
                     error_msg = _("This user account is disabled")
                     raise forms.ValidationError(error_msg)
             else:
-                logger.warn("Error authenticating user %s" % username)
+                logger.warning("Error authenticating user %s" % username)
                 error_msg = _("The username or password is not correct")
                 raise forms.ValidationError(error_msg)
         return self.cleaned_data
