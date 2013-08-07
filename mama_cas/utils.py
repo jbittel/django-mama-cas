@@ -27,7 +27,7 @@ def add_query_params(url, params):
 def is_scheme_https(url):
     """
     Test the scheme of the parameter URL to see if it is HTTPS. If
-    it is HTTPS return True, otherwise return False.
+    it is HTTPS return ``True``, otherwise return ``False``.
     """
     return 'https' == urlparse(url).scheme
 

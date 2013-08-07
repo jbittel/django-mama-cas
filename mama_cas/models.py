@@ -62,14 +62,15 @@ class TicketManager(models.Manager):
 
     def validate_ticket(self, ticket, service=None, renew=False):
         """
-        Given a ticket string, validate the corresponding ``Ticket`` returning
-        the ``Ticket`` if valid. If validation fails, return ``False``.
+        Given a ticket string, validate the corresponding ``Ticket``
+        returning the ``Ticket`` if valid. If validation fails, raise
+        an appropriate error.
 
         If ``service`` is provided and the ticket has a service attribute,
         the origin of the two services will be compared. Validation will only
         succeed if the service origins match.
 
-        if ``renew`` is provided, the validation will only succeed if the
+        If ``renew`` is provided, the validation will only succeed if the
         ticket was issued from the presentation of the user's primary
         credentials.
         """
@@ -143,8 +144,7 @@ class TicketManager(models.Manager):
 class Ticket(models.Model):
     """
     ``Ticket`` is an abstract base class implementing common methods
-    and fields for the assorted ticket types. It should never be
-    interacted with directly within the application.
+    and fields for the assorted ticket types.
 
     It is recommended that you do not interact directly with this model
     or its inheritors. Instead, the provided manager contains methods
@@ -301,8 +301,9 @@ class ProxyGrantingTicketManager(TicketManager):
 
     def validate_ticket(self, ticket, service):
         """
-        Given a ticket string, validate the corresponding ``Ticket`` returning
-        the ``Ticket`` if valid. If validation fails, return ``False``.
+        Given a ticket string, validate the corresponding ``Ticket``
+        returning the ``Ticket`` if valid. If validation fails, raise
+        an appropriate error.
         """
         if not ticket:
             raise InvalidRequestError("No ticket string provided")
