@@ -46,8 +46,7 @@ class TicketManager(models.Manager):
         if 'service' in kwargs:
             kwargs['service'] = clean_service_url(kwargs['service'])
         t = self.create(ticket=ticket, created=timezone.now(), **kwargs)
-        logger.debug("Created %s %s" %
-                     (self.model._meta.verbose_name.title(), t.ticket))
+        logger.debug("Created %s %s" % (t.name, t.ticket))
         return t
 
     def create_ticket_str(self, prefix=None):
@@ -80,37 +79,35 @@ class TicketManager(models.Manager):
         if not self.model.TICKET_RE.match(ticket):
             raise InvalidTicketError("Ticket string %s is invalid" % ticket)
 
-        title = self.model._meta.verbose_name.title()
-
         try:
             t = self.get(ticket=ticket)
         except self.model.DoesNotExist:
-            raise InvalidTicketError("%s %s does not exist" % (title, ticket))
+            raise InvalidTicketError("Ticket %s does not exist" % ticket)
 
         if t.is_consumed():
             raise InvalidTicketError("%s %s has already been used" %
-                                     (title, ticket))
+                                     (t.name, ticket))
         t.consume()
 
         if t.is_expired():
-            raise InvalidTicketError("%s %s has expired" % (title, ticket))
+            raise InvalidTicketError("%s %s has expired" % (t.name, ticket))
 
         if not service:
             raise InvalidRequestError("No service identifier provided")
 
         if not is_valid_service_url(service):
             raise InvalidServiceError("Service %s is not a valid %s URL" %
-                                      (service, title))
+                                      (service, t.name))
 
         if not same_origin(t.service, service):
             raise InvalidServiceError("%s %s for service %s is invalid for service %s" %
-                                      (title, ticket, t.service, service))
+                                      (t.name, ticket, t.service, service))
 
         if renew and not t.is_primary():
             raise InvalidTicketError("%s %s was not issued via primary credentials" %
-                                     (title, ticket))
+                                     (t.name, ticket))
 
-        logger.debug("Validated %s %s" % (title, ticket))
+        logger.debug("Validated %s %s" % (t.name, ticket))
         return t
 
     def delete_invalid_tickets(self):
@@ -166,6 +163,10 @@ class Ticket(models.Model):
 
     def __str__(self):
         return self.ticket
+
+    @property
+    def name(self):
+        return self._meta.verbose_name
 
     def consume(self):
         """
@@ -314,22 +315,20 @@ class ProxyGrantingTicketManager(TicketManager):
         if not self.model.TICKET_RE.match(ticket):
             raise InvalidTicketError("Ticket string %s is invalid" % ticket)
 
-        title = self.model._meta.verbose_name.title()
-
         try:
             t = self.get(ticket=ticket)
         except self.model.DoesNotExist:
-            raise BadPGTError("%s %s does not exist" % (title, ticket))
+            raise BadPGTError("Ticket %s does not exist" % ticket)
 
         if t.is_consumed():
             raise InvalidTicketError("%s %s has already been used" %
-                                     (title, ticket))
+                                     (t.name, ticket))
 
         if not is_valid_service_url(service):
             raise InvalidServiceError("Service %s is not a valid %s URL" %
-                                      (service, title))
+                                      (service, t.name))
 
-        logger.debug("Validated %s %s" % (title, ticket))
+        logger.debug("Validated %s %s" % (t.name, ticket))
         return t
 
 
