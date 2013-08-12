@@ -202,7 +202,7 @@ class ServiceTicket(Ticket):
     obtain access to a service. It is obtained upon a client's presentation
     of credentials and a service identifier to /login.
     """
-    TICKET_PREFIX = u"ST"
+    TICKET_PREFIX = 'ST'
 
     service = models.CharField(_('service'), max_length=255)
     primary = models.BooleanField(_('primary'))
@@ -229,7 +229,7 @@ class ProxyTicket(Ticket):
     a service's presentation of a ``ProxyGrantingTicket`` and a service
     identifier.
     """
-    TICKET_PREFIX = u"PT"
+    TICKET_PREFIX = 'PT'
 
     service = models.CharField(_('service'), max_length=255)
     granted_by_pgt = models.ForeignKey('ProxyGrantingTicket',
@@ -339,8 +339,8 @@ class ProxyGrantingTicket(Ticket):
     client. It is obtained upon validation of a ``ServiceTicket`` or a
     ``ProxyTicket``.
     """
-    TICKET_PREFIX = u"PGT"
-    IOU_PREFIX = u"PGTIOU"
+    TICKET_PREFIX = 'PGT'
+    IOU_PREFIX = 'PGTIOU'
 
     iou = models.CharField(_('iou'), max_length=255, unique=True)
     granted_by_st = models.ForeignKey(ServiceTicket, null=True, blank=True,
