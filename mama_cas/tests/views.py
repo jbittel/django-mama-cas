@@ -240,12 +240,16 @@ class LogoutViewTests(TestCase):
         Initialize the environment for each test.
         """
         self.user = User.objects.create_user(**self.user_info)
+        self.old_valid_services = getattr(settings,
+                                          'MAMA_CAS_VALID_SERVICES', ())
+        settings.MAMA_CAS_VALID_SERVICES = ('.*\.example\.com',)
 
     def tearDown(self):
         """
         Undo any modifications made to the test environment.
         """
         self.user.delete()
+        settings.MAMA_CAS_VALID_SERVICES = self.old_valid_services
 
     def test_logout_view(self):
         """
@@ -272,7 +276,8 @@ class LogoutViewTests(TestCase):
         view should log the user out and display the correct template.
         """
         response = self.client.post(reverse('cas_login'), self.user_info)
-        response = self.client.get(reverse('cas_logout'))
+        query_str = '?url=http://www.example.com'
+        response = self.client.get(reverse('cas_logout') + query_str)
         self.assertRedirects(response, reverse('cas_login'),
                              status_code=302, target_status_code=200)
         self.assertFalse('_auth_user_id' in self.client.session)
