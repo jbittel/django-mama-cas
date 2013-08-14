@@ -75,8 +75,27 @@ required and have sane defaults, but can be used to customize the behavior.
           'https://.*\.example\.com/.*',
       )
 
-   The ``url`` parameter is also checked against this list of services. If the
-   provided URL does not match one of these regular expressions, it will not
-   be displayed to the user at logout.
+   The ``url`` parameter is also checked against this list of services at
+   logout. If the provided URL does not match one of these regular
+   expressions, it will be ignored.
+
+.. attribute:: MAMA_CAS_FOLLOW_LOGOUT_URL
+
+   :default: ``False``
+
+   Controls the client redirection behavior when the ``url`` parameter is
+   specified at logout. When this setting is ``False``, the client will be
+   redirected to the login page with the specified URL displayed as a
+   recommended link to follow. When this setting is ``True``, the client
+   will be redirected to the specified URL.
+
+   If the ``url`` parameter is not specified or if it is not a valid service
+   URL, the client will be redirected to the login page with no message
+   displayed, irrespective of this setting.
+
+   .. note::
+
+      The default setting of ``False`` conforms to the CAS protocol
+      specification.
 
 .. _custom User model: https://docs.djangoproject.com/en/1.5/topics/auth/customizing/#auth-custom-user

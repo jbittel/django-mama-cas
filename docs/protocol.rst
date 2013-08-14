@@ -54,3 +54,9 @@ changes do not alter the contract between the client, service and CAS server.
    User attributes can be returned along with a CAS 2.0 service or proxy
    validation success. This is not part of the official CAS specification, but
    is widely used in practice.
+
+**Follow logout url**
+   Setting ``MAMA_CAS_FOLLOW_LOGOUT_URL`` to ``True`` alters the server's
+   behavior at logout from the CAS specification. Depending on the services
+   configured for CAS usage, this change can provide a more expected logout
+   behavior.
