@@ -1,5 +1,6 @@
 import logging
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login
 from django.core.urlresolvers import reverse
@@ -192,14 +193,18 @@ class LogoutView(NeverCacheMixin, LogoutUserMixin, View):
     ended, requiring a new single sign-on session to be established
     for future authentication attempts.
 
-    If ``url`` is specified, it will be displayed to the user as a
-    recommended link to follow.
+    If ``url`` is specified, by default it will be displayed to the
+    user as a recommended link to follow. This behavior can be altered
+    by setting ``MAMA_CAS_FOLLOW_LOGOUT_URL`` to ``True``, which will
+    redirect the client to the specified URL.
     """
     def get(self, request, *args, **kwargs):
         logger.debug("Logout request received for %s" % request.user)
         self.logout_user(request)
         url = request.GET.get('url', None)
         if url and is_valid_service_url(url):
+            if getattr(settings, 'MAMA_CAS_FOLLOW_LOGOUT_URL', False):
+                return redirect(url)
             msg = _("The application provided this link to follow: %s") % url
             messages.success(request, msg)
         return redirect(reverse('cas_login'))
