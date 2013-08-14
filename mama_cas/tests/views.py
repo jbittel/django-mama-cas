@@ -282,6 +282,24 @@ class LogoutViewTests(TestCase):
                              status_code=302, target_status_code=200)
         self.assertFalse('_auth_user_id' in self.client.session)
 
+    def test_logout_view_follow_url(self):
+        """
+        When called with a logged in user and MAMA_CAS_FOLLOW_LOGOUT_URL
+        is set to ``True``, a ``GET`` request to the view should log the
+        user out and redirect to the supplied URL.
+        """
+        old_follow_url = getattr(settings, 'MAMA_CAS_FOLLOW_LOGOUT_URL', False)
+        settings.MAMA_CAS_FOLLOW_LOGOUT_URL = True
+
+        response = self.client.post(reverse('cas_login'), self.user_info)
+        query_str = '?url=http://www.example.com'
+        response = self.client.get(reverse('cas_logout') + query_str)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['Location'], 'http://www.example.com')
+        self.assertFalse('_auth_user_id' in self.client.session)
+
+        settings.MAMA_CAS_FOLLOW_LOGOUT_URL = old_follow_url
+
 
 class ValidateViewTests(TestCase):
     """
