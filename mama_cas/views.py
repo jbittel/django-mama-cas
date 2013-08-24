@@ -201,7 +201,7 @@ class LogoutView(NeverCacheMixin, LogoutUserMixin, View):
     def get(self, request, *args, **kwargs):
         logger.debug("Logout request received for %s" % request.user)
         self.logout_user(request)
-        url = request.GET.get('url', None)
+        url = request.GET.get('url')
         if url and is_valid_service_url(url):
             if getattr(settings, 'MAMA_CAS_FOLLOW_LOGOUT_URL', False):
                 return redirect(url)
