@@ -32,8 +32,9 @@ either customize the HTML templates or replace them entirely.
 
    This template is used for CAS 2.0 service and proxy validation responses.
    Within the body of the authentication success block is an include for
-   adding custom user attributes. This include path should point to one of
-   the following three templates implementing different attribute formats:
+   returning custom user attributes. These attributes are not part of the
+   official CAS specification, and three different attribute formats have
+   emerged. The include path should point to one of these templates:
 
    **mama_cas/attributes-jasig.xml**
 

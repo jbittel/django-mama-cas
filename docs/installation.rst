@@ -12,8 +12,8 @@ of Django may work, but are not tested or supported. See the `Django
 downloads`_ page for information on downloading and installing Django.
 
 If you're installing django-mama-cas manually, such as from the `GitHub`_
-repository, you'll need to install the Python `requests`_ library. This is
-used internally when validating callback URLs. Install it with::
+repository, you'll need to install the Python `requests`_ library. Install
+it with::
 
    pip install requests
 
@@ -57,9 +57,8 @@ First, add django-mama-cas to the ``INSTALLED_APPS`` setting within your
 project's ``settings.py`` (or equivalent) file::
 
    INSTALLED_APPS = (
-       # ...
+       # ...existing apps...
        'mama_cas',
-       # ...
    )
 
 Once added, run ``manage.py syncdb`` to create the required database tables.
@@ -73,9 +72,8 @@ URIs (e.g. ``login/``, ``logout/``, ``validate/``, etc.). They are located in
 ``URLconf`` with the following::
 
    urlpatterns = patterns('',
-       # ...
+       # ...existing urls...
        (r'', include('mama_cas.urls')),
-       # ...
    )
 
 This makes the CAS server available at the top level of your project's
@@ -85,7 +83,7 @@ included URLs. For example, to make the CAS server available under the
 
    (r'^cas/', include('mama_cas.urls')),
 
-Changing the URLs within ``mama_cas.urls`` is not recommended as that will
+Changing the URLs within ``mama_cas.urls`` is not recommended as it will
 likely break standard CAS behavior.
 
 Sessions
@@ -96,13 +94,13 @@ sessions. There are two Django session settings that will likely need to be
 changed from their defaults:
 
    `SESSION_COOKIE_AGE`_
-      It is recommended that this be set shorter than the default of two weeks.
+      It is recommended this be set shorter than the default of two weeks.
 
    `SESSION_EXPIRE_AT_BROWSER_CLOSE`_
       This should be set to ``True`` to conform to the CAS specification.
 
 For information on how sessions work within Django, read the `session
-documentation`_. These settings should be configured to fit your environment
+documentation`_. These settings ought to be configured to fit your environment
 and security requirements.
 
 Authentication
