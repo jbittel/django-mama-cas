@@ -8,6 +8,10 @@ incompatible changes or other upgrade issues are also described here.  For
 additional detail, read the complete `commit history`_.  From version 0.4.0
 and following, version numbers follow the `semantic versioning`_ scheme.
 
+**django-mama-cas 0.6.0** ``[2013-09-04]``
+   * Add Python 3 compatibility
+   * Add a setting to follow provided logout URLs
+
 **django-mama-cas 0.5.0** ``[2013-04-29]``
    * Fix login template not validating data properly
    * Respect REQUESTS_CA_BUNDLE environment variable
