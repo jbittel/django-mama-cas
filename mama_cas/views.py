@@ -251,6 +251,7 @@ class ServiceValidateView(NeverCacheMixin, ValidateTicketMixin,
     ``ProxyGrantingTicket`` if the proxy callback URL has a valid SSL
     certificate and responds with a successful HTTP status code.
     """
+    content_type = 'text/xml'
     template_name = 'mama_cas/validate.xml'
 
     def get(self, request, *args, **kwargs):
@@ -258,7 +259,7 @@ class ServiceValidateView(NeverCacheMixin, ValidateTicketMixin,
         attributes = self.get_custom_attributes(st)
         context = {'ticket': st, 'pgt': pgt, 'error': error,
                    'attributes': attributes}
-        return self.render_to_response(context, content_type='text/xml')
+        return self.render_to_response(context)
 
 
 class ProxyValidateView(NeverCacheMixin, ValidateTicketMixin,
@@ -281,6 +282,7 @@ class ProxyValidateView(NeverCacheMixin, ValidateTicketMixin,
     ``ProxyGrantingTicket`` if the proxy callback URL has a valid SSL
     certificate and responds with a successful HTTP status code.
     """
+    content_type = 'text/xml'
     template_name = 'mama_cas/validate.xml'
 
     def get(self, request, *args, **kwargs):
@@ -297,7 +299,7 @@ class ProxyValidateView(NeverCacheMixin, ValidateTicketMixin,
 
         context = {'ticket': t, 'pgt': pgt, 'proxies': proxies,
                    'error': error, 'attributes': attributes}
-        return self.render_to_response(context, content_type='text/xml')
+        return self.render_to_response(context)
 
 
 class ProxyView(NeverCacheMixin, ValidateTicketMixin, TemplateView):
@@ -311,9 +313,10 @@ class ProxyView(NeverCacheMixin, ValidateTicketMixin, TemplateView):
     validation succeeds, a ``ProxyTicket`` will be created and included
     in the response.
     """
+    content_type = 'text/xml'
     template_name = 'mama_cas/proxy.xml'
 
     def get(self, request, *args, **kwargs):
         pt, error = self.validate_proxy_granting_ticket(request)
         context = {'ticket': pt, 'error': error}
-        return self.render_to_response(context, content_type='text/xml')
+        return self.render_to_response(context)
