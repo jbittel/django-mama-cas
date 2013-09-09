@@ -243,6 +243,9 @@ class LogoutViewTests(TestCase):
         self.old_valid_services = getattr(settings,
                                           'MAMA_CAS_VALID_SERVICES', ())
         settings.MAMA_CAS_VALID_SERVICES = ('.*\.example\.com',)
+        self.old_follow_url = getattr(settings,
+                                      'MAMA_CAS_FOLLOW_LOGOUT_URL', False)
+        settings.MAMA_CAS_FOLLOW_LOGOUT_URL = False
 
     def tearDown(self):
         """
@@ -250,6 +253,7 @@ class LogoutViewTests(TestCase):
         """
         self.user.delete()
         settings.MAMA_CAS_VALID_SERVICES = self.old_valid_services
+        settings.MAMA_CAS_FOLLOW_LOGOUT_URL = self.old_follow_url
 
     def test_logout_view(self):
         """
@@ -288,7 +292,6 @@ class LogoutViewTests(TestCase):
         is set to ``True``, a ``GET`` request to the view should log the
         user out and redirect to the supplied URL.
         """
-        old_follow_url = getattr(settings, 'MAMA_CAS_FOLLOW_LOGOUT_URL', False)
         settings.MAMA_CAS_FOLLOW_LOGOUT_URL = True
 
         response = self.client.post(reverse('cas_login'), self.user_info)
@@ -297,8 +300,6 @@ class LogoutViewTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response['Location'], 'http://www.example.com')
         self.assertFalse('_auth_user_id' in self.client.session)
-
-        settings.MAMA_CAS_FOLLOW_LOGOUT_URL = old_follow_url
 
 
 class ValidateViewTests(TestCase):
