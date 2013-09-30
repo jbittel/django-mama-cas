@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.utils.http import urlquote_plus
 from django.utils.translation import ugettext as _
@@ -150,8 +150,7 @@ class LoginView(NeverCacheMixin, LogoutUserMixin, FormView):
             service = add_query_params(service, {'ticket': st.ticket})
             logger.debug("Redirecting to %s" % service)
             return redirect(service)
-        print self.request.REQUEST.get('next', reverse('cas_login'))
-        return HttpResponseRedirect(self.request.REQUEST.get('next', reverse('cas_login')))
+        return redirect(self.request.REQUEST.get('next', reverse('cas_login')))
 
     def get_initial(self):
         service = self.request.GET.get('service')

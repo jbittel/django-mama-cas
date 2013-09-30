@@ -86,7 +86,7 @@
                         {{ form.warn }}<span class="label">{{ form.warn.label_tag }}</span>
                     </div>
                 {% endif %}
-                <input type='text' name='next' value='{{ next }}' />
+                <input type="hidden" name="next" value="{{ next }}" />
             </fieldset>
             <fieldset class="actions">
                 <input class="button box" type="submit" name="submit_login" value="{% trans "Login" %}" />
