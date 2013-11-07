@@ -1,4 +1,5 @@
-from mama_cas.tests.models import *
-from mama_cas.tests.views import *
-from mama_cas.tests.utils import *
-from mama_cas.tests.forms import *
+# Django <= 1.5 test runner compatibility
+from .test_models import *
+from .test_views import *
+from .test_utils import *
+from .test_forms import *

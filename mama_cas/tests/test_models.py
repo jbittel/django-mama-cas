@@ -43,7 +43,6 @@ class ServiceTicketTests(TestCase):
         """
         Undo any modifications made to the test environment.
         """
-        self.user.delete()
         settings.MAMA_CAS_VALID_SERVICES = self.old_valid_services
 
     def test_create_ticket(self):
@@ -260,7 +259,6 @@ class ProxyTicketTests(TestCase):
         """
         Undo any modifications made to the test environment.
         """
-        self.user.delete()
         settings.MAMA_CAS_VALID_SERVICES = self.old_valid_services
 
     def test_create_ticket(self):
@@ -450,7 +448,6 @@ class ProxyGrantingTicketTests(TestCase):
         """
         Undo any modifications made to the test environment.
         """
-        self.user.delete()
         settings.MAMA_CAS_VALID_SERVICES = self.old_valid_services
 
     def test_create_ticket(self):
