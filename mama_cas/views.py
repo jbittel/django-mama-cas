@@ -108,6 +108,15 @@ class LoginView(NeverCacheMixin, LogoutUserMixin, FormView):
         """
         return self.request.session.get('warn', False)
 
+    def get_form_kwargs(self):
+        """
+        Set the form's label suffix to an empty string. Django 1.6
+        defaults to a ':' suffix for a label_tag.
+        """
+        form_kwargs = super(LoginView, self).get_form_kwargs()
+        form_kwargs['label_suffix'] = ''
+        return form_kwargs
+
     def form_valid(self, form):
         """
         (2.2) As a credential acceptor, /login requires two parameters:
