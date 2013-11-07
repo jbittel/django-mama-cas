@@ -205,7 +205,7 @@ class ServiceTicket(Ticket):
     TICKET_PREFIX = 'ST'
 
     service = models.CharField(_('service'), max_length=255)
-    primary = models.BooleanField(_('primary'))
+    primary = models.BooleanField(_('primary'), default=False)
 
     class Meta:
         verbose_name = _('service ticket')
