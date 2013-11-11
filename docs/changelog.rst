@@ -3,10 +3,14 @@
 Changelog
 =========
 
-These are the notable changes for each django-mama-cas release.  Backwards
-incompatible changes or other upgrade issues are also described here.  For
-additional detail, read the complete `commit history`_.  From version 0.4.0
+These are the notable changes for each django-mama-cas release. Backwards
+incompatible changes or other upgrade issues are also described here. For
+additional detail, read the complete `commit history`_. From version 0.4.0
 and following, version numbers follow the `semantic versioning`_ scheme.
+
+**django-mama-cas 0.6.1** ``[2013-11-11]``
+   * Django 1.6 compatibility
+   * Handle exceptions raised by authentication backends
 
 **django-mama-cas 0.6.0** ``[2013-09-04]``
    * Add Python 3 compatibility
