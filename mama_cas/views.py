@@ -38,6 +38,11 @@ class LoginView(NeverCacheMixin, LogoutUserMixin, FormView):
     template_name = 'mama_cas/login.html'
     form_class = LoginForm
 
+    def get_context_data(self, **kwargs):
+        kwargs['next'] = self.request.REQUEST.get('next', '')
+
+        return super(LoginView, self).get_context_data(**kwargs)
+
     def get(self, request, *args, **kwargs):
         """
         (2.1) As a credential requestor, /login accepts three optional
@@ -95,7 +100,7 @@ class LoginView(NeverCacheMixin, LogoutUserMixin, FormView):
                                                          user=request.user)
                 service_url = add_query_params(service, {'ticket': st.ticket})
                 logger.debug("Redirecting to %s" % service_url)
-                return redirect(service_url)
+                return HttpResponseRedirect(service_url)
             else:
                 msg = _("You are logged in as %s") % request.user
                 messages.success(request, msg)
@@ -154,7 +159,7 @@ class LoginView(NeverCacheMixin, LogoutUserMixin, FormView):
             service = add_query_params(service, {'ticket': st.ticket})
             logger.debug("Redirecting to %s" % service)
             return redirect(service)
-        return redirect(reverse('cas_login'))
+        return redirect(self.request.REQUEST.get('next', reverse('cas_login')))
 
     def get_initial(self):
         service = self.request.GET.get('service')
