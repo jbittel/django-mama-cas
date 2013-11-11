@@ -9,13 +9,6 @@ import os
 from mama_cas import __version__ as version
 
 
-def read_file(filename):
-    """
-    Utility function to read a provided filename.
-    """
-    return open(os.path.join(os.path.dirname(__file__), filename)).read()
-
-
 packages = [
     'mama_cas',
     'mama_cas.management',
@@ -28,11 +21,14 @@ package_data = {
     'mama_cas': ['templates/mama_cas/*.html', 'templates/mama_cas/*.xml']
 }
 
+with open('README.rst') as f:
+    readme = f.read()
+
 setup(
     name='django-mama-cas',
     version=version,
     description='A CAS server single sign-on application for Django',
-    long_description=read_file('README.rst'),
+    long_description=readme,
     author='Jason Bittel',
     author_email='jason.bittel@gmail.com',
     url='https://github.com/jbittel/django-mama-cas',
