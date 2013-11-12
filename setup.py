@@ -4,7 +4,6 @@ try:
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
-import os
 
 from mama_cas import __version__ as version
 
