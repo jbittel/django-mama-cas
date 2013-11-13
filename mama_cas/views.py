@@ -224,9 +224,10 @@ class ValidateView(NeverCacheMixin, ValidateTicketMixin, View):
     (2.4) Check the validity of a service ticket. [CAS 1.0]
 
     When both ``service`` and ``ticket`` are provided, this view
-    responds with a ``ServiceTicket`` validation success or failure.
-    Whether or not the validation succeeds, the ``ServiceTicket`` is
-    consumed, rendering it invalid for future authentication attempts.
+    responds with a plain-text response indicating a ``ServiceTicket``
+    validation success or failure.  Whether or not the validation
+    succeeds, the ``ServiceTicket`` is consumed, rendering it invalid
+    for future authentication attempts.
 
     If ``renew`` is specified, validation will only succeed if the
     ``ServiceTicket`` was issued from the presentation of the user's
@@ -235,10 +236,10 @@ class ValidateView(NeverCacheMixin, ValidateTicketMixin, View):
     def get(self, request, *args, **kwargs):
         st, pgt, error = self.validate_service_ticket(request)
         if st:
-            return HttpResponse(content="yes\n%s\n" % st.user.username,
-                                content_type='text/plain')
+            content = "yes\n%s\n" % st.user.username
         else:
-            return HttpResponse(content="no\n\n", content_type='text/plain')
+            content = "no\n\n"
+        return HttpResponse(content=content, content_type='text/plain')
 
 
 class ServiceValidateView(NeverCacheMixin, ValidateTicketMixin,
