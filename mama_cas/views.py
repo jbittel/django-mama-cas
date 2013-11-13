@@ -263,12 +263,11 @@ class ServiceValidateView(NeverCacheMixin, ValidateTicketMixin,
     content_type = 'text/xml'
     template_name = 'mama_cas/validate.xml'
 
-    def get(self, request, *args, **kwargs):
-        st, pgt, error = self.validate_service_ticket(request)
+    def get_context_data(self, **kwargs):
+        st, pgt, error = self.validate_service_ticket(self.request)
         attributes = self.get_custom_attributes(st)
-        context = {'ticket': st, 'pgt': pgt, 'error': error,
-                   'attributes': attributes}
-        return self.render_to_response(context)
+        return {'ticket': st, 'pgt': pgt, 'error': error,
+                'attributes': attributes}
 
 
 class ProxyValidateView(NeverCacheMixin, ValidateTicketMixin,
@@ -294,21 +293,19 @@ class ProxyValidateView(NeverCacheMixin, ValidateTicketMixin,
     content_type = 'text/xml'
     template_name = 'mama_cas/validate.xml'
 
-    def get(self, request, *args, **kwargs):
-        ticket = request.GET.get('ticket')
+    def get_context_data(self, **kwargs):
+        ticket = self.request.GET.get('ticket')
         if not ticket or ticket.startswith(ProxyTicket.TICKET_PREFIX):
             # If no ticket parameter is present, attempt to validate it
             # anyway so the appropriate error is raised
-            t, pgt, proxies, error = self.validate_proxy_ticket(request)
+            t, pgt, proxies, error = self.validate_proxy_ticket(self.request)
             attributes = self.get_custom_attributes(t)
         else:
-            t, pgt, error = self.validate_service_ticket(request)
+            t, pgt, error = self.validate_service_ticket(self.request)
             proxies = None
             attributes = self.get_custom_attributes(t)
-
-        context = {'ticket': t, 'pgt': pgt, 'proxies': proxies,
-                   'error': error, 'attributes': attributes}
-        return self.render_to_response(context)
+        return {'ticket': t, 'pgt': pgt, 'proxies': proxies,
+                'error': error, 'attributes': attributes}
 
 
 class ProxyView(NeverCacheMixin, ValidateTicketMixin, TemplateView):
@@ -325,7 +322,6 @@ class ProxyView(NeverCacheMixin, ValidateTicketMixin, TemplateView):
     content_type = 'text/xml'
     template_name = 'mama_cas/proxy.xml'
 
-    def get(self, request, *args, **kwargs):
-        pt, error = self.validate_proxy_granting_ticket(request)
-        context = {'ticket': pt, 'error': error}
-        return self.render_to_response(context)
+    def get_context_data(self, **kwargs):
+        pt, error = self.validate_proxy_granting_ticket(self.request)
+        return {'ticket': pt, 'error': error}
