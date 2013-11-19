@@ -66,7 +66,7 @@ Once added, run ``manage.py syncdb`` to create the required database tables.
 URL paths
 ~~~~~~~~~
 
-django-mama-cas includes a Django ``URLconf`` that provides the required CAS
+django-mama-cas includes a Django URLconf that provides the required CAS
 URIs (e.g. ``login/``, ``logout/``, ``validate/``, etc.). They are located in
 ``mama_cas.urls`` and can be included directly in your project's root
 ``URLconf`` with the following::
@@ -77,14 +77,19 @@ URIs (e.g. ``login/``, ``logout/``, ``validate/``, etc.). They are located in
    )
 
 This makes the CAS server available at the top level of your project's
-URL. If you prefer to access it within a subdirectory, add a base to the
-included URLs. For example, to make the CAS server available under the
-``/cas/`` directory, use this instead::
+URL (e.g. ``http://example.com/login``). If you prefer to access it with a
+path component, add that to the regular expression. For example, to make the
+CAS server available as ``http://example.com/cas/login``, use this instead::
 
-   (r'^cas/', include('mama_cas.urls')),
+   urlpatterns = patterns('',
+       # ...existing urls...
+       (r'^cas/', include('mama_cas.urls')),
+   )
 
-Changing the URLs within ``mama_cas.urls`` is not recommended as it will
-likely break standard CAS behavior.
+.. note::
+
+   Changing the URL patterns within ``mama_cas.urls`` is not recommended as
+   it will likely break standard CAS behavior.
 
 Sessions
 ~~~~~~~~
@@ -100,7 +105,7 @@ changed from their defaults:
       This should be set to ``True`` to conform to the CAS specification.
 
 For information on how sessions work within Django, read the `session
-documentation`_. These settings ought to be configured to fit your environment
+documentation`_. These settings should be configured to fit your environment
 and security requirements.
 
 Authentication
