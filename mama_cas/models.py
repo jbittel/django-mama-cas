@@ -324,6 +324,9 @@ class ProxyGrantingTicketManager(TicketManager):
             raise InvalidTicketError("%s %s has already been used" %
                                      (t.name, ticket))
 
+        if t.is_expired():
+            raise InvalidTicketError("%s %s has expired" % (t.name, ticket))
+
         if not is_valid_service_url(service):
             raise InvalidServiceError("Service %s is not a valid %s URL" %
                                       (service, t.name))
@@ -341,6 +344,7 @@ class ProxyGrantingTicket(Ticket):
     """
     TICKET_PREFIX = 'PGT'
     IOU_PREFIX = 'PGTIOU'
+    TICKET_EXPIRE = getattr(settings, 'SESSION_COOKIE_AGE') / 60
 
     iou = models.CharField(_('iou'), max_length=255, unique=True)
     granted_by_st = models.ForeignKey(ServiceTicket, null=True, blank=True,
