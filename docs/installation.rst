@@ -100,9 +100,13 @@ changed from their defaults:
 
    `SESSION_COOKIE_AGE`_
       It is recommended this be set shorter than the default of two weeks.
+      This setting controls the duration of single sign-on sessions as well
+      as the duration of proxy-granting tickets.
 
    `SESSION_EXPIRE_AT_BROWSER_CLOSE`_
       This should be set to ``True`` to conform to the CAS specification.
+      Note that some browsers can be configured to retain cookies across
+      browser restarts, even for cookies set to be removed on browser close.
 
 For information on how sessions work within Django, read the `session
 documentation`_. These settings should be configured to fit your environment
