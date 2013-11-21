@@ -3,9 +3,7 @@ import logging
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login
-from django.core.urlresolvers import reverse
 from django.http import HttpResponse
-from django.shortcuts import redirect
 from django.utils.http import urlquote_plus
 from django.utils.translation import ugettext as _
 from django.views.generic import FormView
@@ -21,8 +19,8 @@ from mama_cas.mixins import NeverCacheMixin
 from mama_cas.mixins import ValidateTicketMixin
 from mama_cas.models import ProxyTicket
 from mama_cas.models import ServiceTicket
-from mama_cas.utils import add_query_params
 from mama_cas.utils import is_valid_service_url
+from mama_cas.utils import redirect
 
 
 logger = logging.getLogger(__name__)
@@ -62,40 +60,29 @@ class LoginView(NeverCacheMixin, LogoutUserMixin, FormView):
         if renew:
             logger.debug("Renew request received by credential requestor")
             self.logout_user(request)
-            login_url = add_query_params(reverse('cas_login'),
-                                         {'service': service})
-            logger.debug("Redirecting to %s" % login_url)
-            return redirect(login_url)
+            return redirect('cas_login', params={'service': service})
         elif gateway and service:
             logger.debug("Gateway request received by credential requestor")
             if request.user.is_authenticated():
                 if self.warn_user() and not warned:
-                    warn_url = add_query_params(reverse('cas_warn'),
-                                                {'service': service,
-                                                 'gateway': gateway})
-                    return redirect(warn_url)
+                    return redirect('cas_warn', params={'service': service,
+                                                        'gateway': gateway})
 
                 st = ServiceTicket.objects.create_ticket(service=service,
                                                          user=request.user)
-                service_url = add_query_params(service, {'ticket': st.ticket})
+                return redirect(service, params={'ticket': st.ticket})
             else:
-                service_url = service
-            logger.debug("Redirecting to %s" % service_url)
-            return redirect(service_url)
+                return redirect(service)
         elif request.user.is_authenticated():
             if service:
                 logger.debug("Service ticket request received "
                              "by credential requestor")
                 if self.warn_user() and not warned:
-                    warn_url = add_query_params(reverse('cas_warn'),
-                                                {'service': service})
-                    return redirect(warn_url)
+                    return redirect('cas_warn', params={'service': service})
 
                 st = ServiceTicket.objects.create_ticket(service=service,
                                                          user=request.user)
-                service_url = add_query_params(service, {'ticket': st.ticket})
-                logger.debug("Redirecting to %s" % service_url)
-                return redirect(service_url)
+                return redirect(service, params={'ticket': st.ticket})
             else:
                 msg = _("You are logged in as %s") % request.user
                 messages.success(request, msg)
@@ -151,10 +138,8 @@ class LoginView(NeverCacheMixin, LogoutUserMixin, FormView):
             st = ServiceTicket.objects.create_ticket(service=service,
                                                      user=self.request.user,
                                                      primary=True)
-            service = add_query_params(service, {'ticket': st.ticket})
-            logger.debug("Redirecting to %s" % service)
-            return redirect(service)
-        return redirect(reverse('cas_login'))
+            return redirect(service, params={'ticket': st.ticket})
+        return redirect('cas_login')
 
     def get_initial(self):
         service = self.request.GET.get('service')
@@ -174,10 +159,9 @@ class WarnView(NeverCacheMixin, LoginRequiredMixin, FormView):
     def form_valid(self, form):
         service = form.cleaned_data.get('service')
         gateway = form.cleaned_data.get('gateway')
-        return redirect(add_query_params(reverse('cas_login'),
-                                         {'service': service,
-                                          'gateway': gateway,
-                                          'warned': 'true'}))
+        return redirect('cas_login', params={'service': service,
+                                             'gateway': gateway,
+                                             'warned': 'true'})
 
     def get_initial(self):
         initial = {}
@@ -216,7 +200,7 @@ class LogoutView(NeverCacheMixin, LogoutUserMixin, View):
                 return redirect(url)
             msg = _("The application provided this link to follow: %s") % url
             messages.success(request, msg)
-        return redirect(reverse('cas_login'))
+        return redirect('cas_login')
 
 
 class ValidateView(NeverCacheMixin, ValidateTicketMixin, View):

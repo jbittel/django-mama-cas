@@ -5,6 +5,7 @@ from mama_cas.utils import add_query_params
 from mama_cas.utils import is_scheme_https
 from mama_cas.utils import clean_service_url
 from mama_cas.utils import is_valid_service_url
+from mama_cas.utils import redirect
 
 
 class UtilsTests(TestCase):
@@ -63,3 +64,23 @@ class UtilsTests(TestCase):
         settings.MAMA_CAS_VALID_SERVICES = ()
         self.assertTrue(is_valid_service_url('http://www.example.com'))
         settings.MAMA_CAS_VALID_SERVICES = old_valid_services
+
+    def test_redirect(self):
+        """
+        When redirecting, params should be injected on the redirection
+        URL.
+        """
+        r = redirect('http://example.com', params={'test1': 'red'})
+        self.assertEqual('http://example.com?test1=red', r['Location'])
+        r = redirect('cas_login', params={'test3': 'blue'})
+        self.assertEqual('/login?test3=blue', r['Location'])
+
+    def test_redirect_no_params(self):
+        """
+        When redirecting, if no params are provided only the URL
+        should be present.
+        """
+        r = redirect('http://example.com')
+        self.assertEqual('http://example.com', r['Location'])
+        r = redirect('cas_login')
+        self.assertEqual('/login', r['Location'])
