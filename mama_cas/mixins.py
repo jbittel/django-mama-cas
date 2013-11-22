@@ -62,8 +62,7 @@ class ValidateTicketMixin(object):
 
         logger.debug("Service validation request received for %s" % ticket)
         try:
-            st = ServiceTicket.objects.validate_ticket(ticket,
-                                                       service=service,
+            st = ServiceTicket.objects.validate_ticket(ticket, service,
                                                        renew=renew)
         except (InvalidRequestError, InvalidTicketError,
                 InvalidServiceError, InternalError) as e:
@@ -95,8 +94,7 @@ class ValidateTicketMixin(object):
 
         logger.debug("Proxy validation request received for %s" % ticket)
         try:
-            pt = ProxyTicket.objects.validate_ticket(ticket,
-                                                     service=service)
+            pt = ProxyTicket.objects.validate_ticket(ticket, service)
         except (InvalidRequestError, InvalidTicketError,
                 InvalidServiceError, InternalError) as e:
             logger.warning("%s %s" % (e.code, e))

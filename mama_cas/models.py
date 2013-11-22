@@ -59,15 +59,11 @@ class TicketManager(models.Manager):
         return "%s-%d-%s" % (prefix, int(time.time()),
                              get_random_string(length=self.model.TICKET_RAND_LEN))
 
-    def validate_ticket(self, ticket, service=None, renew=False):
+    def validate_ticket(self, ticket, service, renew=False):
         """
-        Given a ticket string, validate the corresponding ``Ticket``
-        returning the ``Ticket`` if valid. If validation fails, raise
-        an appropriate error.
-
-        If ``service`` is provided and the ticket has a service attribute,
-        the origin of the two services will be compared. Validation will only
-        succeed if the service origins match.
+        Given a ticket string and service indentifier, validate the
+        corresponding ``Ticket``. If validation succeeds, return the
+        ``Ticket``. If validation fails, raise an appropriate error.
 
         If ``renew`` is provided, the validation will only succeed if the
         ticket was issued from the presentation of the user's primary
@@ -302,9 +298,9 @@ class ProxyGrantingTicketManager(TicketManager):
 
     def validate_ticket(self, ticket, service):
         """
-        Given a ticket string, validate the corresponding ``Ticket``
-        returning the ``Ticket`` if valid. If validation fails, raise
-        an appropriate error.
+        Given a ticket string and service indentifier, validate the
+        corresponding ``Ticket``. If validation succeeds, return the
+        ``Ticket``. If validation fails, raise an appropriate error.
         """
         if not ticket:
             raise InvalidRequestError("No ticket string provided")
