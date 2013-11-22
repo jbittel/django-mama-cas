@@ -135,7 +135,7 @@ class ValidateTicketMixin(object):
         try:
             pgt = ProxyGrantingTicket.objects.validate_ticket(pgt,
                                                               target_service)
-        except (InvalidRequestError, BadPGTError,
+        except (InvalidRequestError, InvalidTicketError, BadPGTError,
                 InvalidServiceError, InternalError) as e:
             logger.warning("%s %s" % (e.code, e))
             return None, e
