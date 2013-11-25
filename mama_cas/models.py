@@ -45,7 +45,8 @@ class TicketManager(models.Manager):
             ticket = self.create_ticket_str()
         if 'service' in kwargs:
             kwargs['service'] = clean_service_url(kwargs['service'])
-        t = self.create(ticket=ticket, created=timezone.now(), **kwargs)
+        expires = timezone.now() + timedelta(minutes=self.model.TICKET_EXPIRE)
+        t = self.create(ticket=ticket, expires=expires, **kwargs)
         logger.debug("Created %s %s" % (t.name, t.ticket))
         return t
 
@@ -149,7 +150,7 @@ class Ticket(models.Model):
 
     ticket = models.CharField(_('ticket'), max_length=255, unique=True)
     user = models.ForeignKey(User, verbose_name=_('user'))
-    created = models.DateTimeField(_('created'))
+    expires = models.DateTimeField(_('expires'))
     consumed = models.DateTimeField(_('consumed'), null=True)
 
     objects = TicketManager()
@@ -187,9 +188,7 @@ class Ticket(models.Model):
         Check a ``Ticket``s expired state. Return ``True`` if the ticket is
         expired, and ``False`` otherwise.
         """
-        if self.created + timedelta(minutes=self.TICKET_EXPIRE) <= timezone.now():
-            return True
-        return False
+        return self.expires <= timezone.now()
 
 
 class ServiceTicket(Ticket):

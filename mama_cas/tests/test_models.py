@@ -136,7 +136,7 @@ class ServiceTicketTests(TestCase):
         an expired ticket is provided.
         """
         st = ServiceTicket.objects.create_ticket(**self.ticket_info)
-        st.created = now() - timedelta(minutes=st.TICKET_EXPIRE + 1)
+        st.expires = now() - timedelta(minutes=1)
         st.save()
         self.assertRaises(InvalidTicketError,
                           ServiceTicket.objects.validate_ticket,
@@ -183,7 +183,7 @@ class ServiceTicketTests(TestCase):
         """
         st = ServiceTicket.objects.create_ticket(**self.ticket_info)
         expired_st = ServiceTicket.objects.create_ticket(**self.ticket_info)
-        expired_st.created = now() - timedelta(minutes=st.TICKET_EXPIRE + 1)
+        expired_st.expires = now() - timedelta(minutes=1)
         expired_st.save()
         consumed_st = ServiceTicket.objects.create_ticket(**self.ticket_info)
         consumed_st.consume()
@@ -216,7 +216,7 @@ class ServiceTicketTests(TestCase):
         """
         st = ServiceTicket.objects.create_ticket(**self.ticket_info)
         expired_st = ServiceTicket.objects.create_ticket(**self.ticket_info)
-        expired_st.created = now() - timedelta(minutes=st.TICKET_EXPIRE + 1)
+        expired_st.expires = now() - timedelta(minutes=1)
         expired_st.save()
         consumed_st = ServiceTicket.objects.create_ticket(**self.ticket_info)
         consumed_st.consume()
@@ -352,7 +352,7 @@ class ProxyTicketTests(TestCase):
         an expired ticket is provided.
         """
         pt = ProxyTicket.objects.create_ticket(**self.ticket_info)
-        pt.created = now() - timedelta(minutes=pt.TICKET_EXPIRE + 1)
+        pt.expires = now() - timedelta(minutes=1)
         pt.save()
         self.assertRaises(InvalidTicketError,
                           ProxyTicket.objects.validate_ticket,
@@ -376,7 +376,7 @@ class ProxyTicketTests(TestCase):
         """
         pt = ProxyTicket.objects.create_ticket(**self.ticket_info)
         expired_pt = ProxyTicket.objects.create_ticket(**self.ticket_info)
-        expired_pt.created = now() - timedelta(minutes=pt.TICKET_EXPIRE + 1)
+        expired_pt.expires = now() - timedelta(minutes=1)
         expired_pt.save()
         consumed_pt = ProxyTicket.objects.create_ticket(**self.ticket_info)
         consumed_pt.consume()
@@ -409,7 +409,7 @@ class ProxyTicketTests(TestCase):
         """
         pt = ProxyTicket.objects.create_ticket(**self.ticket_info)
         expired_pt = ProxyTicket.objects.create_ticket(**self.ticket_info)
-        expired_pt.created = now() - timedelta(minutes=pt.TICKET_EXPIRE + 1)
+        expired_pt.expires = now() - timedelta(minutes=1)
         expired_pt.save()
         consumed_pt = ProxyTicket.objects.create_ticket(**self.ticket_info)
         consumed_pt.consume()
@@ -527,7 +527,7 @@ class ProxyGrantingTicketTests(TestCase):
         pgt = ProxyGrantingTicket.objects.create_ticket(self.service_url,
                                                         validate=False,
                                                         **self.ticket_info)
-        pgt.created = now() - timedelta(minutes=pgt.TICKET_EXPIRE + 1)
+        pgt.expires = now() - timedelta(minutes=1)
         pgt.save()
         self.assertRaises(InvalidTicketError,
                           ProxyGrantingTicket.objects.validate_ticket,
@@ -557,7 +557,7 @@ class ProxyGrantingTicketTests(TestCase):
         expired_pgt = ProxyGrantingTicket.objects.create_ticket(self.service_url,
                                                                 validate=False,
                                                                 **self.ticket_info)
-        expired_pgt.created = now() - timedelta(minutes=pgt.TICKET_EXPIRE + 1)
+        expired_pgt.expires = now() - timedelta(minutes=1)
         expired_pgt.save()
         consumed_pgt = ProxyGrantingTicket.objects.create_ticket(self.service_url,
                                                                  validate=False,
@@ -600,7 +600,7 @@ class ProxyGrantingTicketTests(TestCase):
         expired_pgt = ProxyGrantingTicket.objects.create_ticket(self.service_url,
                                                                 validate=False,
                                                                 **self.ticket_info)
-        expired_pgt.created = now() - timedelta(minutes=pgt.TICKET_EXPIRE + 1)
+        expired_pgt.expires = now() - timedelta(minutes=1)
         expired_pgt.save()
         consumed_pgt = ProxyGrantingTicket.objects.create_ticket(self.service_url,
                                                                  validate=False,
