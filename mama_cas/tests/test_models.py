@@ -180,16 +180,25 @@ class ServiceTicketTests(TestCase):
         """
         Calling ``delete_invalid_tickets()`` should only delete
         ``ServiceTicket``s that are either expired or consumed.
+        Invalid ``ServiceTicket``s that are referenced by
+        ``ProxyGrantingTicket``s should not be deleted.
         """
-        st = ServiceTicket.objects.create_ticket(**self.ticket_info)
+        ServiceTicket.objects.create_ticket(**self.ticket_info)
         expired_st = ServiceTicket.objects.create_ticket(**self.ticket_info)
         expired_st.expires = now() - timedelta(minutes=1)
         expired_st.save()
         consumed_st = ServiceTicket.objects.create_ticket(**self.ticket_info)
         consumed_st.consume()
 
+        invalid_st = ServiceTicket.objects.create_ticket(**self.ticket_info)
+        invalid_st.consume()
+        ProxyGrantingTicket.objects.create_ticket(self.service_url,
+                                                  granted_by_st=invalid_st,
+                                                  user=self.user,
+                                                  validate=False)
+
         ServiceTicket.objects.delete_invalid_tickets()
-        self.assertEqual(ServiceTicket.objects.count(), 1)
+        self.assertEqual(ServiceTicket.objects.count(), 2)
         self.assertRaises(ServiceTicket.DoesNotExist,
                           ServiceTicket.objects.get,
                           ticket=expired_st.ticket)
@@ -208,27 +217,6 @@ class ServiceTicketTests(TestCase):
         ServiceTicket.objects.consume_tickets(self.user)
         self.assertTrue(ServiceTicket.objects.get(ticket=st1).is_consumed())
         self.assertTrue(ServiceTicket.objects.get(ticket=st2).is_consumed())
-
-    def test_cleanupcas_management_command(self):
-        """
-        The ``cleanupcas`` management command should only delete
-        ``ServiceTicket``s that are either expired or consumed.
-        """
-        st = ServiceTicket.objects.create_ticket(**self.ticket_info)
-        expired_st = ServiceTicket.objects.create_ticket(**self.ticket_info)
-        expired_st.expires = now() - timedelta(minutes=1)
-        expired_st.save()
-        consumed_st = ServiceTicket.objects.create_ticket(**self.ticket_info)
-        consumed_st.consume()
-
-        management.call_command('cleanupcas')
-        self.assertEqual(ServiceTicket.objects.count(), 1)
-        self.assertRaises(ServiceTicket.DoesNotExist,
-                          ServiceTicket.objects.get,
-                          ticket=expired_st.ticket)
-        self.assertRaises(ServiceTicket.DoesNotExist,
-                          ServiceTicket.objects.get,
-                          ticket=consumed_st.ticket)
 
 
 class ProxyTicketTests(TestCase):
@@ -373,16 +361,25 @@ class ProxyTicketTests(TestCase):
         """
         Calling ``delete_invalid_tickets()`` should only delete
         ``ProxyTicket``s that are either expired or consumed.
+        Invalid ``ProxyTicket``s that are referenced by
+        ``ProxyGrantingTicket``s should not be deleted.
         """
-        pt = ProxyTicket.objects.create_ticket(**self.ticket_info)
+        ProxyTicket.objects.create_ticket(**self.ticket_info)
         expired_pt = ProxyTicket.objects.create_ticket(**self.ticket_info)
         expired_pt.expires = now() - timedelta(minutes=1)
         expired_pt.save()
         consumed_pt = ProxyTicket.objects.create_ticket(**self.ticket_info)
         consumed_pt.consume()
 
+        invalid_pt = ProxyTicket.objects.create_ticket(**self.ticket_info)
+        invalid_pt.consume()
+        ProxyGrantingTicket.objects.create_ticket(self.service_url,
+                                                  granted_by_pt=invalid_pt,
+                                                  user=self.user,
+                                                  validate=False)
+
         ProxyTicket.objects.delete_invalid_tickets()
-        self.assertEqual(ProxyTicket.objects.count(), 1)
+        self.assertEqual(ProxyTicket.objects.count(), 2)
         self.assertRaises(ProxyTicket.DoesNotExist,
                           ProxyTicket.objects.get,
                           ticket=expired_pt.ticket)
@@ -402,33 +399,12 @@ class ProxyTicketTests(TestCase):
         self.assertTrue(ProxyTicket.objects.get(ticket=pt1).is_consumed())
         self.assertTrue(ProxyTicket.objects.get(ticket=pt2).is_consumed())
 
-    def test_cleanupcas_management_command(self):
-        """
-        The ``cleanupcas`` management command should only delete
-        ``ProxyTicket``s that are either expired or consumed.
-        """
-        pt = ProxyTicket.objects.create_ticket(**self.ticket_info)
-        expired_pt = ProxyTicket.objects.create_ticket(**self.ticket_info)
-        expired_pt.expires = now() - timedelta(minutes=1)
-        expired_pt.save()
-        consumed_pt = ProxyTicket.objects.create_ticket(**self.ticket_info)
-        consumed_pt.consume()
-
-        management.call_command('cleanupcas')
-        self.assertEqual(ProxyTicket.objects.count(), 1)
-        self.assertRaises(ProxyTicket.DoesNotExist,
-                          ProxyTicket.objects.get,
-                          ticket=expired_pt.ticket)
-        self.assertRaises(ProxyTicket.DoesNotExist,
-                          ProxyTicket.objects.get,
-                          ticket=consumed_pt.ticket)
-
 
 class ProxyGrantingTicketTests(TestCase):
     """
     Test the model and manager used for ``ProxyGrantingTicket``s.
     """
-    service_url = 'http://www.example.com/'
+    pgt_url = 'http://www.example.com/'
 
     def setUp(self):
         """
@@ -455,7 +431,7 @@ class ProxyGrantingTicketTests(TestCase):
         with a valid ticket string, be neither consumed or expired and
         be related to the ``User`` that authorized its creation.
         """
-        pgt = ProxyGrantingTicket.objects.create_ticket(self.service_url,
+        pgt = ProxyGrantingTicket.objects.create_ticket(self.pgt_url,
                                                         validate=False,
                                                         **self.ticket_info)
         self.assertEqual(ProxyGrantingTicket.objects.count(), 1)
@@ -474,11 +450,11 @@ class ProxyGrantingTicketTests(TestCase):
         validation process should not consume the
         ``ProxyGrantingTicket``.
         """
-        pgt = ProxyGrantingTicket.objects.create_ticket(self.service_url,
+        pgt = ProxyGrantingTicket.objects.create_ticket(self.pgt_url,
                                                         validate=False,
                                                         **self.ticket_info)
         self.assertTrue(ProxyGrantingTicket.objects.validate_ticket(pgt.ticket,
-                                                                    self.service_url), pgt)
+                                                                    self.pgt_url), pgt)
         self.assertFalse(pgt.is_consumed())
 
     def test_validate_ticket_no_ticket(self):
@@ -507,7 +483,7 @@ class ProxyGrantingTicketTests(TestCase):
         """
         self.assertRaises(InvalidTicketError,
                           ProxyGrantingTicket.objects.validate_ticket,
-                          '12345', self.service_url)
+                          '12345', self.pgt_url)
 
     def test_validate_ticket_unknown_ticket(self):
         """
@@ -517,55 +493,65 @@ class ProxyGrantingTicketTests(TestCase):
         self.assertRaises(BadPGTError,
                           ProxyGrantingTicket.objects.validate_ticket,
                           'PGT-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-                          self.service_url)
+                          self.pgt_url)
 
     def test_validate_ticket_expired_ticket(self):
         """
         The ``ProxyGrantingTicket`` validation process ought to fail
         when an expired ticket is provided.
         """
-        pgt = ProxyGrantingTicket.objects.create_ticket(self.service_url,
+        pgt = ProxyGrantingTicket.objects.create_ticket(self.pgt_url,
                                                         validate=False,
                                                         **self.ticket_info)
         pgt.expires = now() - timedelta(minutes=1)
         pgt.save()
         self.assertRaises(InvalidTicketError,
                           ProxyGrantingTicket.objects.validate_ticket,
-                          pgt.ticket, self.service_url)
+                          pgt.ticket, self.pgt_url)
 
     def test_validate_ticket_consumed_ticket(self):
         """
         The ``ProxyGrantingTicket`` validation process ought to fail
         when a consumed ticket is provided.
         """
-        pgt = ProxyGrantingTicket.objects.create_ticket(self.service_url,
+        pgt = ProxyGrantingTicket.objects.create_ticket(self.pgt_url,
                                                         validate=False,
                                                         **self.ticket_info)
         pgt.consume()
         self.assertRaises(InvalidTicketError,
                           ProxyGrantingTicket.objects.validate_ticket,
-                          pgt.ticket, self.service_url)
+                          pgt.ticket, self.pgt_url)
 
     def test_invalid_ticket_deletion(self):
         """
         Calling ``delete_invalid_tickets()`` should only delete
         ``ProxyGrantingTicket``s that are either expired or consumed.
+        ``ProxyGrantingTicket``s referenced by ``ProxyTicket``s
+        should not be deleted.
         """
-        pgt = ProxyGrantingTicket.objects.create_ticket(self.service_url,
-                                                        validate=False,
-                                                        **self.ticket_info)
-        expired_pgt = ProxyGrantingTicket.objects.create_ticket(self.service_url,
+        ProxyGrantingTicket.objects.create_ticket(self.pgt_url,
+                                                  validate=False,
+                                                  **self.ticket_info)
+        expired_pgt = ProxyGrantingTicket.objects.create_ticket(self.pgt_url,
                                                                 validate=False,
                                                                 **self.ticket_info)
         expired_pgt.expires = now() - timedelta(minutes=1)
         expired_pgt.save()
-        consumed_pgt = ProxyGrantingTicket.objects.create_ticket(self.service_url,
+        consumed_pgt = ProxyGrantingTicket.objects.create_ticket(self.pgt_url,
                                                                  validate=False,
                                                                  **self.ticket_info)
         consumed_pgt.consume()
 
+        invalid_pgt = ProxyGrantingTicket.objects.create_ticket(self.pgt_url,
+                                                                validate=False,
+                                                                **self.ticket_info)
+        invalid_pgt.consume()
+        ProxyTicket.objects.create_ticket(service=self.pgt_url,
+                                          granted_by_pgt=invalid_pgt,
+                                          **self.ticket_info)
+
         ProxyGrantingTicket.objects.delete_invalid_tickets()
-        self.assertEqual(ProxyGrantingTicket.objects.count(), 1)
+        self.assertEqual(ProxyGrantingTicket.objects.count(), 2)
         self.assertRaises(ProxyGrantingTicket.DoesNotExist,
                           ProxyGrantingTicket.objects.get,
                           ticket=expired_pgt.ticket)
@@ -578,10 +564,10 @@ class ProxyGrantingTicketTests(TestCase):
         Calling ``consume_tickets()`` should consume tickets belonging
         to the provided user.
         """
-        pgt1 = ProxyGrantingTicket.objects.create_ticket(self.service_url,
+        pgt1 = ProxyGrantingTicket.objects.create_ticket(self.pgt_url,
                                                          validate=False,
                                                          **self.ticket_info)
-        pgt2 = ProxyGrantingTicket.objects.create_ticket(self.service_url,
+        pgt2 = ProxyGrantingTicket.objects.create_ticket(self.pgt_url,
                                                          validate=False,
                                                          **self.ticket_info)
 
@@ -589,29 +575,40 @@ class ProxyGrantingTicketTests(TestCase):
         self.assertTrue(ProxyGrantingTicket.objects.get(ticket=pgt1).is_consumed())
         self.assertTrue(ProxyGrantingTicket.objects.get(ticket=pgt2).is_consumed())
 
+
+class ManagementCommandTests(TestCase):
+    """
+    Test management commands that operate on ``Ticket``s.
+    """
+    pgt_url = 'http://www.example.com/'
+
+    def setUp(self):
+        """
+        Initialize the environment for each test.
+        """
+        self.user = User.objects.create_user(username='ellen',
+                                             password='mamas&papas',
+                                             email='ellen@example.com')
+        self.ticket_info = {'service': self.pgt_url,
+                            'user': self.user}
+
     def test_cleanupcas_management_command(self):
         """
-        The ``cleanupcas`` management command should only delete
-        ``ProxyGrantingTicket``s that are either expired or consumed.
+        The ``cleanupcas`` management command should delete ``Ticket``s
+        that are either expired or consumed.
         """
-        pgt = ProxyGrantingTicket.objects.create_ticket(self.service_url,
+        st = ServiceTicket.objects.create_ticket(**self.ticket_info)
+        st.consume()
+        pgt = ProxyGrantingTicket.objects.create_ticket(self.pgt_url,
+                                                        granted_by_st=st,
                                                         validate=False,
-                                                        **self.ticket_info)
-        expired_pgt = ProxyGrantingTicket.objects.create_ticket(self.service_url,
-                                                                validate=False,
-                                                                **self.ticket_info)
-        expired_pgt.expires = now() - timedelta(minutes=1)
-        expired_pgt.save()
-        consumed_pgt = ProxyGrantingTicket.objects.create_ticket(self.service_url,
-                                                                 validate=False,
-                                                                 **self.ticket_info)
-        consumed_pgt.consume()
+                                                        user=self.user)
+        pgt.consume()
+        pt = ProxyTicket.objects.create_ticket(granted_by_pgt=pgt,
+                                               **self.ticket_info)
+        pt.consume()
 
         management.call_command('cleanupcas')
-        self.assertEqual(ProxyGrantingTicket.objects.count(), 1)
-        self.assertRaises(ProxyGrantingTicket.DoesNotExist,
-                          ProxyGrantingTicket.objects.get,
-                          ticket=expired_pgt.ticket)
-        self.assertRaises(ProxyGrantingTicket.DoesNotExist,
-                          ProxyGrantingTicket.objects.get,
-                          ticket=consumed_pgt.ticket)
+        self.assertEqual(ServiceTicket.objects.count(), 0)
+        self.assertEqual(ProxyGrantingTicket.objects.count(), 0)
+        self.assertEqual(ProxyTicket.objects.count(), 0)

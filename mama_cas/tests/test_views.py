@@ -43,12 +43,6 @@ class LoginViewTests(TestCase):
         """
         self.user = User.objects.create_user(**self.user_info)
 
-    def tearDown(self):
-        """
-        Undo any modifications made to the test environment.
-        """
-        self.user.delete()
-
     def test_login_view(self):
         """
         When called with no parameters, a ``GET`` request to the view
@@ -165,12 +159,6 @@ class WarnViewTests(TestCase):
         """
         self.user = User.objects.create_user(**self.user_info)
 
-    def tearDown(self):
-        """
-        Undo any modifications made to the test environment.
-        """
-        self.user.delete()
-
     def test_warn_view(self):
         """
         When called with no parameters and no logged in user, a ``GET``
@@ -251,7 +239,6 @@ class LogoutViewTests(TestCase):
         """
         Undo any modifications made to the test environment.
         """
-        self.user.delete()
         settings.MAMA_CAS_VALID_SERVICES = self.old_valid_services
         settings.MAMA_CAS_FOLLOW_LOGOUT_URL = self.old_follow_url
 
@@ -326,7 +313,6 @@ class ValidateViewTests(TestCase):
         """
         Undo any modifications made to the test environment.
         """
-        self.user.delete()
         settings.MAMA_CAS_VALID_SERVICES = self.old_valid_services
 
     def test_validate_view(self):
@@ -637,11 +623,6 @@ class ProxyValidateViewTests(TestCase):
         """
         Undo any modifications made to the test environment.
         """
-        self.user.delete()
-        self.st.delete()
-        self.pgt.delete()
-        self.pt.delete()
-
         settings.MAMA_CAS_USER_ATTRIBUTES = self.old_user_attributes
         settings.MAMA_CAS_VALID_SERVICES = self.old_valid_services
 

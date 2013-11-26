@@ -9,6 +9,7 @@ import time
 
 from django.conf import settings
 from django.db import models
+from django.db.models import Q
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.encoding import python_2_unicode_compatible
@@ -109,18 +110,21 @@ class TicketManager(models.Manager):
 
     def delete_invalid_tickets(self):
         """
-        Iterate over all ``Ticket``s and delete all consumed or expired
-        ``Ticket``s. Invalid tickets are no longer valid for future
-        authentication attempts and can be safely deleted.
+        Delete consumed or expired ``Ticket``s that are not referenced
+        by other ``Ticket``s. Invalid tickets are no longer valid for
+        authentication and can be safely deleted.
 
         A custom management command is provided that executes this method
-        on all applicable models by running ``manage.py cleanupcas``. It
-        is recommended that you run this command on a regular basis to
-        prevent invalid tickets from causing storage or performance issues.
+        on all applicable models by running ``manage.py cleanupcas``.
+        This command should be run on a regular basis to prevent invalid
+        tickets from causing storage or performance issues.
         """
-        for ticket in self.all():
-            if ticket.is_consumed() or ticket.is_expired():
+        for ticket in self.filter(Q(consumed__isnull=False) |
+                                  Q(expires__lte=timezone.now())):
+            try:
                 ticket.delete()
+            except models.ProtectedError:
+                pass
 
     def consume_tickets(self, user):
         """
@@ -227,6 +231,7 @@ class ProxyTicket(Ticket):
 
     service = models.CharField(_('service'), max_length=255)
     granted_by_pgt = models.ForeignKey('ProxyGrantingTicket',
+                                       on_delete=models.PROTECT,
                                        verbose_name=_('granted by proxy-granting ticket'))
 
     class Meta:
@@ -342,8 +347,10 @@ class ProxyGrantingTicket(Ticket):
 
     iou = models.CharField(_('iou'), max_length=255, unique=True)
     granted_by_st = models.ForeignKey(ServiceTicket, null=True, blank=True,
+                                      on_delete=models.PROTECT,
                                       verbose_name=_('granted by service ticket'))
     granted_by_pt = models.ForeignKey(ProxyTicket, null=True, blank=True,
+                                      on_delete=models.PROTECT,
                                       verbose_name=_('granted by proxy ticket'))
 
     objects = ProxyGrantingTicketManager()
