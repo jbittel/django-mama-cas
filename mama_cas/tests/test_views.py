@@ -302,8 +302,8 @@ class ValidateViewTests(TestCase):
         self.user = User.objects.create_user(username='ellen',
                                              password='mamas&papas',
                                              email='ellen@example.com')
-        ticket_info = {'service': self.service_url, 'user': self.user}
-        self.st = ServiceTicket.objects.create_ticket(**ticket_info)
+        self.st = ServiceTicket.objects.create_ticket(service=self.service_url,
+                                                      user=self.user)
 
         self.old_valid_services = getattr(settings,
                                           'MAMA_CAS_VALID_SERVICES', ())
@@ -368,7 +368,8 @@ class ValidateViewTests(TestCase):
         self.assertContains(response, "yes\nellen\n", status_code=200)
         self.assertEqual(response.get('Content-Type'), 'text/plain')
 
-        # This should fail as the ticket was consumed in the preceeding test
+        # This should not validate as the ticket was consumed in the
+        # preceeding request
         response = self.client.get(reverse('cas_validate') + query_str)
         self.assertContains(response, "no\n\n", status_code=200)
         self.assertEqual(response.get('Content-Type'), 'text/plain')
@@ -386,14 +387,12 @@ class ServiceValidateViewTests(TestCase):
         Initialize the environment for each test.
         """
         self.user = User.objects.create_user(username='ellen',
+                                             first_name='Ellen',
+                                             last_name='Cohen',
                                              password='mamas&papas',
                                              email='ellen@example.com')
-        self.user.first_name = 'Ellen'
-        self.user.last_name = 'Cohen'
-        self.user.save()
-
-        ticket_info = {'service': self.service_url, 'user': self.user}
-        self.st = ServiceTicket.objects.create_ticket(**ticket_info)
+        self.st = ServiceTicket.objects.create_ticket(service=self.service_url,
+                                                      user=self.user)
 
         self.old_user_attributes = getattr(settings,
                                            'MAMA_CAS_USER_ATTRIBUTES', {})
@@ -481,7 +480,8 @@ class ServiceValidateViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get('Content-Type'), 'text/xml')
 
-        # This should fail as the ticket was consumed in the preceeding test
+        # This should not validate as the ticket was consumed in the
+        # preceeding request
         response = self.client.get(reverse('cas_service_validate') + query_str)
         tree = ElementTree(fromstring(response.content))
         elem = tree.find(XMLNS + 'authenticationFailure')
@@ -595,20 +595,19 @@ class ProxyValidateViewTests(TestCase):
         Initialize the environment for each test.
         """
         self.user = User.objects.create_user(username='ellen',
+                                             first_name='Ellen',
+                                             last_name='Cohen',
                                              password='mamas&papas',
                                              email='ellen@example.com')
-        self.user.first_name = 'Ellen'
-        self.user.last_name = 'Cohen'
-        self.user.save()
-
-        ticket_info = {'service': self.service_url, 'user': self.user}
-        self.st = ServiceTicket.objects.create_ticket(**ticket_info)
+        self.st = ServiceTicket.objects.create_ticket(service=self.service_url,
+                                                      user=self.user)
         self.pgt = ProxyGrantingTicket.objects.create_ticket(self.service_url,
                                                              validate=False,
                                                              user=self.user,
                                                              granted_by_st=self.st)
-        self.pt = ProxyTicket.objects.create_ticket(granted_by_pgt=self.pgt,
-                                                    **ticket_info)
+        self.pt = ProxyTicket.objects.create_ticket(service=self.service_url,
+                                                    user=self.user,
+                                                    granted_by_pgt=self.pgt)
 
         self.old_user_attributes = getattr(settings,
                                            'MAMA_CAS_USER_ATTRIBUTES', {})
@@ -696,7 +695,8 @@ class ProxyValidateViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get('Content-Type'), 'text/xml')
 
-        # This request should fail as the ticket was consumed in the preceeding test
+        # This should not validate as the ticket was consumed in the
+        # preceeding request
         response = self.client.get(reverse('cas_proxy_validate') + query_str)
         tree = ElementTree(fromstring(response.content))
         elem = tree.find(XMLNS + 'authenticationFailure')
@@ -727,7 +727,7 @@ class ProxyValidateViewTests(TestCase):
         self.assertEqual(proxy[0].text, 'http://www.example.com')
 
         # This second validation request attempt should fail as the
-        # ticket was consumed in the preceeding test
+        # ticket was consumed in the preceeding request
         response = self.client.get(reverse('cas_proxy_validate') + query_str)
         tree = ElementTree(fromstring(response.content))
         elem = tree.find(XMLNS + 'authenticationFailure')
@@ -745,13 +745,12 @@ class ProxyValidateViewTests(TestCase):
         accessed.
         """
         pgt2 = ProxyGrantingTicket.objects.create_ticket(self.service_url,
-                                                         validate=False,
                                                          user=self.user,
-                                                         granted_by_pt=self.pt)
-        ticket_info2 = {'service': 'http://ww2.example.com/',
-                        'user': self.user}
-        pt2 = ProxyTicket.objects.create_ticket(granted_by_pgt=pgt2,
-                                                **ticket_info2)
+                                                         granted_by_pt=self.pt,
+                                                         validate=False)
+        pt2 = ProxyTicket.objects.create_ticket(service='http://ww2.example.com',
+                                                user=self.user,
+                                                granted_by_pgt=pgt2)
         query_str = "?service=%s&ticket=%s" % ('http://ww2.example.com/', pt2)
         response = self.client.get(reverse('cas_proxy_validate') + query_str)
         tree = ElementTree(fromstring(response.content))
@@ -820,8 +819,7 @@ class ProxyValidateViewTests(TestCase):
         configured user attributes.
         """
         attr_names = list(settings.MAMA_CAS_USER_ATTRIBUTES.keys())
-        query_str = "?service=%s&ticket=%s" % (self.service_url,
-                                               self.pt.ticket)
+        query_str = "?service=%s&ticket=%s" % (self.service_url, self.pt.ticket)
         response = self.client.get(reverse('cas_proxy_validate') + query_str)
         tree = ElementTree(fromstring(response.content))
         elem = tree.find(XMLNS + 'authenticationSuccess/' +
@@ -873,12 +871,12 @@ class ProxyViewTests(TestCase):
         self.user = User.objects.create_user(username='ellen',
                                              password='mamas&papas',
                                              email='ellen@example.com')
-        ticket_info = {'service': self.service_url, 'user': self.user}
-        self.st = ServiceTicket.objects.create_ticket(**ticket_info)
+        self.st = ServiceTicket.objects.create_ticket(service=self.service_url,
+                                                      user=self.user)
         self.pgt = ProxyGrantingTicket.objects.create_ticket(self.service_url,
-                                                             validate=False,
                                                              user=self.user,
-                                                             granted_by_st=self.st)
+                                                             granted_by_st=self.st,
+                                                             validate=False)
 
         self.old_valid_services = getattr(settings,
                                           'MAMA_CAS_VALID_SERVICES', ())
