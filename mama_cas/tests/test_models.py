@@ -30,7 +30,7 @@ class ServiceTicketTests(TestCase):
         """
         Initialize the environment for each test.
         """
-        self.user = User.objects.create_user(username='ellen',
+        self.user = User.objects.create_user('ellen',
                                              password='mamas&papas',
                                              email='ellen@example.com')
         self.old_valid_services = getattr(settings,
@@ -242,7 +242,7 @@ class ProxyTicketTests(TestCase):
         """
         Initialize the environment for each test.
         """
-        self.user = User.objects.create_user(username='ellen',
+        self.user = User.objects.create_user('ellen',
                                              password='mamas&papas',
                                              email='ellen@example.com')
         self.pgt = ProxyGrantingTicket.objects.create_ticket(self.service_url,
@@ -443,7 +443,7 @@ class ProxyGrantingTicketTests(TestCase):
         """
         Initialize the environment for each test.
         """
-        self.user = User.objects.create_user(username='ellen',
+        self.user = User.objects.create_user('ellen',
                                              password='mamas&papas',
                                              email='ellen@example.com')
         self.old_valid_services = getattr(settings,
@@ -617,7 +617,7 @@ class ManagementCommandTests(TestCase):
         """
         Initialize the environment for each test.
         """
-        self.user = User.objects.create_user(username='ellen',
+        self.user = User.objects.create_user('ellen',
                                              password='mamas&papas',
                                              email='ellen@example.com')
 

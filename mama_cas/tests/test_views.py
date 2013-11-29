@@ -299,7 +299,7 @@ class ValidateViewTests(TestCase):
         """
         Initialize the environment for each test.
         """
-        self.user = User.objects.create_user(username='ellen',
+        self.user = User.objects.create_user('ellen',
                                              password='mamas&papas',
                                              email='ellen@example.com')
         self.st = ServiceTicket.objects.create_ticket(service=self.service_url,
@@ -386,7 +386,7 @@ class ServiceValidateViewTests(TestCase):
         """
         Initialize the environment for each test.
         """
-        self.user = User.objects.create_user(username='ellen',
+        self.user = User.objects.create_user('ellen',
                                              first_name='Ellen',
                                              last_name='Cohen',
                                              password='mamas&papas',
@@ -594,7 +594,7 @@ class ProxyValidateViewTests(TestCase):
         """
         Initialize the environment for each test.
         """
-        self.user = User.objects.create_user(username='ellen',
+        self.user = User.objects.create_user('ellen',
                                              first_name='Ellen',
                                              last_name='Cohen',
                                              password='mamas&papas',
@@ -868,7 +868,7 @@ class ProxyViewTests(TestCase):
         """
         Create a valid user and service ticket for testing purposes.
         """
-        self.user = User.objects.create_user(username='ellen',
+        self.user = User.objects.create_user('ellen',
                                              password='mamas&papas',
                                              email='ellen@example.com')
         self.st = ServiceTicket.objects.create_ticket(service=self.service_url,

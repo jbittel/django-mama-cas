@@ -38,10 +38,10 @@ class UtilsTests(TestCase):
         When called with a URL, ``clean_service_url()`` should return
         the ``scheme`` and ``netloc`` components of the original URL.
         """
-        url = 'http://www.example.com:8080/test?test3=blue#green'
-        self.assertEqual('http://www.example.com:8080', clean_service_url(url))
-        url = 'https://www.example.com/'
-        self.assertEqual('https://www.example.com', clean_service_url(url))
+        self.assertEqual('http://www.example.com:8080',
+                         clean_service_url('http://www.example.com:8080/test?test3=blue#green'))
+        self.assertEqual('https://www.example.com',
+                         clean_service_url('https://www.example.com/'))
 
     def test_is_valid_service_url(self):
         """
@@ -58,7 +58,7 @@ class UtilsTests(TestCase):
     def test_empty_valid_services(self):
         """
         When no valid services are configured,
-        ``is_valid_service_url()`` should simply return ``True``.
+        ``is_valid_service_url()`` should return ``True``.
         """
         old_valid_services = getattr(settings, 'MAMA_CAS_VALID_SERVICES', ())
         settings.MAMA_CAS_VALID_SERVICES = ()

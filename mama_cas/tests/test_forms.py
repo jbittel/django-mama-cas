@@ -18,15 +18,9 @@ class LoginFormTests(TestCase):
         """
         Initialize the environment for each test.
         """
-        self.user = User.objects.create_user(username='ellen',
+        self.user = User.objects.create_user('ellen',
                                              password='mamas&papas',
                                              email='ellen@example.com')
-
-    def tearDown(self):
-        """
-        Undo any modifications made to the test environment.
-        """
-        self.user.delete()
 
     def test_login_form(self):
         """
