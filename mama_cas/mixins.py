@@ -57,7 +57,7 @@ class ValidateTicketMixin(object):
         """
         service = request.GET.get('service')
         ticket = request.GET.get('ticket')
-        renew = request.GET.get('renew')
+        renew = bool(request.GET.get('renew'))
         pgturl = request.GET.get('pgtUrl')
 
         logger.debug("Service validation request received for %s" % ticket)

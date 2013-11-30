@@ -44,17 +44,16 @@ class LoginView(NeverCacheMixin, LogoutUserMixin, FormView):
         1. ``service``: the identifier of the application the client is
            accessing. We assume this identifier to be a URL.
         2. ``renew``: requires a client to present credentials
-           regardless of any existing single sign-on session. If set,
-           its value should be ``true``.
+           regardless of any existing single sign-on session.
         3. ``gateway``: causes the client to not be prompted for
-           credentials. If a single sign-on session already exists, the
-           user will be logged in. Otherwise, the user is simply
-           forwarded to the service, if specified. If set, its value
-           should be ``true``.
+           credentials. If a single sign-on session exists the user
+           will be logged in and forwarded to the specified service.
+           Otherwise, the user remains logged out and is forwarded to
+           the specified service.
         """
         service = request.GET.get('service')
-        renew = request.GET.get('renew')
-        gateway = request.GET.get('gateway')
+        renew = bool(request.GET.get('renew'))
+        gateway = bool(request.GET.get('gateway'))
         warned = request.GET.get('warned')
 
         if renew:
@@ -158,7 +157,7 @@ class WarnView(NeverCacheMixin, LoginRequiredMixin, FormView):
 
     def form_valid(self, form):
         service = form.cleaned_data.get('service')
-        gateway = form.cleaned_data.get('gateway')
+        gateway = bool(form.cleaned_data.get('gateway'))
         return redirect('cas_login', params={'service': service,
                                              'gateway': gateway,
                                              'warned': 'true'})
@@ -166,7 +165,7 @@ class WarnView(NeverCacheMixin, LoginRequiredMixin, FormView):
     def get_initial(self):
         initial = {}
         service = self.request.GET.get('service')
-        gateway = self.request.GET.get('gateway')
+        gateway = bool(self.request.GET.get('gateway'))
         if service:
             initial['service'] = urlquote_plus(service)
         if gateway:
