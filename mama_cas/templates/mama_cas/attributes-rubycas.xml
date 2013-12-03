@@ -1,3 +1,0 @@
-{% for name, value in attributes %}
-    <cas:{{ name }}>{{ value }}</cas:{{ name }}>
-{% endfor %}

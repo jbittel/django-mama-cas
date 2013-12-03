@@ -1,7 +1,0 @@
-{% if attributes %}
-    <cas:attributes>
-    {% for name, value in attributes %}
-        <cas:{{ name }}>{{ value }}</cas:{{ name }}>
-    {% endfor %}
-    </cas:attributes>
-{% endif %}

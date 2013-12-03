@@ -7,7 +7,6 @@ from django.http import HttpResponse
 from django.utils.http import urlquote_plus
 from django.utils.translation import ugettext as _
 from django.views.generic import FormView
-from django.views.generic import TemplateView
 from django.views.generic import View
 
 from mama_cas.forms import LoginForm
@@ -17,8 +16,11 @@ from mama_cas.mixins import LoginRequiredMixin
 from mama_cas.mixins import LogoutUserMixin
 from mama_cas.mixins import NeverCacheMixin
 from mama_cas.mixins import ValidateTicketMixin
+from mama_cas.mixins import XmlResponseMixin
 from mama_cas.models import ProxyTicket
 from mama_cas.models import ServiceTicket
+from mama_cas.response import ValidationResponse
+from mama_cas.response import ProxyResponse
 from mama_cas.utils import is_valid_service_url
 from mama_cas.utils import redirect
 
@@ -226,7 +228,7 @@ class ValidateView(NeverCacheMixin, ValidateTicketMixin, View):
 
 
 class ServiceValidateView(NeverCacheMixin, ValidateTicketMixin,
-                          CustomAttributesMixin, TemplateView):
+                          CustomAttributesMixin, XmlResponseMixin, View):
     """
     (2.5) Check the validity of a service ticket. [CAS 2.0]
 
@@ -244,8 +246,7 @@ class ServiceValidateView(NeverCacheMixin, ValidateTicketMixin,
     ``ProxyGrantingTicket`` if the proxy callback URL has a valid SSL
     certificate and responds with a successful HTTP status code.
     """
-    content_type = 'text/xml'
-    template_name = 'mama_cas/validate.xml'
+    response_class = ValidationResponse
 
     def get_context_data(self, **kwargs):
         st, pgt, error = self.validate_service_ticket(self.request)
@@ -255,7 +256,7 @@ class ServiceValidateView(NeverCacheMixin, ValidateTicketMixin,
 
 
 class ProxyValidateView(NeverCacheMixin, ValidateTicketMixin,
-                        CustomAttributesMixin, TemplateView):
+                        CustomAttributesMixin, XmlResponseMixin, View):
     """
     (2.6) Perform the same validation tasks as ServiceValidateView and
     additionally validate proxy tickets. [CAS 2.0]
@@ -274,8 +275,7 @@ class ProxyValidateView(NeverCacheMixin, ValidateTicketMixin,
     ``ProxyGrantingTicket`` if the proxy callback URL has a valid SSL
     certificate and responds with a successful HTTP status code.
     """
-    content_type = 'text/xml'
-    template_name = 'mama_cas/validate.xml'
+    response_class = ValidationResponse
 
     def get_context_data(self, **kwargs):
         ticket = self.request.GET.get('ticket')
@@ -292,7 +292,7 @@ class ProxyValidateView(NeverCacheMixin, ValidateTicketMixin,
                 'error': error, 'attributes': attributes}
 
 
-class ProxyView(NeverCacheMixin, ValidateTicketMixin, TemplateView):
+class ProxyView(NeverCacheMixin, ValidateTicketMixin, XmlResponseMixin, View):
     """
     (2.7) Provide proxy tickets to services that have acquired proxy-
     granting tickets. [CAS 2.0]
@@ -303,8 +303,7 @@ class ProxyView(NeverCacheMixin, ValidateTicketMixin, TemplateView):
     validation succeeds, a ``ProxyTicket`` will be created and included
     in the response.
     """
-    content_type = 'text/xml'
-    template_name = 'mama_cas/proxy.xml'
+    response_class = ProxyResponse
 
     def get_context_data(self, **kwargs):
         pt, error = self.validate_proxy_granting_ticket(self.request)

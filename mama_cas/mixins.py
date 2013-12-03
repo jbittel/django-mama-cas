@@ -219,3 +219,19 @@ class LogoutUserMixin(object):
             logout(request)
             messages.success(request,
                              _("You have been successfully logged out"))
+
+
+class XmlResponseMixin(object):
+    """
+    View mixin for building CAS XML responses. Expects the view to
+    implement get_context_data() and define response_class.
+    """
+    content_type = 'text/xml'
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
+        return self.render_to_response(context)
+
+    def render_to_response(self, context):
+        return self.response_class(context=context,
+                                   content_type=self.content_type)

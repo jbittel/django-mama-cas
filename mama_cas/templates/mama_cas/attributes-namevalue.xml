@@ -1,3 +1,0 @@
-{% for name, value in attributes %}
-    <cas:attribute name="{{ name }}" value="{{ value }}" />
-{% endfor %}
