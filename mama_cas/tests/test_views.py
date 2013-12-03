@@ -5,13 +5,11 @@ try:
 except ImportError:  # pragma: no cover
     from urllib import quote
 
-from xml.etree.ElementTree import ElementTree
-from xml.etree.ElementTree import fromstring
-
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.urlresolvers import reverse
 from django.test import TestCase
+
 try:
     from django.contrib.auth import get_user_model
     User = get_user_model()
@@ -165,8 +163,7 @@ class WarnViewTests(TestCase):
         request to the view should simply redirect to the login view.
         """
         response = self.client.get(reverse('cas_warn'))
-        self.assertRedirects(response, reverse('cas_login'),
-                             status_code=302, target_status_code=200)
+        self.assertRedirects(response, reverse('cas_login'))
         self.assertTrue('Cache-Control' in response)
         self.assertEqual(response['Cache-Control'], 'max-age=0')
 
@@ -186,8 +183,7 @@ class WarnViewTests(TestCase):
             query_str = "?service=%s" % quote(self.service_url, '')
             response = self.client.get(reverse('cas_login') + query_str)
             self.assertEqual(self.client.session.get('warn'), True)
-            self.assertRedirects(response, reverse('cas_warn') + query_str,
-                                 status_code=302, target_status_code=200)
+            self.assertRedirects(response, reverse('cas_warn') + query_str)
 
     def test_warn_view_display(self):
         """
@@ -199,7 +195,7 @@ class WarnViewTests(TestCase):
                           password=self.user_info['password'])
         query_str = "?service=%s" % quote(self.service_url, '')
         response = self.client.get(reverse('cas_warn') + query_str)
-        self.assertContains(response, self.service_url, status_code=200)
+        self.assertContains(response, self.service_url)
         self.assertTemplateUsed(response, 'mama_cas/warn.html')
 
     def test_warn_view_warned(self):
@@ -211,8 +207,7 @@ class WarnViewTests(TestCase):
         self.client.login(username=self.user_info['username'],
                           password=self.user_info['password'])
         response = self.client.post(reverse('cas_warn'))
-        self.assertRedirects(response, reverse('cas_login') + '?warned=true',
-                             status_code=302, target_status_code=200)
+        self.assertRedirects(response, reverse('cas_login') + '?warned=true')
 
 
 class LogoutViewTests(TestCase):
@@ -248,8 +243,7 @@ class LogoutViewTests(TestCase):
         request to the view should simply redirect to the login view.
         """
         response = self.client.get(reverse('cas_logout'))
-        self.assertRedirects(response, reverse('cas_login'),
-                             status_code=302, target_status_code=200)
+        self.assertRedirects(response, reverse('cas_login'))
         self.assertTrue('Cache-Control' in response)
         self.assertEqual(response['Cache-Control'], 'max-age=0')
 
@@ -269,8 +263,7 @@ class LogoutViewTests(TestCase):
         response = self.client.post(reverse('cas_login'), self.user_info)
         query_str = '?url=http://www.example.com'
         response = self.client.get(reverse('cas_logout') + query_str)
-        self.assertRedirects(response, reverse('cas_login'),
-                             status_code=302, target_status_code=200)
+        self.assertRedirects(response, reverse('cas_login'))
         self.assertFalse('_auth_user_id' in self.client.session)
 
     def test_logout_view_follow_url(self):
@@ -321,7 +314,7 @@ class ValidateViewTests(TestCase):
         should return a validation failure.
         """
         response = self.client.get(reverse('cas_validate'))
-        self.assertContains(response, "no\n\n", status_code=200)
+        self.assertContains(response, "no\n\n")
         self.assertEqual(response.get('Content-Type'), 'text/plain')
         self.assertTrue('Cache-Control' in response)
         self.assertEqual(response['Cache-Control'], 'max-age=0')
@@ -342,7 +335,7 @@ class ValidateViewTests(TestCase):
         query_str = "?service=%s&ticket=%s" % ('http://www.example.org/',
                                                self.st.ticket)
         response = self.client.get(reverse('cas_validate') + query_str)
-        self.assertContains(response, "no\n\n", status_code=200)
+        self.assertContains(response, "no\n\n")
         self.assertEqual(response.get('Content-Type'), 'text/plain')
 
     def test_validate_view_invalid_ticket(self):
@@ -353,7 +346,7 @@ class ValidateViewTests(TestCase):
         query_str = "?service=%s&ticket=%s" % (self.service_url,
                     'ST-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
         response = self.client.get(reverse('cas_validate') + query_str)
-        self.assertContains(response, "no\n\n", status_code=200)
+        self.assertContains(response, "no\n\n")
         self.assertEqual(response.get('Content-Type'), 'text/plain')
 
     def test_validate_view_success(self):
@@ -365,13 +358,13 @@ class ValidateViewTests(TestCase):
         query_str = "?service=%s&ticket=%s" % (self.service_url,
                                                self.st.ticket)
         response = self.client.get(reverse('cas_validate') + query_str)
-        self.assertContains(response, "yes\nellen\n", status_code=200)
+        self.assertContains(response, "yes\nellen\n")
         self.assertEqual(response.get('Content-Type'), 'text/plain')
 
         # This should not validate as the ticket was consumed in the
         # preceeding request
         response = self.client.get(reverse('cas_validate') + query_str)
-        self.assertContains(response, "no\n\n", status_code=200)
+        self.assertContains(response, "no\n\n")
         self.assertEqual(response.get('Content-Type'), 'text/plain')
 
 
@@ -417,14 +410,7 @@ class ServiceValidateViewTests(TestCase):
         should return a validation failure.
         """
         response = self.client.get(reverse('cas_service_validate'))
-        tree = ElementTree(fromstring(response.content))
-        elem = tree.find(XMLNS + 'authenticationFailure')
-        self.assertIsNotNone(elem)
-        self.assertEqual(elem.get('code'), 'INVALID_REQUEST')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.get('Content-Type'), 'text/xml')
-        self.assertTrue('Cache-Control' in response)
-        self.assertEqual(response['Cache-Control'], 'max-age=0')
+        self.assertContains(response, 'INVALID_REQUEST')
 
     def test_service_validate_view_post(self):
         """
@@ -442,12 +428,7 @@ class ServiceValidateViewTests(TestCase):
         query_str = "?service=%s&ticket=%s" % ('http://www.example.org/',
                                                self.st.ticket)
         response = self.client.get(reverse('cas_service_validate') + query_str)
-        tree = ElementTree(fromstring(response.content))
-        elem = tree.find(XMLNS + 'authenticationFailure')
-        self.assertIsNotNone(elem)
-        self.assertEqual(elem.get('code'), 'INVALID_SERVICE')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.get('Content-Type'), 'text/xml')
+        self.assertContains(response, 'INVALID_SERVICE')
 
     def test_service_validate_view_invalid_ticket(self):
         """
@@ -457,12 +438,7 @@ class ServiceValidateViewTests(TestCase):
         query_str = "?service=%s&ticket=%s" % (self.service_url,
                     'ST-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
         response = self.client.get(reverse('cas_service_validate') + query_str)
-        tree = ElementTree(fromstring(response.content))
-        elem = tree.find(XMLNS + 'authenticationFailure')
-        self.assertIsNotNone(elem)
-        self.assertEqual(elem.get('code'), 'INVALID_TICKET')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.get('Content-Type'), 'text/xml')
+        self.assertContains(response, 'INVALID_TICKET')
 
     def test_service_validate_view_success(self):
         """
@@ -474,22 +450,14 @@ class ServiceValidateViewTests(TestCase):
         query_str = "?service=%s&ticket=%s" % (self.service_url,
                                                self.st.ticket)
         response = self.client.get(reverse('cas_service_validate') + query_str)
-        tree = ElementTree(fromstring(response.content))
-        elem = tree.find(XMLNS + 'authenticationSuccess/' + XMLNS + 'user')
-        self.assertIsNotNone(elem)
-        self.assertEqual(elem.text, 'ellen')
+        self.assertContains(response, 'ellen')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get('Content-Type'), 'text/xml')
 
         # This should not validate as the ticket was consumed in the
         # preceeding request
         response = self.client.get(reverse('cas_service_validate') + query_str)
-        tree = ElementTree(fromstring(response.content))
-        elem = tree.find(XMLNS + 'authenticationFailure')
-        self.assertIsNotNone(elem)
-        self.assertEqual(elem.get('code'), 'INVALID_TICKET')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.get('Content-Type'), 'text/xml')
+        self.assertContains(response, 'INVALID_TICKET')
 
     def test_service_validate_view_pgturl(self):
         """
@@ -508,15 +476,8 @@ class ServiceValidateViewTests(TestCase):
                                                          self.st.ticket,
                                                          self.pgt_url)
         response = self.client.get(reverse('cas_service_validate') + query_str)
-        tree = ElementTree(fromstring(response.content))
-        elem = tree.find(XMLNS + 'authenticationSuccess/' + XMLNS + 'user')
-        self.assertIsNotNone(elem)
-        self.assertEqual(elem.text, 'ellen')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.get('Content-Type'), 'text/xml')
-        elem = tree.find(XMLNS + 'authenticationSuccess/' +
-                         XMLNS + 'proxyGrantingTicket')
-        self.assertIsNotNone(elem)
+        self.assertContains(response, 'ellen')
+        self.assertContains(response, 'proxyGrantingTicket')
 
     def test_service_validate_view_pgturl_http(self):
         """
@@ -528,15 +489,8 @@ class ServiceValidateViewTests(TestCase):
                                                          self.st.ticket,
                                                          'http://www.example.com/')
         response = self.client.get(reverse('cas_service_validate') + query_str)
-        tree = ElementTree(fromstring(response.content))
-        elem = tree.find(XMLNS + 'authenticationSuccess/' + XMLNS + 'user')
-        self.assertIsNotNone(elem)
-        self.assertEqual(elem.text, 'ellen')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.get('Content-Type'), 'text/xml')
-        elem = tree.find(XMLNS + 'authenticationSuccess/' +
-                         XMLNS + 'proxyGrantingTicket')
-        self.assertIsNone(elem)
+        self.assertContains(response, 'ellen')
+        self.assertNotContains(response, 'proxyGrantingTicket')
 
     def test_service_validate_view_user_attributes(self):
         """
@@ -544,26 +498,13 @@ class ServiceValidateViewTests(TestCase):
         file, a service validation success should include the list of
         configured user attributes.
         """
-        attr_names = list(settings.MAMA_CAS_USER_ATTRIBUTES.keys())
+        attr_format = getattr(settings, 'MAMA_CAS_ATTRIBUTE_FORMAT', 'jasig')
+        settings.MAMA_CAS_ATTRIBUTE_FORMAT = 'jasig'
         query_str = "?service=%s&ticket=%s" % (self.service_url,
                                                self.st.ticket)
         response = self.client.get(reverse('cas_service_validate') + query_str)
-        tree = ElementTree(fromstring(response.content))
-        elem = tree.find(XMLNS + 'authenticationSuccess/' + XMLNS + 'attributes')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.get('Content-Type'), 'text/xml')
-        self.assertIsNotNone(elem)
-        # Because attribute order is not guaranteed, we take a list of all
-        # configured attributes, compare each attribute found to make sure
-        # it's present and then remove it from the temporary list.
-        #
-        # When done, check that the temporary list is empty to verify that
-        # all configured attributes were matched.
-        for attribute in elem:
-            attribute.tag = attribute.tag[len(XMLNS):]
-            self.assertTrue(attribute.tag in attr_names)
-            attr_names.remove(attribute.tag)
-        self.assertEqual(len(attr_names), 0)
+        self.assertContains(response, 'attributes')
+        settings.MAMA_CAS_ATTRIBUTE_FORMAT = attr_format
 
     def test_service_validate_view_invalid_service_url(self):
         """
@@ -575,12 +516,7 @@ class ServiceValidateViewTests(TestCase):
         query_str = "?service=%s&ticket=%s" % ('http://www.example.org/',
                                                self.st.ticket)
         response = self.client.get(reverse('cas_service_validate') + query_str)
-        tree = ElementTree(fromstring(response.content))
-        elem = tree.find(XMLNS + 'authenticationFailure')
-        self.assertIsNotNone(elem)
-        self.assertEqual(elem.get('code'), 'INVALID_SERVICE')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.get('Content-Type'), 'text/xml')
+        self.assertContains(response, 'INVALID_SERVICE')
 
 
 class ProxyValidateViewTests(TestCase):
@@ -633,14 +569,7 @@ class ProxyValidateViewTests(TestCase):
         should return a validation failure.
         """
         response = self.client.get(reverse('cas_proxy_validate'))
-        tree = ElementTree(fromstring(response.content))
-        elem = tree.find(XMLNS + 'authenticationFailure')
-        self.assertIsNotNone(elem)
-        self.assertEqual(elem.get('code'), 'INVALID_REQUEST')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.get('Content-Type'), 'text/xml')
-        self.assertTrue('Cache-Control' in response)
-        self.assertEqual(response['Cache-Control'], 'max-age=0')
+        self.assertContains(response, 'INVALID_REQUEST')
 
     def test_proxy_validate_view_post(self):
         """
@@ -658,12 +587,7 @@ class ProxyValidateViewTests(TestCase):
         query_str = "?service=%s&ticket=%s" % (self.invalid_service,
                                                self.pt.ticket)
         response = self.client.get(reverse('cas_proxy_validate') + query_str)
-        tree = ElementTree(fromstring(response.content))
-        elem = tree.find(XMLNS + 'authenticationFailure')
-        self.assertIsNotNone(elem)
-        self.assertEqual(elem.get('code'), 'INVALID_SERVICE')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.get('Content-Type'), 'text/xml')
+        self.assertContains(response, 'INVALID_SERVICE')
 
     def test_proxy_validate_view_invalid_ticket(self):
         """
@@ -673,12 +597,7 @@ class ProxyValidateViewTests(TestCase):
         query_str = "?service=%s&ticket=%s" % (self.service_url,
                     'PT-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
         response = self.client.get(reverse('cas_proxy_validate') + query_str)
-        tree = ElementTree(fromstring(response.content))
-        elem = tree.find(XMLNS + 'authenticationFailure')
-        self.assertIsNotNone(elem)
-        self.assertEqual(elem.get('code'), 'INVALID_TICKET')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.get('Content-Type'), 'text/xml')
+        self.assertContains(response, 'INVALID_TICKET')
 
     def test_proxy_validate_view_st_success(self):
         """
@@ -690,22 +609,14 @@ class ProxyValidateViewTests(TestCase):
         query_str = "?service=%s&ticket=%s" % (self.service_url,
                                                self.st.ticket)
         response = self.client.get(reverse('cas_proxy_validate') + query_str)
-        tree = ElementTree(fromstring(response.content))
-        elem = tree.find(XMLNS + 'authenticationSuccess/' + XMLNS + 'user')
-        self.assertIsNotNone(elem)
-        self.assertEqual(elem.text, 'ellen')
+        self.assertContains(response, 'ellen')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get('Content-Type'), 'text/xml')
 
         # This should not validate as the ticket was consumed in the
         # preceeding request
         response = self.client.get(reverse('cas_proxy_validate') + query_str)
-        tree = ElementTree(fromstring(response.content))
-        elem = tree.find(XMLNS + 'authenticationFailure')
-        self.assertIsNotNone(elem)
-        self.assertEqual(elem.get('code'), 'INVALID_TICKET')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.get('Content-Type'), 'text/xml')
+        self.assertContains(response, 'INVALID_TICKET')
 
     def test_proxy_validate_view_pt_success(self):
         """
@@ -717,26 +628,16 @@ class ProxyValidateViewTests(TestCase):
         query_str = "?service=%s&ticket=%s" % (self.service_url,
                                                self.pt.ticket)
         response = self.client.get(reverse('cas_proxy_validate') + query_str)
-        tree = ElementTree(fromstring(response.content))
-        elem = tree.find(XMLNS + 'authenticationSuccess/' + XMLNS + 'user')
-        self.assertIsNotNone(elem)
-        self.assertEqual(elem.text, 'ellen')
+        self.assertContains(response, 'ellen')
+        self.assertContains(response, 'http://www.example.com')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get('Content-Type'), 'text/xml')
-        elem = tree.find(XMLNS + 'authenticationSuccess/' + XMLNS + 'proxies')
-        proxy = list(elem.getiterator(XMLNS + 'proxy'))
-        self.assertEqual(len(proxy), 1)
-        self.assertEqual(proxy[0].text, 'http://www.example.com')
 
         # This second validation request attempt should fail as the
         # ticket was consumed in the preceeding request
         response = self.client.get(reverse('cas_proxy_validate') + query_str)
-        tree = ElementTree(fromstring(response.content))
-        elem = tree.find(XMLNS + 'authenticationFailure')
-        self.assertIsNotNone(elem)
-        self.assertEqual(elem.get('code'), 'INVALID_TICKET')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.get('Content-Type'), 'text/xml')
+        self.assertContains(response, 'INVALID_TICKET')
+        self.assertNotContains(response, 'http://www.example.com')
 
     def test_proxy_validate_view_proxies(self):
         """
@@ -755,17 +656,9 @@ class ProxyValidateViewTests(TestCase):
                                                 granted_by_pgt=pgt2)
         query_str = "?service=%s&ticket=%s" % ('http://ww2.example.com/', pt2)
         response = self.client.get(reverse('cas_proxy_validate') + query_str)
-        tree = ElementTree(fromstring(response.content))
-        elem = tree.find(XMLNS + 'authenticationSuccess/' + XMLNS + 'user')
-        self.assertIsNotNone(elem)
-        self.assertEqual(elem.text, 'ellen')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.get('Content-Type'), 'text/xml')
-        elem = tree.find(XMLNS + 'authenticationSuccess/' + XMLNS + 'proxies')
-        proxy = list(elem.getiterator(XMLNS + 'proxy'))
-        self.assertEqual(len(proxy), 2)
-        self.assertEqual(proxy[0].text, 'http://ww2.example.com')
-        self.assertEqual(proxy[1].text, 'http://www.example.com')
+        self.assertContains(response, 'ellen')
+        self.assertContains(response, 'http://ww2.example.com')
+        self.assertContains(response, 'http://www.example.com')
 
     def test_proxy_validate_view_pgturl(self):
         """
@@ -784,15 +677,8 @@ class ProxyValidateViewTests(TestCase):
                                                          self.pt.ticket,
                                                          self.pgt_url)
         response = self.client.get(reverse('cas_proxy_validate') + query_str)
-        tree = ElementTree(fromstring(response.content))
-        elem = tree.find(XMLNS + 'authenticationSuccess/' + XMLNS + 'user')
-        self.assertIsNotNone(elem)
-        self.assertEqual(elem.text, 'ellen')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.get('Content-Type'), 'text/xml')
-        elem = tree.find(XMLNS + 'authenticationSuccess/' +
-                         XMLNS + 'proxyGrantingTicket')
-        self.assertIsNotNone(elem)
+        self.assertContains(response, 'ellen')
+        self.assertContains(response, 'proxyGrantingTicket')
 
     def test_proxy_validate_view_pgturl_http(self):
         """
@@ -804,15 +690,8 @@ class ProxyValidateViewTests(TestCase):
                                                          self.pt.ticket,
                                                          'http://www.example.com/')
         response = self.client.get(reverse('cas_proxy_validate') + query_str)
-        tree = ElementTree(fromstring(response.content))
-        elem = tree.find(XMLNS + 'authenticationSuccess/' + XMLNS + 'user')
-        self.assertIsNotNone(elem)
-        self.assertEqual(elem.text, 'ellen')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.get('Content-Type'), 'text/xml')
-        elem = tree.find(XMLNS + 'authenticationSuccess/' +
-                         XMLNS + 'proxyGrantingTicket')
-        self.assertIsNone(elem)
+        self.assertContains(response, 'ellen')
+        self.assertNotContains(response, 'proxyGrantingTicket')
 
     def test_proxy_validate_view_user_attributes(self):
         """
@@ -820,26 +699,13 @@ class ProxyValidateViewTests(TestCase):
         file, a proxy validation success should include the list of
         configured user attributes.
         """
-        attr_names = list(settings.MAMA_CAS_USER_ATTRIBUTES.keys())
-        query_str = "?service=%s&ticket=%s" % (self.service_url, self.pt.ticket)
+        attr_format = getattr(settings, 'MAMA_CAS_ATTRIBUTE_FORMAT', 'jasig')
+        settings.MAMA_CAS_ATTRIBUTE_FORMAT = 'jasig'
+        query_str = "?service=%s&ticket=%s" % (self.service_url,
+                                               self.st.ticket)
         response = self.client.get(reverse('cas_proxy_validate') + query_str)
-        tree = ElementTree(fromstring(response.content))
-        elem = tree.find(XMLNS + 'authenticationSuccess/' +
-                         XMLNS + 'attributes')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.get('Content-Type'), 'text/xml')
-        self.assertIsNotNone(elem)
-        # Because attribute order is not guaranteed, we take a list of all
-        # configured attributes, compare each attribute found to make sure
-        # it's present and then remove it from the temporary list.
-        #
-        # When done, check that the temporary list is empty to verify that
-        # all configured attributes were matched.
-        for attribute in elem:
-            attribute.tag = attribute.tag[len(XMLNS):]
-            self.assertTrue(attribute.tag in attr_names)
-            attr_names.remove(attribute.tag)
-        self.assertEqual(len(attr_names), 0)
+        self.assertContains(response, 'attributes')
+        settings.MAMA_CAS_ATTRIBUTE_FORMAT = attr_format
 
     def test_proxy_validate_view_invalid_service_url(self):
         """
@@ -851,12 +717,7 @@ class ProxyValidateViewTests(TestCase):
         query_str = "?service=%s&ticket=%s" % (self.invalid_service,
                                                self.pt.ticket)
         response = self.client.get(reverse('cas_proxy_validate') + query_str)
-        tree = ElementTree(fromstring(response.content))
-        elem = tree.find(XMLNS + 'authenticationFailure')
-        self.assertIsNotNone(elem)
-        self.assertEqual(elem.get('code'), 'INVALID_SERVICE')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.get('Content-Type'), 'text/xml')
+        self.assertContains(response, 'INVALID_SERVICE')
 
 
 class ProxyViewTests(TestCase):
@@ -896,14 +757,7 @@ class ProxyViewTests(TestCase):
         should return a validation failure.
         """
         response = self.client.get(reverse('cas_proxy'))
-        tree = ElementTree(fromstring(response.content))
-        elem = tree.find(XMLNS + 'proxyFailure')
-        self.assertIsNotNone(elem)
-        self.assertEqual(elem.get('code'), 'INVALID_REQUEST')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.get('Content-Type'), 'text/xml')
-        self.assertTrue('Cache-Control' in response)
-        self.assertEqual(response['Cache-Control'], 'max-age=0')
+        self.assertContains(response, 'INVALID_REQUEST')
 
     def test_proxy_view_post(self):
         """
@@ -920,12 +774,7 @@ class ProxyViewTests(TestCase):
         """
         query_str = "?pgt=%s" % (self.pgt.ticket)
         response = self.client.get(reverse('cas_proxy') + query_str)
-        tree = ElementTree(fromstring(response.content))
-        elem = tree.find(XMLNS + 'proxyFailure')
-        self.assertIsNotNone(elem)
-        self.assertEqual(elem.get('code'), 'INVALID_REQUEST')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.get('Content-Type'), 'text/xml')
+        self.assertContains(response, 'INVALID_REQUEST')
 
     def test_proxy_view_invalid_ticket(self):
         """
@@ -935,12 +784,7 @@ class ProxyViewTests(TestCase):
         query_str = "?targetService=%s&pgt=%s" % (self.service_url,
                     'PGT-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
         response = self.client.get(reverse('cas_proxy') + query_str)
-        tree = ElementTree(fromstring(response.content))
-        elem = tree.find(XMLNS + 'proxyFailure')
-        self.assertIsNotNone(elem)
-        self.assertEqual(elem.get('code'), 'BAD_PGT')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.get('Content-Type'), 'text/xml')
+        self.assertContains(response, 'BAD_PGT')
 
     def test_proxy_view_success(self):
         """
@@ -951,10 +795,7 @@ class ProxyViewTests(TestCase):
         query_str = "?targetService=%s&pgt=%s" % (self.service_url,
                                                   self.pgt.ticket)
         response = self.client.get(reverse('cas_proxy') + query_str)
-        tree = ElementTree(fromstring(response.content))
-        elem = tree.find(XMLNS + 'proxySuccess/' + XMLNS + 'proxyTicket')
-        self.assertIsNotNone(elem)
-        self.assertNotEqual(elem.text, 0)
+        self.assertContains(response, 'proxyTicket')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get('Content-Type'), 'text/xml')
 
@@ -968,9 +809,4 @@ class ProxyViewTests(TestCase):
         query_str = "?targetService=%s&pgt=%s" % (self.invalid_service,
                                                   self.pgt.ticket)
         response = self.client.get(reverse('cas_proxy') + query_str)
-        tree = ElementTree(fromstring(response.content))
-        elem = tree.find(XMLNS + 'proxyFailure')
-        self.assertIsNotNone(elem)
-        self.assertEqual(elem.get('code'), 'INVALID_SERVICE')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.get('Content-Type'), 'text/xml')
+        self.assertContains(response, 'INVALID_SERVICE')
