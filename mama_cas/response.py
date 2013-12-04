@@ -36,8 +36,8 @@ class XmlResponseBase(HttpResponse):
 
 class ValidationResponse(XmlResponseBase):
     """
-    Render an XML format CAS service response for a ticket
-    validation success or failure.
+    (2.6.2) Render an XML format CAS service response for a
+    ticket validation success or failure.
 
     On validation success:
 
@@ -94,8 +94,8 @@ class ValidationResponse(XmlResponseBase):
 
     def get_attribute_elements(self, attributes):
         """
-        Call the approriate method to retrieve CAS attributes
-        according to the currently configured format.
+        Call the approriate method to retrieve a list of custom CAS
+        attributes in the currently configured format.
         """
         attr_format = getattr(settings, 'MAMA_CAS_ATTRIBUTE_FORMAT', 'jasig')
         if attr_format.lower() not in self.attribute_formats:
@@ -105,10 +105,12 @@ class ValidationResponse(XmlResponseBase):
 
     def get_jasig_elements(self, attributes):
         """
-        Returns custom CAS attributes in the 'jasig' format:
+        Returns a list of custom CAS attributes in the 'jasig' format:
 
         <cas:attributes>
-            <cas:Name>Value</cas:Name>
+            <cas:givenName>Ellen</cas:givenName>
+            <cas:sn>Cohen</cas:sn>
+            <cas:email>ellen@example.com</cas:email>
         </cas:attributes>
         """
         element = etree.Element(self.ns('attributes'))
@@ -119,9 +121,11 @@ class ValidationResponse(XmlResponseBase):
 
     def get_rubycas_elements(self, attributes):
         """
-        Returns custom CAS attributes in the 'rubycas' format:
+        Returns a list of custom CAS attributes in the 'rubycas' format:
 
-        <cas:Name>Value</cas:Name>
+        <cas:givenName>Ellen</cas:givenName>
+        <cas:sn>Cohen</cas:sn>
+        <cas:email>ellen@example.com</cas:email>
         """
         elements = []
         for name, value in attributes:
@@ -132,9 +136,11 @@ class ValidationResponse(XmlResponseBase):
 
     def get_namevalue_elements(self, attributes):
         """
-        Returns custom CAS attributes in the 'namevalue' format:
+        Returns a list of custom CAS attributes in the 'namevalue' format:
 
-        <cas:attribute name="Name" value="Value" />
+        <cas:attribute name='givenName' value='Ellen' />
+        <cas:attribute name='sn' value='Cohen' />
+        <cas:attribute name='email' value='ellen@example.com' />
         """
         elements = []
         for name, value in attributes:
@@ -147,8 +153,8 @@ class ValidationResponse(XmlResponseBase):
 
 class ProxyResponse(XmlResponseBase):
     """
-    Render an XML format CAS service response for a proxy request
-    success or failure.
+    (2.7.2) Render an XML format CAS service response for a proxy
+    request success or failure.
 
     On request success:
 
