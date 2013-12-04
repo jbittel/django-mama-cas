@@ -175,11 +175,9 @@ class CustomAttributesMixin(object):
         user_attr_list = getattr(settings, 'MAMA_CAS_USER_ATTRIBUTES', {})
         for name, attr in user_attr_list.items():
             try:
-                attribute = [name, getattr(user, attr)]
+                attributes.append((name, getattr(user, attr)))
             except AttributeError:
                 logger.error("User has no attribute named '%s'" % attr)
-            else:
-                attributes.append(attribute)
 
         try:
             profile = user.get_profile()
@@ -190,11 +188,9 @@ class CustomAttributesMixin(object):
                                         'MAMA_CAS_PROFILE_ATTRIBUTES', {})
             for name, attr in profile_attr_list.items():
                 try:
-                    attribute = [name, getattr(profile, attr)]
+                    attributes.append((name, getattr(profile, attr)))
                 except AttributeError:
                     logger.error("Profile has no attribute named '%s'" % attr)
-                else:
-                    attributes.append(attribute)
 
         return attributes
 
