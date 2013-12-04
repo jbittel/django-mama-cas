@@ -398,7 +398,8 @@ class ServiceValidateViewTests(TestCase):
                                            'MAMA_CAS_USER_ATTRIBUTES', {})
         settings.MAMA_CAS_USER_ATTRIBUTES = {'givenName': 'first_name',
                                              'sn': 'last_name',
-                                             'email': 'email'}
+                                             'email': 'email',
+                                             'test': 'invalid'}
         self.old_valid_services = getattr(settings,
                                           'MAMA_CAS_VALID_SERVICES', ())
         settings.MAMA_CAS_VALID_SERVICES = ('http://.*\.example\.com/',)
@@ -613,7 +614,8 @@ class ProxyValidateViewTests(TestCase):
                                            'MAMA_CAS_USER_ATTRIBUTES', {})
         settings.MAMA_CAS_USER_ATTRIBUTES = {'givenName': 'first_name',
                                              'sn': 'last_name',
-                                             'email': 'email'}
+                                             'email': 'email',
+                                             'test': 'invalid'}
         self.old_valid_services = getattr(settings,
                                           'MAMA_CAS_VALID_SERVICES', ())
         settings.MAMA_CAS_VALID_SERVICES = ('http://.*\.example\.com/',)
