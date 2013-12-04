@@ -14,7 +14,7 @@ well as some commonly used extensions to the protocol.
 CAS is an HTTP-based protocol that provides single sign-on functionality to web
 services. It operates using tickets, unique text strings that are provided and
 validated by the server, allowing web services to authenticate a user without
-having access to the user's credentials.
+direct access to the user's credentials.
 
 .. _Central Authentication Service (CAS): http://en.wikipedia.org/wiki/Central_Authentication_Service
 

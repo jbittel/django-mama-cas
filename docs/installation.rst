@@ -112,7 +112,7 @@ For information on how sessions work within Django, read the `session
 documentation`_. These settings should be configured to fit your environment
 and security requirements.
 
-Authentication
+Authenticating
 --------------
 
 At least one `authentication backend`_ must be `installed and configured`_,

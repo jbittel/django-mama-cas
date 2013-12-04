@@ -15,7 +15,8 @@ required and have sane defaults, but can be used to customize the behavior.
    Controls the length of time, in minutes, between when a service or proxy
    ticket is generated and when it expires. If the ticket is not validated
    before this time has elapsed, it will become invalid. This does **not**
-   affect the duration of a user's single sign-on session.
+   affect proxy-granting ticket expiration or the duration of a user's single
+   sign-on session.
 
 .. attribute:: MAMA_CAS_TICKET_RAND_LEN
 
@@ -61,6 +62,19 @@ required and have sane defaults, but can be used to customize the behavior.
       the recommended method for storing custom profile information is through a
       `custom User model`_.
 
+.. attribute:: MAMA_CAS_ATTRIBUTE_FORMAT
+
+   :default: ``jasig``
+
+   Sets the attribute format used when including user attributes with a
+   service or proxy validation success. These attributes are not part of the
+   official CAS 2.0 specification, and three different attribute formats have
+   emerged. This setting must be set to one of the following: ``jasig``,
+   ``rubycas`` or ``namevalue``.
+
+   Official clients such as `phpCAS`_ can handle attributes returned in any
+   of these formats, but other clients may be more particular.
+
 .. attribute:: MAMA_CAS_VALID_SERVICES
 
    :default: ``()``
@@ -90,7 +104,7 @@ required and have sane defaults, but can be used to customize the behavior.
    will be redirected to the specified URL.
 
    If the ``url`` parameter is not specified or if it is not a valid service
-   URL, the client will be redirected to the login page with no message
+   URL, the client will be redirected to the login page with no URL
    displayed, irrespective of this setting.
 
    .. note::
@@ -99,3 +113,4 @@ required and have sane defaults, but can be used to customize the behavior.
       specification.
 
 .. _custom User model: https://docs.djangoproject.com/en/1.5/topics/auth/customizing/#auth-custom-user
+.. _phpCAS: https://wiki.jasig.org/display/CASC/phpCAS
