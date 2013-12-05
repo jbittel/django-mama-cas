@@ -112,7 +112,7 @@ class ValidationResponseTests(TestCase):
         """
         proxy_list = ['https://proxy2/pgtUrl', 'https://proxy1/pgtUrl']
         resp = ValidationResponse(context={'ticket': self.st, 'error': None,
-                                           'proxies': proxy_list },
+                                           'proxies': proxy_list},
                                   content_type='text/xml')
         proxies = parse(resp.content).find('./authenticationSuccess/proxies')
         self.assertIsNotNone(proxies)

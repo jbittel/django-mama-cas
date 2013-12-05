@@ -1,22 +1,25 @@
 try:
     import xml.etree.cElementTree as etree
-except ImportError:
+except ImportError:  # pragma: no cover
     import xml.etree.ElementTree as etree
-
-try:
-    register_namespace = etree.register_namespace
-except AttributeError:
-    def register_namespace(prefix, uri):
-        etree._namespace_map[uri] = prefix
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpResponse
 
 
+try:
+    register_namespace = etree.register_namespace
+except AttributeError:  # pragma: no cover
+    # ElementTree 1.2 (Python < 2.7) does not have the
+    # register_namespace() function
+    def register_namespace(prefix, uri):
+        etree._namespace_map[uri] = prefix
+
+
 class XmlResponseBase(HttpResponse):
     """
-    Base class for XML format CAS service responses.
+    Base class for CAS 2.0 XML format responses.
     """
     prefix = 'cas'
     uri = 'http://www.yale.edu/tp/cas'
