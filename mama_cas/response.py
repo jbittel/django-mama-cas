@@ -90,7 +90,7 @@ class ValidationResponse(XmlResponseBase):
             auth_failure.set('code', error.code)
             auth_failure.text = error.msg
 
-        return etree.tostring(service_response)
+        return etree.tostring(service_response, encoding='UTF-8', method='xml')
 
     def get_attribute_elements(self, attributes):
         """
@@ -186,4 +186,4 @@ class ProxyResponse(XmlResponseBase):
             proxy_failure.set('code', error.code)
             proxy_failure.text = error.msg
 
-        return etree.tostring(service_response)
+        return etree.tostring(service_response, encoding='UTF-8', method='xml')
