@@ -10,9 +10,9 @@ required and have sane defaults, but can be used to customize the behavior.
 
 .. attribute:: MAMA_CAS_TICKET_EXPIRE
 
-   :default: ``5``
+   :default: ``90``
 
-   Controls the length of time, in minutes, between when a service or proxy
+   Controls the length of time, in seconds, between when a service or proxy
    ticket is generated and when it expires. If the ticket is not validated
    before this time has elapsed, it will become invalid. This does **not**
    affect proxy-granting ticket expiration or the duration of a user's single
