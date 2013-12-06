@@ -140,7 +140,7 @@ class ServiceTicketTests(TestCase):
         """
         st = ServiceTicket.objects.create_ticket(service=self.service_url,
                                                  user=self.user)
-        st.expires = now() - timedelta(minutes=1)
+        st.expires = now() - timedelta(seconds=1)
         st.save()
         self.assertRaises(InvalidTicketError,
                           ServiceTicket.objects.validate_ticket,
@@ -194,7 +194,7 @@ class ServiceTicketTests(TestCase):
                                             user=self.user)
         expired_st = ServiceTicket.objects.create_ticket(service=self.service_url,
                                                          user=self.user)
-        expired_st.expires = now() - timedelta(minutes=1)
+        expired_st.expires = now() - timedelta(seconds=1)
         expired_st.save()
         consumed_st = ServiceTicket.objects.create_ticket(service=self.service_url,
                                                           user=self.user)
@@ -360,7 +360,7 @@ class ProxyTicketTests(TestCase):
         pt = ProxyTicket.objects.create_ticket(service=self.service_url,
                                                user=self.user,
                                                granted_by_pgt=self.pgt)
-        pt.expires = now() - timedelta(minutes=1)
+        pt.expires = now() - timedelta(seconds=1)
         pt.save()
         self.assertRaises(InvalidTicketError,
                           ProxyTicket.objects.validate_ticket,
@@ -392,7 +392,7 @@ class ProxyTicketTests(TestCase):
         expired_pt = ProxyTicket.objects.create_ticket(service=self.service_url,
                                                        user=self.user,
                                                        granted_by_pgt=self.pgt)
-        expired_pt.expires = now() - timedelta(minutes=1)
+        expired_pt.expires = now() - timedelta(seconds=1)
         expired_pt.save()
         consumed_pt = ProxyTicket.objects.create_ticket(service=self.service_url,
                                                         user=self.user,
@@ -534,7 +534,7 @@ class ProxyGrantingTicketTests(TestCase):
         pgt = ProxyGrantingTicket.objects.create_ticket(self.pgt_url,
                                                         user=self.user,
                                                         validate=False)
-        pgt.expires = now() - timedelta(minutes=1)
+        pgt.expires = now() - timedelta(seconds=1)
         pgt.save()
         self.assertRaises(InvalidTicketError,
                           ProxyGrantingTicket.objects.validate_ticket,
@@ -566,7 +566,7 @@ class ProxyGrantingTicketTests(TestCase):
         expired_pgt = ProxyGrantingTicket.objects.create_ticket(self.pgt_url,
                                                                 user=self.user,
                                                                 validate=False)
-        expired_pgt.expires = now() - timedelta(minutes=1)
+        expired_pgt.expires = now() - timedelta(seconds=1)
         expired_pgt.save()
         consumed_pgt = ProxyGrantingTicket.objects.create_ticket(self.pgt_url,
                                                                  user=self.user,

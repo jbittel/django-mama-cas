@@ -46,7 +46,7 @@ class TicketManager(models.Manager):
             ticket = self.create_ticket_str()
         if 'service' in kwargs:
             kwargs['service'] = clean_service_url(kwargs['service'])
-        expires = timezone.now() + timedelta(minutes=self.model.TICKET_EXPIRE)
+        expires = timezone.now() + timedelta(seconds=self.model.TICKET_EXPIRE)
         t = self.create(ticket=ticket, expires=expires, **kwargs)
         logger.debug("Created %s %s" % (t.name, t.ticket))
         return t
@@ -147,7 +147,7 @@ class Ticket(models.Model):
     or its inheritors. Instead, the provided manager contains methods
     for creating, validating, consuming and deleting invalid ``Ticket``s.
     """
-    TICKET_EXPIRE = getattr(settings, 'MAMA_CAS_TICKET_EXPIRE', 5)
+    TICKET_EXPIRE = getattr(settings, 'MAMA_CAS_TICKET_EXPIRE', 90)
     TICKET_RAND_LEN = getattr(settings, 'MAMA_CAS_TICKET_RAND_LEN', 32)
     TICKET_RE = re.compile("^[A-Z]{2,3}-[0-9]{10,}-[a-zA-Z0-9]{%d}$" % TICKET_RAND_LEN)
 
@@ -343,7 +343,7 @@ class ProxyGrantingTicket(Ticket):
     """
     TICKET_PREFIX = 'PGT'
     IOU_PREFIX = 'PGTIOU'
-    TICKET_EXPIRE = getattr(settings, 'SESSION_COOKIE_AGE') / 60
+    TICKET_EXPIRE = getattr(settings, 'SESSION_COOKIE_AGE')
 
     iou = models.CharField(_('iou'), max_length=255, unique=True)
     granted_by_st = models.ForeignKey(ServiceTicket, null=True, blank=True,
