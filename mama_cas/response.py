@@ -24,7 +24,7 @@ class XmlResponseBase(HttpResponse):
     prefix = 'cas'
     uri = 'http://www.yale.edu/tp/cas'
 
-    def __init__(self, context=None, content_type=None):
+    def __init__(self, context={}, content_type='text/xml'):
         register_namespace(self.prefix, self.uri)
         content = self.render_xml(context)
         super(XmlResponseBase, self).__init__(content, content_type)
