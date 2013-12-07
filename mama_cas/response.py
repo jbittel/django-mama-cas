@@ -91,7 +91,7 @@ class ValidationResponse(XmlResponseBase):
         elif error:
             auth_failure = etree.SubElement(service_response, self.ns('authenticationFailure'))
             auth_failure.set('code', error.code)
-            auth_failure.text = error.msg
+            auth_failure.text = str(error)
 
         return etree.tostring(service_response, encoding='UTF-8', method='xml')
 
@@ -187,6 +187,6 @@ class ProxyResponse(XmlResponseBase):
         elif error:
             proxy_failure = etree.SubElement(service_response, self.ns('proxyFailure'))
             proxy_failure.set('code', error.code)
-            proxy_failure.text = error.msg
+            proxy_failure.text = str(error)
 
         return etree.tostring(service_response, encoding='UTF-8', method='xml')

@@ -21,11 +21,11 @@ try:
 except ImportError:  # Django version < 1.5
     from django.contrib.auth.models import User
 
-from mama_cas.exceptions import InvalidRequestError
-from mama_cas.exceptions import InvalidTicketError
-from mama_cas.exceptions import InvalidServiceError
+from mama_cas.exceptions import InvalidRequest
+from mama_cas.exceptions import InvalidTicket
+from mama_cas.exceptions import InvalidService
 from mama_cas.exceptions import InternalError
-from mama_cas.exceptions import BadPGTError
+from mama_cas.exceptions import BadPgt
 from mama_cas.utils import add_query_params
 from mama_cas.utils import is_scheme_https
 from mama_cas.utils import clean_service_url
@@ -72,38 +72,38 @@ class TicketManager(models.Manager):
         credentials.
         """
         if not ticket:
-            raise InvalidRequestError("No ticket string provided")
+            raise InvalidRequest("No ticket string provided")
 
         if not self.model.TICKET_RE.match(ticket):
-            raise InvalidTicketError("Ticket string %s is invalid" % ticket)
+            raise InvalidTicket("Ticket string %s is invalid" % ticket)
 
         try:
             t = self.get(ticket=ticket)
         except self.model.DoesNotExist:
-            raise InvalidTicketError("Ticket %s does not exist" % ticket)
+            raise InvalidTicket("Ticket %s does not exist" % ticket)
 
         if t.is_consumed():
-            raise InvalidTicketError("%s %s has already been used" %
-                                     (t.name, ticket))
+            raise InvalidTicket("%s %s has already been used" %
+                                (t.name, ticket))
         t.consume()
 
         if t.is_expired():
-            raise InvalidTicketError("%s %s has expired" % (t.name, ticket))
+            raise InvalidTicket("%s %s has expired" % (t.name, ticket))
 
         if not service:
-            raise InvalidRequestError("No service identifier provided")
+            raise InvalidRequest("No service identifier provided")
 
         if not is_valid_service_url(service):
-            raise InvalidServiceError("Service %s is not a valid %s URL" %
-                                      (service, t.name))
+            raise InvalidService("Service %s is not a valid %s URL" %
+                                 (service, t.name))
 
         if not same_origin(t.service, service):
-            raise InvalidServiceError("%s %s for service %s is invalid for service %s" %
-                                      (t.name, ticket, t.service, service))
+            raise InvalidService("%s %s for service %s is invalid for service "
+                                 "%s" % (t.name, ticket, t.service, service))
 
         if renew and not t.is_primary():
-            raise InvalidTicketError("%s %s was not issued via primary credentials" %
-                                     (t.name, ticket))
+            raise InvalidTicket("%s %s was not issued via primary "
+                                "credentials" % (t.name, ticket))
 
         logger.debug("Validated %s %s" % (t.name, ticket))
         return t
@@ -306,29 +306,29 @@ class ProxyGrantingTicketManager(TicketManager):
         ``Ticket``. If validation fails, raise an appropriate error.
         """
         if not ticket:
-            raise InvalidRequestError("No ticket string provided")
+            raise InvalidRequest("No ticket string provided")
 
         if not service:
-            raise InvalidRequestError("No service identifier provided")
+            raise InvalidRequest("No service identifier provided")
 
         if not self.model.TICKET_RE.match(ticket):
-            raise InvalidTicketError("Ticket string %s is invalid" % ticket)
+            raise InvalidTicket("Ticket string %s is invalid" % ticket)
 
         try:
             t = self.get(ticket=ticket)
         except self.model.DoesNotExist:
-            raise BadPGTError("Ticket %s does not exist" % ticket)
+            raise BadPgt("Ticket %s does not exist" % ticket)
 
         if t.is_consumed():
-            raise InvalidTicketError("%s %s has already been used" %
-                                     (t.name, ticket))
+            raise InvalidTicket("%s %s has already been used" %
+                                (t.name, ticket))
 
         if t.is_expired():
-            raise InvalidTicketError("%s %s has expired" % (t.name, ticket))
+            raise InvalidTicket("%s %s has expired" % (t.name, ticket))
 
         if not is_valid_service_url(service):
-            raise InvalidServiceError("Service %s is not a valid %s URL" %
-                                      (service, t.name))
+            raise InvalidService("Service %s is not a valid %s URL" %
+                                 (service, t.name))
 
         logger.debug("Validated %s %s" % (t.name, ticket))
         return t

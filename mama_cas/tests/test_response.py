@@ -15,7 +15,7 @@ try:
 except ImportError:  # Django version < 1.5
     from django.contrib.auth.models import User
 
-from mama_cas.exceptions import InvalidTicketError
+from mama_cas.exceptions import InvalidTicket
 from mama_cas.models import ProxyGrantingTicket
 from mama_cas.models import ProxyTicket
 from mama_cas.models import ServiceTicket
@@ -85,7 +85,7 @@ class ValidationResponseTests(TestCase):
         When given an error, a ``ValidationResponse`` should return
         an authentication failure with the error code and text.
         """
-        error = InvalidTicketError('Testing Error')
+        error = InvalidTicket('Testing Error')
         resp = ValidationResponse(context={'ticket': None, 'error': error},
                                   content_type='text/xml')
         failure = parse(resp.content).find('./authenticationFailure')
@@ -259,7 +259,7 @@ class ProxyResponseTests(TestCase):
         When given an error, a ``ProxyResponse`` should return a
         proxy request failure with the error code and text.
         """
-        error = InvalidTicketError('Testing Error')
+        error = InvalidTicket('Testing Error')
         resp = ProxyResponse(context={'ticket': None, 'error': error},
                              content_type='text/xml')
         failure = parse(resp.content).find('./proxyFailure')

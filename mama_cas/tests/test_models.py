@@ -14,10 +14,10 @@ except ImportError:  # Django version < 1.5
 from mama_cas.models import ProxyGrantingTicket
 from mama_cas.models import ProxyTicket
 from mama_cas.models import ServiceTicket
-from mama_cas.exceptions import BadPGTError
-from mama_cas.exceptions import InvalidRequestError
-from mama_cas.exceptions import InvalidServiceError
-from mama_cas.exceptions import InvalidTicketError
+from mama_cas.exceptions import BadPgt
+from mama_cas.exceptions import InvalidRequest
+from mama_cas.exceptions import InvalidService
+from mama_cas.exceptions import InvalidTicket
 
 
 class ServiceTicketTests(TestCase):
@@ -76,7 +76,7 @@ class ServiceTicketTests(TestCase):
         The ``ServiceTicket`` validation process ought to fail when
         no ticket string is provided.
         """
-        self.assertRaises(InvalidRequestError,
+        self.assertRaises(InvalidRequest,
                           ServiceTicket.objects.validate_ticket, None, None)
 
     def test_validate_ticket_no_service(self):
@@ -86,7 +86,7 @@ class ServiceTicketTests(TestCase):
         """
         st = ServiceTicket.objects.create_ticket(service=self.service_url,
                                                  user=self.user)
-        self.assertRaises(InvalidRequestError,
+        self.assertRaises(InvalidRequest,
                           ServiceTicket.objects.validate_ticket,
                           st.ticket, None)
         self.assertTrue(ServiceTicket.objects.get(ticket=st.ticket).is_consumed())
@@ -96,8 +96,7 @@ class ServiceTicketTests(TestCase):
         The ``ServiceTicket`` validation process ought to fail when
         an invalid ticket string is provided.
         """
-        self.assertRaises(InvalidTicketError,
-                          ServiceTicket.objects.validate_ticket,
+        self.assertRaises(InvalidTicket, ServiceTicket.objects.validate_ticket,
                           '12345', self.service_url)
 
     def test_validate_ticket_unknown_ticket(self):
@@ -105,8 +104,7 @@ class ServiceTicketTests(TestCase):
         The ``ServiceTicket`` validation process ought to fail when
         a ticket cannot be found in the database.
         """
-        self.assertRaises(InvalidTicketError,
-                          ServiceTicket.objects.validate_ticket,
+        self.assertRaises(InvalidTicket, ServiceTicket.objects.validate_ticket,
                           'ST-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
                           self.service_url)
 
@@ -118,7 +116,7 @@ class ServiceTicketTests(TestCase):
         """
         st = ServiceTicket.objects.create_ticket(service=self.service_url,
                                                  user=self.user)
-        self.assertRaises(InvalidServiceError,
+        self.assertRaises(InvalidService,
                           ServiceTicket.objects.validate_ticket,
                           st.ticket, 'http://www.example.org/')
 
@@ -129,7 +127,7 @@ class ServiceTicketTests(TestCase):
         """
         st = ServiceTicket.objects.create_ticket(service=self.service_url,
                                                  user=self.user)
-        self.assertRaises(InvalidServiceError,
+        self.assertRaises(InvalidService,
                           ServiceTicket.objects.validate_ticket,
                           st.ticket, 'http://sub.example.com/')
 
@@ -142,8 +140,7 @@ class ServiceTicketTests(TestCase):
                                                  user=self.user)
         st.expires = now() - timedelta(seconds=1)
         st.save()
-        self.assertRaises(InvalidTicketError,
-                          ServiceTicket.objects.validate_ticket,
+        self.assertRaises(InvalidTicket, ServiceTicket.objects.validate_ticket,
                           st.ticket, self.service_url)
 
     def test_validate_ticket_consumed_ticket(self):
@@ -154,8 +151,7 @@ class ServiceTicketTests(TestCase):
         st = ServiceTicket.objects.create_ticket(service=self.service_url,
                                                  user=self.user)
         st.consume()
-        self.assertRaises(InvalidTicketError,
-                          ServiceTicket.objects.validate_ticket,
+        self.assertRaises(InvalidTicket, ServiceTicket.objects.validate_ticket,
                           st.ticket, self.service_url)
 
     def test_validate_ticket_renew(self):
@@ -179,8 +175,7 @@ class ServiceTicketTests(TestCase):
         """
         st = ServiceTicket.objects.create_ticket(service=self.service_url,
                                                  user=self.user)
-        self.assertRaises(InvalidTicketError,
-                          ServiceTicket.objects.validate_ticket,
+        self.assertRaises(InvalidTicket, ServiceTicket.objects.validate_ticket,
                           st.ticket, self.service_url, renew=True)
 
     def test_invalid_ticket_deletion(self):
@@ -293,8 +288,8 @@ class ProxyTicketTests(TestCase):
         The ``ProxyTicket`` validation process ought to fail when
         no ticket string is provided.
         """
-        self.assertRaises(InvalidRequestError,
-                          ProxyTicket.objects.validate_ticket, None, None)
+        self.assertRaises(InvalidRequest, ProxyTicket.objects.validate_ticket,
+                          None, None)
 
     def test_validate_ticket_no_service(self):
         """
@@ -305,8 +300,8 @@ class ProxyTicketTests(TestCase):
         pt = ProxyTicket.objects.create_ticket(service=self.service_url,
                                                user=self.user,
                                                granted_by_pgt=self.pgt)
-        self.assertRaises(InvalidRequestError,
-                          ProxyTicket.objects.validate_ticket, pt.ticket, None)
+        self.assertRaises(InvalidRequest, ProxyTicket.objects.validate_ticket,
+                          pt.ticket, None)
         self.assertTrue(ProxyTicket.objects.get(ticket=pt.ticket).is_consumed())
 
     def test_validate_ticket_invalid_ticket(self):
@@ -314,7 +309,7 @@ class ProxyTicketTests(TestCase):
         The ``ProxyTicket`` validation process ought to fail when
         an invalid ticket string is provided.
         """
-        self.assertRaises(InvalidTicketError, ProxyTicket.objects.validate_ticket,
+        self.assertRaises(InvalidTicket, ProxyTicket.objects.validate_ticket,
                           '12345', self.service_url)
 
     def test_validate_ticket_unknown_ticket(self):
@@ -322,8 +317,7 @@ class ProxyTicketTests(TestCase):
         The ``ProxyTicket`` validation process ought to fail when
         a ticket cannot be found in the database.
         """
-        self.assertRaises(InvalidTicketError,
-                          ProxyTicket.objects.validate_ticket,
+        self.assertRaises(InvalidTicket, ProxyTicket.objects.validate_ticket,
                           'PT-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
                           self.service_url)
 
@@ -336,8 +330,7 @@ class ProxyTicketTests(TestCase):
         pt = ProxyTicket.objects.create_ticket(service=self.service_url,
                                                user=self.user,
                                                granted_by_pgt=self.pgt)
-        self.assertRaises(InvalidServiceError,
-                          ProxyTicket.objects.validate_ticket,
+        self.assertRaises(InvalidService, ProxyTicket.objects.validate_ticket,
                           pt.ticket, 'http://www.example.org/')
 
     def test_validate_ticket_invalid_service_origin(self):
@@ -348,8 +341,7 @@ class ProxyTicketTests(TestCase):
         pt = ProxyTicket.objects.create_ticket(service=self.service_url,
                                                user=self.user,
                                                granted_by_pgt=self.pgt)
-        self.assertRaises(InvalidServiceError,
-                          ProxyTicket.objects.validate_ticket,
+        self.assertRaises(InvalidService, ProxyTicket.objects.validate_ticket,
                           pt.ticket, 'http://sub.example.com/')
 
     def test_validate_ticket_expired_ticket(self):
@@ -362,8 +354,7 @@ class ProxyTicketTests(TestCase):
                                                granted_by_pgt=self.pgt)
         pt.expires = now() - timedelta(seconds=1)
         pt.save()
-        self.assertRaises(InvalidTicketError,
-                          ProxyTicket.objects.validate_ticket,
+        self.assertRaises(InvalidTicket, ProxyTicket.objects.validate_ticket,
                           pt.ticket, self.service_url)
 
     def test_validate_ticket_consumed_ticket(self):
@@ -375,8 +366,7 @@ class ProxyTicketTests(TestCase):
                                                user=self.user,
                                                granted_by_pgt=self.pgt)
         pt.consume()
-        self.assertRaises(InvalidTicketError,
-                          ProxyTicket.objects.validate_ticket,
+        self.assertRaises(InvalidTicket, ProxyTicket.objects.validate_ticket,
                           pt.ticket, self.service_url)
 
     def test_invalid_ticket_deletion(self):
@@ -410,11 +400,9 @@ class ProxyTicketTests(TestCase):
 
         ProxyTicket.objects.delete_invalid_tickets()
         self.assertEqual(ProxyTicket.objects.count(), 2)
-        self.assertRaises(ProxyTicket.DoesNotExist,
-                          ProxyTicket.objects.get,
+        self.assertRaises(ProxyTicket.DoesNotExist, ProxyTicket.objects.get,
                           ticket=expired_pt.ticket)
-        self.assertRaises(ProxyTicket.DoesNotExist,
-                          ProxyTicket.objects.get,
+        self.assertRaises(ProxyTicket.DoesNotExist, ProxyTicket.objects.get,
                           ticket=consumed_pt.ticket)
 
     def test_consume_tickets(self):
@@ -493,7 +481,7 @@ class ProxyGrantingTicketTests(TestCase):
         The ``ProxyGrantingTicket`` validation process ought to fail
         when no ticket string is provided.
         """
-        self.assertRaises(InvalidRequestError,
+        self.assertRaises(InvalidRequest,
                           ProxyGrantingTicket.objects.validate_ticket,
                           False, False)
 
@@ -502,7 +490,7 @@ class ProxyGrantingTicketTests(TestCase):
         The ``ProxyGrantingTicket`` validation process ought to fail
         when no service identifier is provided.
         """
-        self.assertRaises(InvalidRequestError,
+        self.assertRaises(InvalidRequest,
                           ProxyGrantingTicket.objects.validate_ticket,
                           'PGT-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
                           None)
@@ -512,7 +500,7 @@ class ProxyGrantingTicketTests(TestCase):
         The ``ProxyGrantingTicket`` validation process ought to fail
         when an invalid ticket string is provided.
         """
-        self.assertRaises(InvalidTicketError,
+        self.assertRaises(InvalidTicket,
                           ProxyGrantingTicket.objects.validate_ticket,
                           '12345', self.pgt_url)
 
@@ -521,8 +509,7 @@ class ProxyGrantingTicketTests(TestCase):
         The ``ProxyGrantingTicket`` validation process ought to fail
         when a ticket cannot be found in the database.
         """
-        self.assertRaises(BadPGTError,
-                          ProxyGrantingTicket.objects.validate_ticket,
+        self.assertRaises(BadPgt, ProxyGrantingTicket.objects.validate_ticket,
                           'PGT-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
                           self.pgt_url)
 
@@ -536,7 +523,7 @@ class ProxyGrantingTicketTests(TestCase):
                                                         validate=False)
         pgt.expires = now() - timedelta(seconds=1)
         pgt.save()
-        self.assertRaises(InvalidTicketError,
+        self.assertRaises(InvalidTicket,
                           ProxyGrantingTicket.objects.validate_ticket,
                           pgt.ticket, self.pgt_url)
 
@@ -549,7 +536,7 @@ class ProxyGrantingTicketTests(TestCase):
                                                         user=self.user,
                                                         validate=False)
         pgt.consume()
-        self.assertRaises(InvalidTicketError,
+        self.assertRaises(InvalidTicket,
                           ProxyGrantingTicket.objects.validate_ticket,
                           pgt.ticket, self.pgt_url)
 
