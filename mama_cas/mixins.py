@@ -14,11 +14,7 @@ from django.core.urlresolvers import reverse_lazy
 from mama_cas.models import ServiceTicket
 from mama_cas.models import ProxyTicket
 from mama_cas.models import ProxyGrantingTicket
-from mama_cas.exceptions import InvalidRequest
-from mama_cas.exceptions import InvalidTicket
-from mama_cas.exceptions import InvalidService
-from mama_cas.exceptions import InternalError
-from mama_cas.exceptions import BadPgt
+from mama_cas.exceptions import ValidationError
 
 
 logger = logging.getLogger(__name__)
@@ -64,8 +60,7 @@ class ValidateTicketMixin(object):
         try:
             st = ServiceTicket.objects.validate_ticket(ticket, service,
                                                        renew=renew)
-        except (InvalidRequest, InvalidTicket,
-                InvalidService, InternalError) as e:
+        except ValidationError as e:
             logger.warning("%s %s" % (e.code, e))
             return None, None, e
         else:
@@ -95,8 +90,7 @@ class ValidateTicketMixin(object):
         logger.debug("Proxy validation request received for %s" % ticket)
         try:
             pt = ProxyTicket.objects.validate_ticket(ticket, service)
-        except (InvalidRequest, InvalidTicket,
-                InvalidService, InternalError) as e:
+        except ValidationError as e:
             logger.warning("%s %s" % (e.code, e))
             return None, None, None, e
         else:
@@ -133,8 +127,7 @@ class ValidateTicketMixin(object):
         try:
             pgt = ProxyGrantingTicket.objects.validate_ticket(pgt,
                                                               target_service)
-        except (InvalidRequest, InvalidTicket, BadPgt,
-                InvalidService, InternalError) as e:
+        except ValidationError as e:
             logger.warning("%s %s" % (e.code, e))
             return None, e
         else:

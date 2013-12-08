@@ -291,7 +291,7 @@ class ProxyGrantingTicketManager(TicketManager):
             r = requests.get(pgturl, verify=verify)
         except (requests.exceptions.ConnectionError,
                 requests.exceptions.SSLError) as e:
-            raise InternalError("%s" % e)
+            raise InternalError(str(e))
 
         # Check the returned HTTP status code
         try:
