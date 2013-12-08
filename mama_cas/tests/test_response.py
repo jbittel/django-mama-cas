@@ -158,13 +158,19 @@ class ValidationResponseTests(TestCase):
                                   content_type='text/xml')
         success = parse(resp.content).find('./authenticationSuccess')
         self.assertIsNotNone(success)
-        # The authenticationSuccess tag should include children for
+        # The authenticationSuccess tag should include a child for
         # each attribute, plus the user element
         self.assertEqual(len(success), len(attrs) + 1)
-        for attr in attrs.keys():
-            elem = success.find(attr)
-            self.assertIsNotNone(elem)
-            self.assertEqual(elem.text, attrs[attr])
+        for child in success:
+            if child.tag == 'user':
+                continue
+            self.assertTrue(child.tag in attrs)
+            self.assertEqual(child.text, attrs[child.tag])
+            # Ordering is not guaranteed, so remove attributes from
+            # the dict as they are validated. When done, check if the
+            # dict is empty to see if all attributes were matched.
+            del attrs[child.tag]
+        self.assertEqual(len(attrs), 0)
 
         settings.MAMA_CAS_ATTRIBUTE_FORMAT = attr_format
 
