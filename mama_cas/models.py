@@ -282,7 +282,7 @@ class ProxyGrantingTicketManager(TicketManager):
         """
         # Ensure the scheme is HTTPS before proceeding
         if not is_scheme_https(pgturl):
-            raise InternalError("Proxy callback URL scheme is not HTTPS")
+            raise InternalError("Proxy callback %s is not HTTPS" % pgturl)
 
         # Connect to proxy callback URL, checking the SSL certificate
         pgturl = add_query_params(pgturl, {'pgtId': pgtid, 'pgtIou': pgtiou})
@@ -291,13 +291,13 @@ class ProxyGrantingTicketManager(TicketManager):
             r = requests.get(pgturl, verify=verify)
         except (requests.exceptions.ConnectionError,
                 requests.exceptions.SSLError) as e:
-            raise InternalError(str(e))
+            raise InternalError("Proxy callback %s returned %s" % (pgturl, e))
 
         # Check the returned HTTP status code
         try:
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:
-            raise InternalError("Proxy callback returned %s" % e)
+            raise InternalError("Proxy callback %s returned %s" % (pgturl, e))
 
     def validate_ticket(self, ticket, service):
         """
