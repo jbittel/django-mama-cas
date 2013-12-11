@@ -63,7 +63,7 @@ class TicketManager(models.Manager):
 
     def validate_ticket(self, ticket, service, renew=False):
         """
-        Given a ticket string and service indentifier, validate the
+        Given a ticket string and service identifier, validate the
         corresponding ``Ticket``. If validation succeeds, return the
         ``Ticket``. If validation fails, raise an appropriate error.
 
@@ -301,7 +301,7 @@ class ProxyGrantingTicketManager(TicketManager):
 
     def validate_ticket(self, ticket, service):
         """
-        Given a ticket string and service indentifier, validate the
+        Given a ticket string and service identifier, validate the
         corresponding ``Ticket``. If validation succeeds, return the
         ``Ticket``. If validation fails, raise an appropriate error.
         """

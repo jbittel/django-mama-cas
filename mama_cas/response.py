@@ -97,7 +97,7 @@ class ValidationResponse(XmlResponseBase):
 
     def get_attribute_elements(self, attributes):
         """
-        Call the approriate method to retrieve a list of custom CAS
+        Call the appropriate method to retrieve a list of custom CAS
         attributes in the currently configured format.
         """
         attr_format = getattr(settings, 'MAMA_CAS_ATTRIBUTE_FORMAT', 'jasig')
