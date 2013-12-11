@@ -14,6 +14,7 @@ from django.core.urlresolvers import reverse_lazy
 from mama_cas.models import ServiceTicket
 from mama_cas.models import ProxyTicket
 from mama_cas.models import ProxyGrantingTicket
+from mama_cas.exceptions import InvalidTicket
 from mama_cas.exceptions import ValidationError
 
 
@@ -57,6 +58,14 @@ class ValidateTicketMixin(object):
         pgturl = request.GET.get('pgtUrl')
 
         logger.debug("Service validation request received for %s" % ticket)
+
+        # Check for proxy tickets passed to /serviceValidate
+        if ticket and ticket.startswith(ProxyTicket.TICKET_PREFIX):
+            e = InvalidTicket('Proxy tickets cannot be validated'
+                              ' with /serviceValidate')
+            logger.warning("%s %s" % (e.code, e))
+            return None, None, e
+
         try:
             st = ServiceTicket.objects.validate_ticket(ticket, service,
                                                        renew=renew)

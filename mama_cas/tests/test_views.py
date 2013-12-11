@@ -440,6 +440,18 @@ class ServiceValidateViewTests(TestCase):
         response = self.client.get(reverse('cas_service_validate') + query_str)
         self.assertContains(response, 'INVALID_TICKET')
 
+    def test_service_validate_view_proxy_ticket(self):
+        """
+        When passed a proxy ticket, the error should explain that
+        validation failed because a proxy ticket was provided.
+        """
+        query_str = "?service=%s&ticket=%s" % (self.service_url,
+                    'PT-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+        response = self.client.get(reverse('cas_service_validate') + query_str)
+        self.assertContains(response, 'INVALID_TICKET')
+        self.assertContains(response, 'Proxy tickets cannot be validated'
+                                      ' with /serviceValidate')
+
     def test_service_validate_view_success(self):
         """
         When called with correct parameters, a ``GET`` request to the
