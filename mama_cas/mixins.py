@@ -46,11 +46,9 @@ class ValidateTicketMixin(object):
     """
     def validate_service_ticket(self, request):
         """
-        Given a ``request``, validate a service ticket string. On success, a
-        triplet is returned containing the ``ServiceTicket`` and an optional
-        ``ProxyGrantingTicket``, with no error. On error, a triplet is
-        returned containing no ``ServiceTicket`` or ``ProxyGrantingTicket``,
-        but with an ``Error`` describing what went wrong.
+        Validate a service ticket string. Return a triplet containing
+        a ``ServiceTicket`` and an optional ``ProxyGrantingTicket``,
+        or a ``ValidationError`` subclass if ticket validation failed.
         """
         service = request.GET.get('service')
         ticket = request.GET.get('ticket')
@@ -85,12 +83,10 @@ class ValidateTicketMixin(object):
 
     def validate_proxy_ticket(self, request):
         """
-        Given a ``request``, validate a proxy ticket string. On success, a
-        4-tuple is returned containing the ``ProxyTicket``, an optional
-        ``ProxyGrantingTicket`` and a list of all services that proxied
-        authentication, with no error. On error, a 4-tuple is returned
-        containing no ``ProxyTicket``, ``ProxyGrantingTicket`` or list of
-        proxies, but with an ``Error`` describing what went wrong.
+        Validate a proxy ticket string. Return a 4-tuple containing a
+        ``ProxyTicket``, an optional ``ProxyGrantingTicket`` and a list
+        of proxies through which authentication proceeded, or a
+        ``ValidationError`` subclass if ticket validation failed.
         """
         service = request.GET.get('service')
         ticket = request.GET.get('ticket')
@@ -123,10 +119,9 @@ class ValidateTicketMixin(object):
 
     def validate_proxy_granting_ticket(self, request):
         """
-        Given a ``request``, validate a proxy granting ticket string. On
-        success, an ordered pair is returned containing a ``ProxyTicket``,
-        with no error. On error, an ordered pair is returned containing no
-        ``ProxyTicket``, but with an ``Error`` describing what went wrong.
+        Validate a proxy granting ticket string. Return an ordered
+        pair containing a ``ProxyTicket``, or a ``ValidationError``
+        subclass if ticket validation failed.
         """
         pgt = request.GET.get('pgt')
         target_service = request.GET.get('targetService')
@@ -148,26 +143,25 @@ class ValidateTicketMixin(object):
 
 class CustomAttributesMixin(object):
     """
-    View mixin for including custom user attributes in a validation response.
+    View mixin for including user attributes in a validation response.
     """
     def get_custom_attributes(self, ticket):
         """
-        Given a ``ticket``, build a list of user attributes from the ``User``
-        and/or user profile object to be returned along with a validation
-        success. The attributes are defined using two settings variables:
+        Build a list of user attributes from the ``User`` and/or user
+        profile object. The attributes are defined with two settings:
 
         ``MAMA_CAS_USER_ATTRIBUTES``
-            This is a list of name and ``User`` attribute pairs. The name can
-            be any meaningful string, while the attribute must correspond with
-            an attribute on the ``User`` object.
+            A list of name and ``User`` attribute pairs. The name can
+            be any meaningful string, while the attribute must
+            correspond with an attribute on the ``User`` object.
 
         ``MAMA_CAS_PROFILE_ATTRIBUTES``
-            This is a list of name and user profile attribute pairs. The name
-            can be any meaningful string, while the attribute must correspond
-            with an attribute on the user profile object.
+            A list of name and user profile attribute pairs. The name
+            can be any meaningful string, while the attribute must
+            correspond with an attribute on the user profile object.
 
-        One or both of the settings variables may be used, with all data
-        returned as a single list. Ordering is not guaranteed.
+        One or both of the settings variables may be used, with all
+        items returned as a single list. Ordering is not guaranteed.
         """
         if not ticket:
             return None
@@ -203,14 +197,12 @@ class LogoutUserMixin(object):
     """
     def logout_user(self, request):
         """
-        Given a ``request``, end a single sign-on session for the current
-        user. This process occurs in two steps:
+        End a single sign-on session for the current user. This process
+        occurs in two steps:
 
-        1. Consume all ``Ticket``s created for the user to ensure none of
-           them continue to be valid outside of the active session.
+        1. Consume all valid tickets created for the user.
 
-        2. Call logout() to end the active session and completely remove all
-           existing session data for the current request.
+        2. Call logout() to end the session and purge all session data.
         """
         if request.user.is_authenticated():
             ServiceTicket.objects.consume_tickets(request.user)
