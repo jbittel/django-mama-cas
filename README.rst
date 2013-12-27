@@ -13,8 +13,8 @@ core protocol. It is designed with several key attributes in mind:
 The source code can be found at `github.com/jbittel/django-mama-cas`_, and is
 the preferred location for contributions, suggestions and bug reports.
 
-Quick Start
------------
+Quickstart
+----------
 
 Install with `pip`_::
 
@@ -32,8 +32,8 @@ For full installation and configuration instructions, see the local
 docs/installation.rst file or read the documentation online at
 `django-mama-cas.readthedocs.org`_.
 
-Upgrading
----------
+Upgrade
+-------
 
 Upgrade with `pip`_::
 
@@ -44,5 +44,5 @@ changes or other important upgrade notes.
 
 .. _github.com/jbittel/django-mama-cas: https://github.com/jbittel/django-mama-cas
 .. _pip: http://www.pip-installer.org/
-.. _django-mama-cas.readthedocs.org: http://django-mama-cas.readthedocs.org/.
+.. _django-mama-cas.readthedocs.org: http://django-mama-cas.readthedocs.org/
 .. _changelog: http://django-mama-cas.readthedocs.org/en/latest/changelog.html
