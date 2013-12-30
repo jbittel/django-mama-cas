@@ -1,17 +1,19 @@
 django-mama-cas
 ===============
 
-django-mama-cas is a CAS server single sign-on application for Django,
-implementing the popular CAS server protocol in Python. It implements the CAS
-1.0 and 2.0 specifications, as well as some commonly used extensions to the
-core protocol. It is designed with several key attributes in mind:
+django-mama-cas is a Django `Central Authentication Service (CAS)`_ server.
+It implements the CAS 1.0 and 2.0 protocols, as well as some commonly used
+extensions to the specification.
 
-   * Simple installation and configuration
-   * Integrates with an existing Python ecosystem
-   * Easily use or write Django applications for authentication
+CAS is a single sign-on protocol that allows a user to access multiple
+applications after providing their credentials a single time. It utilizes
+security tickets, unique text strings generated and validated by the server,
+allowing applications to authenticate a user without direct access to the
+user's credentials (typically a user ID and password).
 
 The source code can be found at `github.com/jbittel/django-mama-cas`_, and is
 the preferred location for contributions, suggestions and bug reports.
+Documentation is available at `django-mama-cas.readthedocs.org`_.
 
 Quickstart
 ----------
@@ -28,10 +30,6 @@ Add to the URLconf::
 
    urlpatterns += patterns('', (r'', include('mama_cas.urls')))
 
-For full installation and configuration instructions, see the local
-docs/installation.rst file or read the documentation online at
-`django-mama-cas.readthedocs.org`_.
-
 Upgrade
 -------
 
@@ -42,7 +40,8 @@ Upgrade with `pip`_::
 Before upgrading, see the `changelog`_ for any backward incompatible
 changes or other important upgrade notes.
 
+.. _Central Authentication Service (CAS): http://en.wikipedia.org/wiki/Central_Authentication_Service
 .. _github.com/jbittel/django-mama-cas: https://github.com/jbittel/django-mama-cas
-.. _pip: http://www.pip-installer.org/
 .. _django-mama-cas.readthedocs.org: http://django-mama-cas.readthedocs.org/
+.. _pip: http://www.pip-installer.org/
 .. _changelog: http://django-mama-cas.readthedocs.org/en/latest/changelog.html

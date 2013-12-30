@@ -3,20 +3,21 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-django-mama-cas documentation
-=============================
+Introduction
+============
 
-django-mama-cas is a Python implementation of the `Central Authentication
-Service (CAS)`_ server protocol, providing single sign-on server functionality
-as a Django application. It implements the CAS 1.0 and 2.0 specifications, as
-well as some commonly used extensions to the protocol.
+django-mama-cas is a Django `Central Authentication Service (CAS)`_ server.
+It implements the CAS 1.0 and 2.0 protocols, as well as some commonly used
+extensions to the specification.
 
-CAS is an HTTP-based protocol that provides single sign-on functionality to web
-services. It operates using tickets, unique text strings that are provided and
-validated by the server, allowing web services to authenticate a user without
-direct access to the user's credentials.
+CAS is a single sign-on protocol that allows a user to access multiple
+applications after providing their credentials a single time. It utilizes
+security tickets, unique text strings generated and validated by the server,
+allowing applications to authenticate a user without direct access to the
+user's credentials (typically a user ID and password).
 
-.. _Central Authentication Service (CAS): http://en.wikipedia.org/wiki/Central_Authentication_Service
+The source code can be found at `github.com/jbittel/django-mama-cas`_, and is
+the preferred location for contributions, suggestions and bug reports.
 
 Contents
 --------
@@ -31,3 +32,6 @@ Contents
    forms
    protocol
    changelog
+
+.. _Central Authentication Service (CAS): http://en.wikipedia.org/wiki/Central_Authentication_Service
+.. _github.com/jbittel/django-mama-cas: https://github.com/jbittel/django-mama-cas
