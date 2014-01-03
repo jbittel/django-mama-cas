@@ -40,7 +40,7 @@ Upgrade with `pip`_::
 Before upgrading, see the `changelog`_ for any backward incompatible
 changes or other important upgrade notes.
 
-.. _Central Authentication Service (CAS): http://en.wikipedia.org/wiki/Central_Authentication_Service
+.. _Central Authentication Service (CAS): http://www.jasig.org/cas
 .. _github.com/jbittel/django-mama-cas: https://github.com/jbittel/django-mama-cas
 .. _django-mama-cas.readthedocs.org: http://django-mama-cas.readthedocs.org/
 .. _pip: http://www.pip-installer.org/
