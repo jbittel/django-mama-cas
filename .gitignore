@@ -1,6 +1,8 @@
-*.pyc
-_build
-_static
-_templates
-dist
+__pycache__/
+*.py[co]
+
+*.egg-info/
+dist/
 MANIFEST
+
+docs/_build/
