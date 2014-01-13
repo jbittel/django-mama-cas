@@ -11,12 +11,12 @@ from django.views.generic import View
 
 from mama_cas.forms import LoginForm
 from mama_cas.forms import WarnForm
+from mama_cas.mixins import CasResponseMixin
 from mama_cas.mixins import CustomAttributesMixin
 from mama_cas.mixins import LoginRequiredMixin
 from mama_cas.mixins import LogoutUserMixin
 from mama_cas.mixins import NeverCacheMixin
 from mama_cas.mixins import ValidateTicketMixin
-from mama_cas.mixins import XmlResponseMixin
 from mama_cas.models import ProxyTicket
 from mama_cas.models import ServiceTicket
 from mama_cas.response import ValidationResponse
@@ -228,7 +228,7 @@ class ValidateView(NeverCacheMixin, ValidateTicketMixin, View):
 
 
 class ServiceValidateView(NeverCacheMixin, ValidateTicketMixin,
-                          CustomAttributesMixin, XmlResponseMixin, View):
+                          CustomAttributesMixin, CasResponseMixin, View):
     """
     (2.5) Check the validity of a service ticket. [CAS 2.0]
 
@@ -256,7 +256,7 @@ class ServiceValidateView(NeverCacheMixin, ValidateTicketMixin,
 
 
 class ProxyValidateView(NeverCacheMixin, ValidateTicketMixin,
-                        CustomAttributesMixin, XmlResponseMixin, View):
+                        CustomAttributesMixin, CasResponseMixin, View):
     """
     (2.6) Perform the same validation tasks as ServiceValidateView and
     additionally validate proxy tickets. [CAS 2.0]
@@ -292,7 +292,7 @@ class ProxyValidateView(NeverCacheMixin, ValidateTicketMixin,
                 'error': error, 'attributes': attributes}
 
 
-class ProxyView(NeverCacheMixin, ValidateTicketMixin, XmlResponseMixin, View):
+class ProxyView(NeverCacheMixin, ValidateTicketMixin, CasResponseMixin, View):
     """
     (2.7) Provide proxy tickets to services that have acquired proxy-
     granting tickets. [CAS 2.0]

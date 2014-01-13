@@ -17,7 +17,7 @@ except AttributeError:  # pragma: no cover
         etree._namespace_map[uri] = prefix
 
 
-class XmlResponseBase(HttpResponse):
+class CasResponseBase(HttpResponse):
     """
     Base class for CAS 2.0 XML format responses.
     """
@@ -26,8 +26,8 @@ class XmlResponseBase(HttpResponse):
 
     def __init__(self, context={}, content_type='text/xml'):
         register_namespace(self.prefix, self.uri)
-        content = self.render_xml(context)
-        super(XmlResponseBase, self).__init__(content, content_type)
+        content = self.render_content(context)
+        super(CasResponseBase, self).__init__(content, content_type)
 
     def ns(self, tag):
         """
@@ -37,7 +37,7 @@ class XmlResponseBase(HttpResponse):
         return etree.QName(self.uri, tag)
 
 
-class ValidationResponse(XmlResponseBase):
+class ValidationResponse(CasResponseBase):
     """
     (2.6.2) Render an XML format CAS service response for a
     ticket validation success or failure.
@@ -65,7 +65,7 @@ class ValidationResponse(XmlResponseBase):
     """
     attribute_formats = ['jasig', 'rubycas', 'namevalue']
 
-    def render_xml(self, context):
+    def render_content(self, context):
         ticket = context.get('ticket')
         error = context.get('error')
         attributes = context.get('attributes')
@@ -154,7 +154,7 @@ class ValidationResponse(XmlResponseBase):
         return elements
 
 
-class ProxyResponse(XmlResponseBase):
+class ProxyResponse(CasResponseBase):
     """
     (2.7.2) Render an XML format CAS service response for a proxy
     request success or failure.
@@ -175,7 +175,7 @@ class ProxyResponse(XmlResponseBase):
         </cas:proxyFailure>
     </cas:serviceResponse>
     """
-    def render_xml(self, context):
+    def render_content(self, context):
         ticket = context.get('ticket')
         error = context.get('error')
 
