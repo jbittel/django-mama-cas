@@ -24,10 +24,10 @@ class CasResponseBase(HttpResponse):
     prefix = 'cas'
     uri = 'http://www.yale.edu/tp/cas'
 
-    def __init__(self, context={}, content_type='text/xml'):
+    def __init__(self, context, **kwargs):
         register_namespace(self.prefix, self.uri)
         content = self.render_content(context)
-        super(CasResponseBase, self).__init__(content, content_type)
+        super(CasResponseBase, self).__init__(content, **kwargs)
 
     def ns(self, tag):
         """

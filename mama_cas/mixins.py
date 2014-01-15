@@ -52,8 +52,7 @@ class CasResponseMixin(object):
         return self.render_to_response(context)
 
     def render_to_response(self, context):
-        return self.response_class(context=context,
-                                   content_type=self.content_type)
+        return self.response_class(context, content_type=self.content_type)
 
 
 class ValidateTicketMixin(object):
