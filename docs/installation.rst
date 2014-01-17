@@ -86,11 +86,6 @@ CAS server available as ``http://example.com/cas/login``, use this instead::
        (r'^cas/', include('mama_cas.urls')),
    )
 
-.. note::
-
-   Changing the URL patterns within ``mama_cas.urls`` is not recommended as
-   it will likely break standard CAS behavior.
-
 Sessions
 ~~~~~~~~
 
