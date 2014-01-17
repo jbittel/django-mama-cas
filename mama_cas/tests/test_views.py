@@ -720,7 +720,7 @@ class ProxyValidateViewTests(TestCase):
         """
         When ``MAMA_CAS_VALID_SERVICES`` is defined in the settings
         file, a service string should be checked against the list of
-        valid services.  If it does not match, a proxy authentication
+        valid services. If it does not match, a proxy authentication
         failure should be returned.
         """
         query_str = "?service=%s&ticket=%s" % (self.invalid_service,

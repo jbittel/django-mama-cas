@@ -210,7 +210,7 @@ class ValidateView(NeverCacheMixin, ValidateTicketMixin, View):
 
     When both ``service`` and ``ticket`` are provided, this view
     responds with a plain-text response indicating a ``ServiceTicket``
-    validation success or failure.  Whether or not the validation
+    validation success or failure. Whether or not the validation
     succeeds, the ``ServiceTicket`` is consumed, rendering it invalid
     for future authentication attempts.
 

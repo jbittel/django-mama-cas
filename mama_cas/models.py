@@ -38,9 +38,8 @@ logger = logging.getLogger(__name__)
 class TicketManager(models.Manager):
     def create_ticket(self, ticket=None, **kwargs):
         """
-        Create a new ``Ticket`` with the appropriate default values. Any
-        provided arguments are passed on to the ``create()`` function.
-        Return the newly created ``Ticket``.
+        Create a new ``Ticket``. Additional arguments are passed to the
+        ``create()`` function. Return the newly created ``Ticket``.
         """
         if not ticket:
             ticket = self.create_ticket_str()
@@ -141,11 +140,7 @@ class TicketManager(models.Manager):
 class Ticket(models.Model):
     """
     ``Ticket`` is an abstract base class implementing common methods
-    and fields for the assorted ticket types.
-
-    It is recommended that you do not interact directly with this model
-    or its inheritors. Instead, the provided manager contains methods
-    for creating, validating, consuming and deleting invalid ``Ticket``s.
+    and fields for CAS tickets.
     """
     TICKET_EXPIRE = getattr(settings, 'MAMA_CAS_TICKET_EXPIRE', 90)
     TICKET_RAND_LEN = getattr(settings, 'MAMA_CAS_TICKET_RAND_LEN', 32)
@@ -170,9 +165,9 @@ class Ticket(models.Model):
 
     def consume(self):
         """
-        A ``Ticket`` is consumed by populating the ``consumed`` field with
-        the current datetime. A consumed ``Ticket`` is no longer valid for
-        any future authentication attempts.
+        Consume a ``Ticket`` by populating the ``consumed`` field with
+        the current datetime. A consumed ``Ticket`` is invalid for future
+        authentication attempts.
         """
         self.consumed = timezone.now()
         self.save()
