@@ -8,9 +8,8 @@ except ImportError:  # pragma: no cover
     from urlparse import parse_qsl, urlparse, urlunparse
 
 from django.conf import settings
+from django.core import urlresolvers
 from django.http import HttpResponseRedirect
-from django.http import HttpResponsePermanentRedirect
-from django.shortcuts import resolve_url
 
 
 logger = logging.getLogger(__name__)
@@ -66,20 +65,21 @@ def is_valid_service_url(url):
 
 def redirect(to, *args, **kwargs):
     """
-    Maintains the same function signature as the Django redirect
-    shortcut, but with additional functionality. If an optional
-    `params` argument is provided, the dictionary items will be
-    injected as query parameters on the redirection URL.
+    Similar to the Django ``redirect`` shortcut but with altered
+    functionality. If an optional ``params`` argument is provided, the
+    dictionary items will be injected as query parameters on the
+    redirection URL.
     """
-    if kwargs.pop('permanent', False):
-        redirect_class = HttpResponsePermanentRedirect
-    else:
-        redirect_class = HttpResponseRedirect
     params = kwargs.pop('params', {})
 
-    to = resolve_url(to, *args, **kwargs)
+    try:
+        to = urlresolvers.reverse(to, args=args, kwargs=kwargs)
+    except urlresolvers.NoReverseMatch:
+        if '/' not in to and '.' not in to:
+            raise
+
     if params:
         to = add_query_params(to, params)
 
     logger.debug("Redirecting to %s" % to)
-    return redirect_class(to)
+    return HttpResponseRedirect(to)
