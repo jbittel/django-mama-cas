@@ -15,13 +15,13 @@ and following, version numbers follow the `semantic versioning`_ scheme.
    * Change ticket expiration duration to seconds
    * Fix ticket cleanup cascading to valid tickets
 
-   .. admonition:: Backwards Incompatible
+   .. warning::
 
       The ``created`` field on ``ServiceTicket``, ``ProxyTicket`` and
       ``ProxyGrantingTicket`` was renamed to ``expires``. If upgrading,
       you must ensure this field is renamed accordingly.
 
-   .. admonition:: Backwards Incompatible
+   .. warning::
 
       The ``MAMA_CAS_TICKET_EXPIRE`` setting previously specified ticket
       expiration in minutes and defaulted to *5*. Now the setting is
