@@ -58,9 +58,9 @@ required and have sane defaults, but can be used to customize the behavior.
 
    .. note::
 
-      This setting is intended for use with Django 1.4. In Django 1.5 and later,
-      the recommended method for storing custom profile information is through a
-      `custom User model`_.
+      This setting is intended for use with Django 1.4. In Django 1.5 and
+      later, the built-in mechanisms for accessing user profile data have
+      been deprecated.
 
 .. attribute:: MAMA_CAS_ATTRIBUTE_FORMAT
 
@@ -112,5 +112,4 @@ required and have sane defaults, but can be used to customize the behavior.
       The default setting of ``False`` conforms to the CAS protocol
       specification.
 
-.. _custom User model: https://docs.djangoproject.com/en/1.5/topics/auth/customizing/#auth-custom-user
 .. _phpCAS: https://wiki.jasig.org/display/CASC/phpCAS
