@@ -49,10 +49,11 @@ class ValidationResponseTests(TestCase):
         Initialize the environment for each test.
         """
         self.user = User.objects.create_user('ellen',
-                                             first_name='Ellen',
-                                             last_name='Cohen',
                                              password='mamas&papas',
                                              email='ellen@example.com')
+        self.user.first_name = 'Ellen'
+        self.user.last_name = 'Cohen'
+        self.user.save()
         self.st = ServiceTicket.objects.create_ticket(service=self.service_url,
                                                       user=self.user)
         self.pgt = ProxyGrantingTicket.objects.create_ticket(self.pgt_url,
@@ -226,10 +227,11 @@ class ProxyResponseTests(TestCase):
         Initialize the environment for each test.
         """
         self.user = User.objects.create_user('ellen',
-                                             first_name='Ellen',
-                                             last_name='Cohen',
                                              password='mamas&papas',
                                              email='ellen@example.com')
+        self.user.first_name = 'Ellen'
+        self.user.last_name = 'Cohen'
+        self.user.save()
         self.st = ServiceTicket.objects.create_ticket(service=self.service_url,
                                                       user=self.user)
         self.pgt = ProxyGrantingTicket.objects.create_ticket(self.pgt_url,

@@ -381,10 +381,11 @@ class ServiceValidateViewTests(TestCase):
         Initialize the environment for each test.
         """
         self.user = User.objects.create_user('ellen',
-                                             first_name='Ellen',
-                                             last_name='Cohen',
-                                             password='mamas&papas',
-                                             email='ellen@example.com')
+                                             email='ellen@example.com',
+                                             password='mamas&papas')
+        self.user.first_name = 'Ellen'
+        self.user.last_name = 'Cohen'
+        self.user.save()
         self.st = ServiceTicket.objects.create_ticket(service=self.service_url,
                                                       user=self.user)
 
@@ -543,10 +544,11 @@ class ProxyValidateViewTests(TestCase):
         Initialize the environment for each test.
         """
         self.user = User.objects.create_user('ellen',
-                                             first_name='Ellen',
-                                             last_name='Cohen',
-                                             password='mamas&papas',
-                                             email='ellen@example.com')
+                                             email='ellen@example.com',
+                                             password='mamas&papas')
+        self.userfirst_name = 'Ellen'
+        self.user.last_name = 'Cohen'
+        self.user.save()
         self.st = ServiceTicket.objects.create_ticket(service=self.service_url,
                                                       user=self.user)
         self.pgt = ProxyGrantingTicket.objects.create_ticket(self.service_url,
