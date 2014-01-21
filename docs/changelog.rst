@@ -8,6 +8,25 @@ incompatible changes or other upgrade issues are also described here. For
 additional detail, read the complete `commit history`_. From version 0.4.0
 and following, version numbers follow the `semantic versioning`_ scheme.
 
+**django-mama-cas 0.7.0** ``[2014-01-21]``
+   * Generate CAS 2.0 XML responses instead of using templates
+   * Expire PGTs according to SESSION_COOKIE_AGE
+   * Change ticket created field to expiry date
+   * Change ticket expiration duration to seconds
+   * Fix ticket cleanup cascading to valid tickets
+
+   .. admonition:: Backwards Incompatible
+
+      The ``created`` field on ``ServiceTicket``, ``ProxyTicket`` and
+      ``ProxyGrantingTicket`` was renamed to ``expires``. If upgrading,
+      you must ensure this field is renamed accordingly.
+
+   .. admonition:: Backwards Incompatible
+
+      The ``MAMA_CAS_TICKET_EXPIRE`` setting previously specified ticket
+      expiration in minutes and defaulted to *5*. Now the setting is
+      specified in seconds and defaults to *90*.
+
 **django-mama-cas 0.6.1** ``[2013-11-11]``
    * Django 1.6 compatibility
    * Handle exceptions raised by authentication backends
