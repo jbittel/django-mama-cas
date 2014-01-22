@@ -1,7 +1,5 @@
 from __future__ import unicode_literals
 
-import unittest
-
 try:
     from urllib.parse import quote
 except ImportError:  # pragma: no cover
@@ -10,6 +8,7 @@ except ImportError:  # pragma: no cover
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.test import TestCase
+from django.utils import unittest
 
 try:
     from django.contrib.auth import get_user_model
