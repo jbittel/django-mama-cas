@@ -93,7 +93,7 @@ class ValidationResponse(CasResponseBase):
             auth_failure.set('code', error.code)
             auth_failure.text = str(error)
 
-        return etree.tostring(service_response, encoding='UTF-8', method='xml')
+        return etree.tostring(service_response, encoding='UTF-8')
 
     def get_attribute_elements(self, attributes):
         """
@@ -189,4 +189,4 @@ class ProxyResponse(CasResponseBase):
             proxy_failure.set('code', error.code)
             proxy_failure.text = str(error)
 
-        return etree.tostring(service_response, encoding='UTF-8', method='xml')
+        return etree.tostring(service_response, encoding='UTF-8')
