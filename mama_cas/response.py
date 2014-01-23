@@ -11,10 +11,16 @@ from django.http import HttpResponse
 try:
     register_namespace = etree.register_namespace
 except AttributeError:  # pragma: no cover
-    # ElementTree 1.2 (Python < 2.7) does not have the
-    # register_namespace() function
+    # ElementTree 1.2 (Python 2.6) does not have register_namespace()
     def register_namespace(prefix, uri):
-        etree._namespace_map[uri] = prefix
+        try:
+            etree._namespace_map[uri] = prefix
+        except AttributeError:
+            # cElementTree 1.0.6 (Python 2.6) does not have
+            # register_namespace() or _namespace_map, but
+            # uses ElementTree for serialization
+            import xml.etree.ElementTree as ET
+            ET._namespace_map[uri] = prefix
 
 
 class CasResponseBase(HttpResponse):
