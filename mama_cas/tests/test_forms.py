@@ -1,10 +1,6 @@
 from django.test import TestCase
-try:
-    from django.contrib.auth import get_user_model
-    User = get_user_model()
-except ImportError:  # Django version < 1.5
-    from django.contrib.auth.models import User
 
+from mama_cas.compat import get_user_model
 from mama_cas.forms import LoginForm
 from mama_cas.forms import LoginFormEmail
 from mama_cas.forms import LoginFormWarn
@@ -18,7 +14,8 @@ class LoginFormTests(TestCase):
         """
         Initialize the environment for each test.
         """
-        self.user = User.objects.create_user('ellen',
+        user = get_user_model()
+        self.user = user.objects.create_user('ellen',
                                              password='mamas&papas',
                                              email='ellen@example.com')
 

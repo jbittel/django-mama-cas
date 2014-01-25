@@ -5,12 +5,12 @@ from django.views.decorators.cache import never_cache
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.core.exceptions import ObjectDoesNotExist
-from django.contrib.auth.models import SiteProfileNotAvailable
 from django.contrib.auth import logout
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
 from django.core.urlresolvers import reverse_lazy
 
+from mama_cas.compat import SiteProfileNotAvailable
 from mama_cas.models import ServiceTicket
 from mama_cas.models import ProxyTicket
 from mama_cas.models import ProxyGrantingTicket

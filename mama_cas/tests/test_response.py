@@ -9,12 +9,7 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase
 
-try:
-    from django.contrib.auth import get_user_model
-    User = get_user_model()
-except ImportError:  # Django version < 1.5
-    from django.contrib.auth.models import User
-
+from mama_cas.compat import get_user_model
 from mama_cas.exceptions import InvalidTicket
 from mama_cas.models import ProxyGrantingTicket
 from mama_cas.models import ProxyTicket
@@ -48,7 +43,8 @@ class ValidationResponseTests(TestCase):
         """
         Initialize the environment for each test.
         """
-        self.user = User.objects.create_user('ellen',
+        user = get_user_model()
+        self.user = user.objects.create_user('ellen',
                                              password='mamas&papas',
                                              email='ellen@example.com')
         self.user.first_name = 'Ellen'
@@ -226,7 +222,8 @@ class ProxyResponseTests(TestCase):
         """
         Initialize the environment for each test.
         """
-        self.user = User.objects.create_user('ellen',
+        user = get_user_model()
+        self.user = user.objects.create_user('ellen',
                                              password='mamas&papas',
                                              email='ellen@example.com')
         self.user.first_name = 'Ellen'

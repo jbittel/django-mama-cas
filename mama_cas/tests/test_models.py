@@ -5,12 +5,8 @@ from django.conf import settings
 from django.core import management
 from django.test import TestCase
 from django.utils.timezone import now
-try:
-    from django.contrib.auth import get_user_model
-    User = get_user_model()
-except ImportError:  # Django version < 1.5
-    from django.contrib.auth.models import User
 
+from mama_cas.compat import get_user_model
 from mama_cas.models import ProxyGrantingTicket
 from mama_cas.models import ProxyTicket
 from mama_cas.models import ServiceTicket
@@ -30,7 +26,8 @@ class ServiceTicketTests(TestCase):
         """
         Initialize the environment for each test.
         """
-        self.user = User.objects.create_user('ellen',
+        user = get_user_model()
+        self.user = user.objects.create_user('ellen',
                                              password='mamas&papas',
                                              email='ellen@example.com')
         self.old_valid_services = getattr(settings,
@@ -237,7 +234,8 @@ class ProxyTicketTests(TestCase):
         """
         Initialize the environment for each test.
         """
-        self.user = User.objects.create_user('ellen',
+        user = get_user_model()
+        self.user = user.objects.create_user('ellen',
                                              password='mamas&papas',
                                              email='ellen@example.com')
         self.pgt = ProxyGrantingTicket.objects.create_ticket(self.service_url,
@@ -431,7 +429,8 @@ class ProxyGrantingTicketTests(TestCase):
         """
         Initialize the environment for each test.
         """
-        self.user = User.objects.create_user('ellen',
+        user = get_user_model()
+        self.user = user.objects.create_user('ellen',
                                              password='mamas&papas',
                                              email='ellen@example.com')
         self.old_valid_services = getattr(settings,
@@ -604,7 +603,8 @@ class ManagementCommandTests(TestCase):
         """
         Initialize the environment for each test.
         """
-        self.user = User.objects.create_user('ellen',
+        user = get_user_model()
+        self.user = user.objects.create_user('ellen',
                                              password='mamas&papas',
                                              email='ellen@example.com')
 

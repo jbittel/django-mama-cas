@@ -15,12 +15,8 @@ from django.utils.crypto import get_random_string
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.http import same_origin
 from django.utils.translation import ugettext_lazy as _
-try:
-    from django.contrib.auth import get_user_model
-    User = get_user_model()
-except ImportError:  # Django version < 1.5
-    from django.contrib.auth.models import User
 
+from mama_cas.compat import user_model
 from mama_cas.exceptions import InvalidRequest
 from mama_cas.exceptions import InvalidTicket
 from mama_cas.exceptions import InvalidService
@@ -147,7 +143,7 @@ class Ticket(models.Model):
     TICKET_RE = re.compile("^[A-Z]{2,3}-[0-9]{10,}-[a-zA-Z0-9]{%d}$" % TICKET_RAND_LEN)
 
     ticket = models.CharField(_('ticket'), max_length=255, unique=True)
-    user = models.ForeignKey(User, verbose_name=_('user'))
+    user = models.ForeignKey(user_model, verbose_name=_('user'))
     expires = models.DateTimeField(_('expires'))
     consumed = models.DateTimeField(_('consumed'), null=True)
 

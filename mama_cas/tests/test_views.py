@@ -10,12 +10,7 @@ from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.utils import unittest
 
-try:
-    from django.contrib.auth import get_user_model
-    User = get_user_model()
-except ImportError:  # Django version < 1.5
-    from django.contrib.auth.models import User
-
+from mama_cas.compat import get_user_model
 from mama_cas.forms import LoginForm
 from mama_cas.forms import LoginFormWarn
 from mama_cas.models import ProxyGrantingTicket
@@ -39,7 +34,8 @@ class LoginViewTests(TestCase):
         """
         Initialize the environment for each test.
         """
-        self.user = User.objects.create_user(**self.user_info)
+        user = get_user_model()
+        self.user = user.objects.create_user(**self.user_info)
 
     def test_login_view(self):
         """
@@ -155,7 +151,8 @@ class WarnViewTests(TestCase):
         """
         Initialize the environment for each test.
         """
-        self.user = User.objects.create_user(**self.user_info)
+        user = get_user_model()
+        self.user = user.objects.create_user(**self.user_info)
 
     def test_warn_view(self):
         """
@@ -222,7 +219,8 @@ class LogoutViewTests(TestCase):
         """
         Initialize the environment for each test.
         """
-        self.user = User.objects.create_user(**self.user_info)
+        user = get_user_model()
+        self.user = user.objects.create_user(**self.user_info)
         self.old_valid_services = getattr(settings,
                                           'MAMA_CAS_VALID_SERVICES', ())
         settings.MAMA_CAS_VALID_SERVICES = ('.*\.example\.com',)
@@ -292,7 +290,8 @@ class ValidateViewTests(TestCase):
         """
         Initialize the environment for each test.
         """
-        self.user = User.objects.create_user('ellen',
+        user = get_user_model()
+        self.user = user.objects.create_user('ellen',
                                              password='mamas&papas',
                                              email='ellen@example.com')
         self.st = ServiceTicket.objects.create_ticket(service=self.service_url,
@@ -379,7 +378,8 @@ class ServiceValidateViewTests(TestCase):
         """
         Initialize the environment for each test.
         """
-        self.user = User.objects.create_user('ellen',
+        user = get_user_model()
+        self.user = user.objects.create_user('ellen',
                                              email='ellen@example.com',
                                              password='mamas&papas')
         self.user.first_name = 'Ellen'
@@ -542,7 +542,8 @@ class ProxyValidateViewTests(TestCase):
         """
         Initialize the environment for each test.
         """
-        self.user = User.objects.create_user('ellen',
+        user = get_user_model()
+        self.user = user.objects.create_user('ellen',
                                              email='ellen@example.com',
                                              password='mamas&papas')
         self.userfirst_name = 'Ellen'
@@ -741,7 +742,8 @@ class ProxyViewTests(TestCase):
         """
         Create a valid user and service ticket for testing purposes.
         """
-        self.user = User.objects.create_user('ellen',
+        user = get_user_model()
+        self.user = user.objects.create_user('ellen',
                                              password='mamas&papas',
                                              email='ellen@example.com')
         self.st = ServiceTicket.objects.create_ticket(service=self.service_url,
