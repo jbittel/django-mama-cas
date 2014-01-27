@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from mama_cas.compat import get_user_model
+from .factories import UserFactory
 from mama_cas.forms import LoginForm
 from mama_cas.forms import LoginFormEmail
 from mama_cas.forms import LoginFormWarn
@@ -14,10 +14,7 @@ class LoginFormTests(TestCase):
         """
         Initialize the environment for each test.
         """
-        user = get_user_model()
-        self.user = user.objects.create_user('ellen',
-                                             password='mamas&papas',
-                                             email='ellen@example.com')
+        self.user = UserFactory()
 
     def test_login_form(self):
         """

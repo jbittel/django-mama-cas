@@ -9,11 +9,10 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase
 
-from mama_cas.compat import get_user_model
+from .factories import ProxyGrantingTicketFactory
+from .factories import ProxyTicketFactory
+from .factories import ServiceTicketFactory
 from mama_cas.exceptions import InvalidTicket
-from mama_cas.models import ProxyGrantingTicket
-from mama_cas.models import ProxyTicket
-from mama_cas.models import ServiceTicket
 from mama_cas.response import ValidationResponse
 from mama_cas.response import ProxyResponse
 
@@ -36,26 +35,9 @@ class ValidationResponseTests(TestCase):
     """
     Test the ``ValidationResponse`` XML output.
     """
-    service_url = 'http://www.example.com/'
-    pgt_url = 'https://www.example.com/'
-
     def setUp(self):
-        """
-        Initialize the environment for each test.
-        """
-        user = get_user_model()
-        self.user = user.objects.create_user('ellen',
-                                             password='mamas&papas',
-                                             email='ellen@example.com')
-        self.user.first_name = 'Ellen'
-        self.user.last_name = 'Cohen'
-        self.user.save()
-        self.st = ServiceTicket.objects.create_ticket(service=self.service_url,
-                                                      user=self.user)
-        self.pgt = ProxyGrantingTicket.objects.create_ticket(self.pgt_url,
-                                                             granted_by_st=self.st,
-                                                             validate=False,
-                                                             user=self.user)
+        self.st = ServiceTicketFactory()
+        self.pgt = ProxyGrantingTicketFactory()
 
     def test_validation_response_content_type(self):
         """
@@ -215,29 +197,10 @@ class ProxyResponseTests(TestCase):
     """
     Test the ``ProxyResponse`` XML output.
     """
-    service_url = 'http://www.example.com/'
-    pgt_url = 'https://www.example.com/'
-
     def setUp(self):
-        """
-        Initialize the environment for each test.
-        """
-        user = get_user_model()
-        self.user = user.objects.create_user('ellen',
-                                             password='mamas&papas',
-                                             email='ellen@example.com')
-        self.user.first_name = 'Ellen'
-        self.user.last_name = 'Cohen'
-        self.user.save()
-        self.st = ServiceTicket.objects.create_ticket(service=self.service_url,
-                                                      user=self.user)
-        self.pgt = ProxyGrantingTicket.objects.create_ticket(self.pgt_url,
-                                                             validate=False,
-                                                             user=self.user,
-                                                             granted_by_st=self.st)
-        self.pt = ProxyTicket.objects.create_ticket(service=self.service_url,
-                                                    user=self.user,
-                                                    granted_by_pgt=self.pgt)
+        self.st = ServiceTicketFactory()
+        self.pgt = ProxyGrantingTicketFactory()
+        self.pt = ProxyTicketFactory()
 
     def test_proxy_response_content_type(self):
         """

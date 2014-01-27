@@ -10,15 +10,13 @@ from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.utils import unittest
 
-from mama_cas.compat import get_user_model
+from .factories import UserFactory
+from .factories import ProxyGrantingTicketFactory
+from .factories import ProxyTicketFactory
+from .factories import ServiceTicketFactory
 from mama_cas.forms import LoginForm
 from mama_cas.forms import LoginFormWarn
-from mama_cas.models import ProxyGrantingTicket
-from mama_cas.models import ProxyTicket
 from mama_cas.models import ServiceTicket
-
-
-XMLNS = '{http://www.yale.edu/tp/cas}'
 
 
 class LoginViewTests(TestCase):
@@ -31,11 +29,7 @@ class LoginViewTests(TestCase):
     service_url = 'http://www.example.com/'
 
     def setUp(self):
-        """
-        Initialize the environment for each test.
-        """
-        user = get_user_model()
-        self.user = user.objects.create_user(**self.user_info)
+        self.user = UserFactory()
 
     def test_login_view(self):
         """
@@ -148,11 +142,7 @@ class WarnViewTests(TestCase):
     service_url = 'http://www.example.com/'
 
     def setUp(self):
-        """
-        Initialize the environment for each test.
-        """
-        user = get_user_model()
-        self.user = user.objects.create_user(**self.user_info)
+        self.user = UserFactory()
 
     def test_warn_view(self):
         """
@@ -216,11 +206,8 @@ class LogoutViewTests(TestCase):
                  'email': 'ellen@example.com'}
 
     def setUp(self):
-        """
-        Initialize the environment for each test.
-        """
-        user = get_user_model()
-        self.user = user.objects.create_user(**self.user_info)
+        self.user = UserFactory()
+
         self.old_valid_services = getattr(settings,
                                           'MAMA_CAS_VALID_SERVICES', ())
         settings.MAMA_CAS_VALID_SERVICES = ('.*\.example\.com',)
@@ -287,15 +274,7 @@ class ValidateViewTests(TestCase):
     service_url = 'http://www.example.com/'
 
     def setUp(self):
-        """
-        Initialize the environment for each test.
-        """
-        user = get_user_model()
-        self.user = user.objects.create_user('ellen',
-                                             password='mamas&papas',
-                                             email='ellen@example.com')
-        self.st = ServiceTicket.objects.create_ticket(service=self.service_url,
-                                                      user=self.user)
+        self.st = ServiceTicketFactory()
 
         self.old_valid_services = getattr(settings,
                                           'MAMA_CAS_VALID_SERVICES', ())
@@ -375,18 +354,7 @@ class ServiceValidateViewTests(TestCase):
     pgt_url = 'https://www.example.com/'
 
     def setUp(self):
-        """
-        Initialize the environment for each test.
-        """
-        user = get_user_model()
-        self.user = user.objects.create_user('ellen',
-                                             email='ellen@example.com',
-                                             password='mamas&papas')
-        self.user.first_name = 'Ellen'
-        self.user.last_name = 'Cohen'
-        self.user.save()
-        self.st = ServiceTicket.objects.create_ticket(service=self.service_url,
-                                                      user=self.user)
+        self.st = ServiceTicketFactory()
 
         self.old_user_attributes = getattr(settings,
                                            'MAMA_CAS_USER_ATTRIBUTES', {})
@@ -539,25 +507,9 @@ class ProxyValidateViewTests(TestCase):
     pgt_url = 'https://www.example.com/'
 
     def setUp(self):
-        """
-        Initialize the environment for each test.
-        """
-        user = get_user_model()
-        self.user = user.objects.create_user('ellen',
-                                             email='ellen@example.com',
-                                             password='mamas&papas')
-        self.userfirst_name = 'Ellen'
-        self.user.last_name = 'Cohen'
-        self.user.save()
-        self.st = ServiceTicket.objects.create_ticket(service=self.service_url,
-                                                      user=self.user)
-        self.pgt = ProxyGrantingTicket.objects.create_ticket(self.service_url,
-                                                             validate=False,
-                                                             user=self.user,
-                                                             granted_by_st=self.st)
-        self.pt = ProxyTicket.objects.create_ticket(service=self.service_url,
-                                                    user=self.user,
-                                                    granted_by_pgt=self.pgt)
+        self.st = ServiceTicketFactory()
+        self.pgt = ProxyGrantingTicketFactory()
+        self.pt = ProxyTicketFactory()
 
         self.old_user_attributes = getattr(settings,
                                            'MAMA_CAS_USER_ATTRIBUTES', {})
@@ -567,7 +519,7 @@ class ProxyValidateViewTests(TestCase):
                                              'test': 'invalid'}
         self.old_valid_services = getattr(settings,
                                           'MAMA_CAS_VALID_SERVICES', ())
-        settings.MAMA_CAS_VALID_SERVICES = ('http://.*\.example\.com/',)
+        settings.MAMA_CAS_VALID_SERVICES = ('http://.*\.example\.com',)
 
     def tearDown(self):
         """
@@ -638,8 +590,7 @@ class ProxyValidateViewTests(TestCase):
         ``ProxyTicket`` should be consumed and invalid for future
         validation attempts.
         """
-        query_str = "?service=%s&ticket=%s" % (self.service_url,
-                                               self.pt.ticket)
+        query_str = "?service=%s&ticket=%s" % (self.pt.service, self.pt.ticket)
         response = self.client.get(reverse('cas_proxy_validate') + query_str)
         self.assertContains(response, 'ellen')
         self.assertContains(response, 'http://www.example.com')
@@ -660,14 +611,11 @@ class ProxyValidateViewTests(TestCase):
         multiple proxies, they must be listed in reverse order of being
         accessed.
         """
-        pgt2 = ProxyGrantingTicket.objects.create_ticket(self.service_url,
-                                                         user=self.user,
-                                                         granted_by_pt=self.pt,
-                                                         validate=False)
-        pt2 = ProxyTicket.objects.create_ticket(service='http://ww2.example.com',
-                                                user=self.user,
-                                                granted_by_pgt=pgt2)
-        query_str = "?service=%s&ticket=%s" % ('http://ww2.example.com/', pt2)
+        pgt2 = ProxyGrantingTicketFactory(granted_by_pt=self.pt,
+                                          granted_by_st=None)
+        pt2 = ProxyTicketFactory(service='http://ww2.example.com',
+                                 granted_by_pgt=pgt2)
+        query_str = "?service=%s&ticket=%s" % (pt2.service, pt2.ticket)
         response = self.client.get(reverse('cas_proxy_validate') + query_str)
         self.assertContains(response, 'ellen')
         self.assertContains(response, 'http://ww2.example.com')
@@ -739,19 +687,8 @@ class ProxyViewTests(TestCase):
     invalid_service = 'http://www.example.org/'
 
     def setUp(self):
-        """
-        Create a valid user and service ticket for testing purposes.
-        """
-        user = get_user_model()
-        self.user = user.objects.create_user('ellen',
-                                             password='mamas&papas',
-                                             email='ellen@example.com')
-        self.st = ServiceTicket.objects.create_ticket(service=self.service_url,
-                                                      user=self.user)
-        self.pgt = ProxyGrantingTicket.objects.create_ticket(self.service_url,
-                                                             user=self.user,
-                                                             granted_by_st=self.st,
-                                                             validate=False)
+        self.st = ServiceTicketFactory()
+        self.pgt = ProxyGrantingTicketFactory()
 
         self.old_valid_services = getattr(settings,
                                           'MAMA_CAS_VALID_SERVICES', ())
