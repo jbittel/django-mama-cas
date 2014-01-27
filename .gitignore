@@ -6,5 +6,6 @@ dist/
 MANIFEST
 
 .tox/
+htmlcov/
 
 docs/_build/
