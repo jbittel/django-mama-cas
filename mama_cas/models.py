@@ -4,17 +4,18 @@ from datetime import timedelta
 import logging
 import os
 import re
-import requests
 import time
 
 from django.conf import settings
 from django.db import models
 from django.db.models import Q
-from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.http import same_origin
+from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
+
+import requests
 
 from mama_cas.compat import user_model
 from mama_cas.exceptions import InvalidRequest
@@ -41,8 +42,10 @@ class TicketManager(models.Manager):
             ticket = self.create_ticket_str()
         if 'service' in kwargs:
             kwargs['service'] = clean_service_url(kwargs['service'])
-        expires = timezone.now() + timedelta(seconds=self.model.TICKET_EXPIRE)
-        t = self.create(ticket=ticket, expires=expires, **kwargs)
+        if 'expires' not in kwargs:
+            expires = now() + timedelta(seconds=self.model.TICKET_EXPIRE)
+            kwargs['expires'] = expires
+        t = self.create(ticket=ticket, **kwargs)
         logger.debug("Created %s %s" % (t.name, t.ticket))
         return t
 
@@ -115,7 +118,7 @@ class TicketManager(models.Manager):
         tickets from causing storage or performance issues.
         """
         for ticket in self.filter(Q(consumed__isnull=False) |
-                                  Q(expires__lte=timezone.now())):
+                                  Q(expires__lte=now())):
             try:
                 ticket.delete()
             except models.ProtectedError:
@@ -128,7 +131,7 @@ class TicketManager(models.Manager):
         valid for future authentication attempts.
         """
         for ticket in self.filter(user=user, consumed__isnull=True,
-                                  expires__gt=timezone.now()):
+                                  expires__gt=now()):
             ticket.consume()
 
 
@@ -165,7 +168,7 @@ class Ticket(models.Model):
         the current datetime. A consumed ``Ticket`` is invalid for future
         authentication attempts.
         """
-        self.consumed = timezone.now()
+        self.consumed = now()
         self.save()
 
     def is_consumed(self):
@@ -182,7 +185,7 @@ class Ticket(models.Model):
         Check a ``Ticket``s expired state. Return ``True`` if the ticket is
         expired, and ``False`` otherwise.
         """
-        return self.expires <= timezone.now()
+        return self.expires <= now()
 
 
 class ServiceTicket(Ticket):
