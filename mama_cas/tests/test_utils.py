@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.urlresolvers import NoReverseMatch
 from django.test import TestCase
 
 from mama_cas.utils import add_query_params
@@ -84,3 +85,10 @@ class UtilsTests(TestCase):
         self.assertEqual('http://example.com', r['Location'])
         r = redirect('cas_login')
         self.assertEqual('/login', r['Location'])
+
+    def test_redirect_invalid(self):
+        """
+        A non-URL that does not match a view name should raise the
+        appropriate exception.
+        """
+        self.assertRaises(NoReverseMatch, redirect, 'example')
