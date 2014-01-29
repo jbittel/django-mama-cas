@@ -8,6 +8,9 @@ incompatible changes or other upgrade issues are also described here. For
 additional detail, read the complete `commit history`_. From version 0.4.0
 and following, version numbers follow the `semantic versioning`_ scheme.
 
+**django-mama-cas 0.7.1** ``[2014-01-28]``
+   * Fix Python 2.6 compatibility
+
 **django-mama-cas 0.7.0** ``[2014-01-21]``
    * Generate CAS 2.0 XML responses instead of using templates
    * Expire PGTs according to SESSION_COOKIE_AGE
