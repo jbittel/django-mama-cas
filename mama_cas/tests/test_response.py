@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 try:
     import xml.etree.cElementTree as etree
-except ImportError:
+except ImportError:  # pragma: no cover
     import xml.etree.ElementTree as etree
 
 from django.conf import settings
