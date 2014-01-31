@@ -6,6 +6,11 @@ from django.core import management
 from django.test import TestCase
 from django.utils.timezone import now
 
+from .factories import ConsumedProxyGrantingTicketFactory
+from .factories import ConsumedServiceTicketFactory
+from .factories import ExpiredProxyTicketFactory
+from .factories import ExpiredProxyGrantingTicketFactory
+from .factories import ExpiredServiceTicketFactory
 from .factories import ProxyGrantingTicketFactory
 from .factories import ProxyTicketFactory
 from .factories import ServiceTicketFactory
@@ -14,167 +19,196 @@ from mama_cas.models import ProxyGrantingTicket
 from mama_cas.models import ProxyTicket
 from mama_cas.models import ServiceTicket
 from mama_cas.exceptions import BadPgt
+from mama_cas.exceptions import InternalError
 from mama_cas.exceptions import InvalidRequest
 from mama_cas.exceptions import InvalidService
 from mama_cas.exceptions import InvalidTicket
 
 
-class ServiceTicketTests(TestCase):
+class TicketManagerTests(TestCase):
     """
-    Test the model and manager used for ``ServiceTicket``s.
+    Test the ``TicketManager`` model manager.
     """
-    service_url = 'http://www.example.com/'
+    url = 'http://www.example.com'
 
     def setUp(self):
         self.user = UserFactory()
-
-        self.old_valid_services = getattr(settings,
-                                          'MAMA_CAS_VALID_SERVICES', ())
-        settings.MAMA_CAS_VALID_SERVICES = ('http://.*\.example\.com/',)
-
-    def tearDown(self):
-        """
-        Undo any modifications made to the test environment.
-        """
-        settings.MAMA_CAS_VALID_SERVICES = self.old_valid_services
+        settings.MAMA_CAS_VALID_SERVICES = ('http://.*\.example\.com',)
 
     def test_create_ticket(self):
         """
-        A new ``ServiceTicket`` ought to exist in the database with
-        a valid ticket string, be neither consumed or expired and be
-        related to the ``User`` that authorized its creation.
+        A ticket ought to be created with a generated ticket string.
         """
-        st = ServiceTicketFactory()
+        st = ServiceTicket.objects.create_ticket(user=self.user)
+        self.assertTrue(re.search(st.TICKET_RE, st.ticket))
 
-        self.assertEqual(ServiceTicket.objects.count(), 1)
-        self.assertTrue(re.search('^ST-[0-9]{10,}-[a-zA-Z0-9]{32}$',
-                                  st.ticket))
-        self.assertFalse(st.is_consumed())
-        self.assertFalse(st.is_expired())
-        self.assertEqual(st.user, self.user)
+    def test_create_ticket_ticket(self):
+        """
+        A ticket ought to be created with a provided ticket string,
+        if present.
+        """
+        ticket = 'ST-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+        st = ServiceTicket.objects.create_ticket(ticket=ticket, user=self.user)
+        self.assertEqual(st.ticket, ticket)
+
+    def test_create_ticket_service(self):
+        """
+        If a service is provided, it should be cleaned.
+        """
+        service = 'http://www.example.com/test'
+        st = ServiceTicket.objects.create_ticket(service=service, user=self.user)
+        self.assertEqual(st.service, 'http://www.example.com')
+
+    def test_create_ticket_no_expires(self):
+        """
+        A ticket ought to be created with a calculated expiry value.
+        """
+        st = ServiceTicket.objects.create_ticket(user=self.user)
+        self.assertTrue(st.expires > now())
+
+    def test_create_ticket_expires(self):
+        """
+        A ticket ought to be created with a provided expiry value,
+        if present.
+        """
+        expires = now() + timedelta(seconds=30)
+        st = ServiceTicket.objects.create_ticket(expires=expires, user=self.user)
+        self.assertEqual(st.expires, expires)
+
+    def test_create_ticket_str(self):
+        """
+        A ticket string should be created with the appropriate model
+        prefix and format.
+        """
+        str = ServiceTicket.objects.create_ticket_str()
+        self.assertTrue(re.search('^ST-[0-9]{10,}-[a-zA-Z0-9]{32}$', str))
+
+    def test_create_ticket_str_prefix(self):
+        """
+        A ticket string should be created with the provided prefix
+        string and format.
+        """
+        str = ProxyGrantingTicket.objects.create_ticket_str(prefix='PGTIOU')
+        self.assertTrue(re.search('^PGTIOU-[0-9]{10,}-[a-zA-Z0-9]{32}$', str))
 
     def test_validate_ticket(self):
         """
-        Validation ought to return the correct ``ServiceTicket`` when
-        provided with a valid ticket string and data. The validation
-        process also ought to consume the ``ServiceTicket``.
+        Validation ought to succeed when provided with a valid ticket
+        string and data. The ticket ought to be consumed in the process.
         """
         st = ServiceTicketFactory()
-        self.assertTrue(ServiceTicket.objects.validate_ticket(st.ticket,
-                                                              self.service_url), st)
-        self.assertTrue(ServiceTicket.objects.get(ticket=st.ticket).is_consumed())
+        ticket = ServiceTicket.objects.validate_ticket(st.ticket, self.url)
+        self.assertEqual(ticket, st)
+        self.assertTrue(ticket.is_consumed())
 
     def test_validate_ticket_no_ticket(self):
         """
-        The ``ServiceTicket`` validation process ought to fail when
-        no ticket string is provided.
+        The validation process ought to fail when no ticket string is
+        provided.
         """
-        self.assertRaises(InvalidRequest,
-                          ServiceTicket.objects.validate_ticket, None, None)
-
-    def test_validate_ticket_no_service(self):
-        """
-        The ``ServiceTicket`` validation process ought to fail and
-        consume the ticket when no service identifier is provided.
-        """
-        st = ServiceTicketFactory()
-        self.assertRaises(InvalidRequest,
-                          ServiceTicket.objects.validate_ticket,
-                          st.ticket, None)
-        self.assertTrue(ServiceTicket.objects.get(ticket=st.ticket).is_consumed())
+        with self.assertRaises(InvalidRequest):
+            ServiceTicket.objects.validate_ticket(None, self.url)
 
     def test_validate_ticket_invalid_ticket(self):
         """
-        The ``ServiceTicket`` validation process ought to fail when
-        an invalid ticket string is provided.
+        The validation process ought to fail when an invalid ticket
+        string is provided.
         """
-        self.assertRaises(InvalidTicket, ServiceTicket.objects.validate_ticket,
-                          '12345', self.service_url)
+        with self.assertRaises(InvalidTicket):
+            ServiceTicket.objects.validate_ticket('12345', self.url)
 
-    def test_validate_ticket_unknown_ticket(self):
+    def test_validate_ticket_does_not_exist(self):
         """
-        The ``ServiceTicket`` validation process ought to fail when
-        a ticket cannot be found in the database.
+        The validation process ought to fail when a valid ticket string
+        cannot be found in the database.
         """
-        self.assertRaises(InvalidTicket, ServiceTicket.objects.validate_ticket,
-                          'ST-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-                          self.service_url)
-
-    def test_validate_ticket_invalid_service(self):
-        """
-        The ``ServiceTicket`` validation process ought to fail when
-        a service identifier is provided that does not match the
-        ticket's service identifier.
-        """
-        st = ServiceTicketFactory()
-        self.assertRaises(InvalidService,
-                          ServiceTicket.objects.validate_ticket,
-                          st.ticket, 'http://www.example.org/')
-
-    def test_validate_ticket_invalid_service_origin(self):
-        """
-        The ``ServiceTicket`` validation process ought to fail when
-        the service origin does not match the ticket's service origin.
-        """
-        st = ServiceTicketFactory()
-        self.assertRaises(InvalidService,
-                          ServiceTicket.objects.validate_ticket,
-                          st.ticket, 'http://sub.example.com/')
-
-    def test_validate_ticket_expired_ticket(self):
-        """
-        The ``ServiceTicket`` validation process ought to fail when
-        an expired ticket is provided.
-        """
-        st = ServiceTicketFactory(expires=now() - timedelta(seconds=1))
-        self.assertRaises(InvalidTicket, ServiceTicket.objects.validate_ticket,
-                          st.ticket, self.service_url)
+        ticket = 'ST-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+        with self.assertRaises(InvalidTicket):
+            ServiceTicket.objects.validate_ticket(ticket, self.url)
 
     def test_validate_ticket_consumed_ticket(self):
         """
-        The ``ServiceTicket`` validation process ought to fail when
-        a consumed ticket is provided.
+        The validation process ought to fail when a consumed ticket
+        is provided.
+        """
+        st = ConsumedServiceTicketFactory()
+        with self.assertRaises(InvalidTicket):
+            ServiceTicket.objects.validate_ticket(st.ticket, self.url)
+
+    def test_validate_ticket_expired_ticket(self):
+        """
+        The validation process ought to fail when an expired ticket
+        is provided.
+        """
+        st = ExpiredServiceTicketFactory()
+        with self.assertRaises(InvalidTicket):
+            ServiceTicket.objects.validate_ticket(st.ticket, self.url)
+
+    def test_validate_ticket_no_service(self):
+        """
+        The validation process ought to fail when no service identifier
+        is provided. The ticket ought to be consumed in the process.
         """
         st = ServiceTicketFactory()
-        st.consume()
-        self.assertRaises(InvalidTicket, ServiceTicket.objects.validate_ticket,
-                          st.ticket, self.service_url)
+        with self.assertRaises(InvalidRequest):
+            ServiceTicket.objects.validate_ticket(st.ticket, None)
+        st = ServiceTicket.objects.get(ticket=st.ticket)
+        self.assertTrue(st.is_consumed())
+
+    def test_validate_ticket_invalid_service(self):
+        """
+        The validation process ought to fail when an invalid service
+        identifier is provided.
+        """
+        service = 'http://www.example.org'
+        st = ServiceTicketFactory()
+        with self.assertRaises(InvalidService):
+            ServiceTicket.objects.validate_ticket(st.ticket, service)
+
+    def test_validate_ticket_service_mismatch(self):
+        """
+        The validation process ought to fail when the provided service
+        identifier does not match the ticket's service.
+        """
+        service = 'http://sub.example.com/'
+        st = ServiceTicketFactory()
+        with self.assertRaises(InvalidService):
+            ServiceTicket.objects.validate_ticket(st.ticket, service)
 
     def test_validate_ticket_renew(self):
         """
-        When ``renew`` is set to ``True``, the ``ServiceTicket``
-        validation process should succeed if the ticket was issued from
-        the presentation of the user's primary credentials.
+        When ``renew`` is set, the validation process should succeed
+        if the ticket was issued from the presentation of the user's
+        primary credentials.
         """
         st = ServiceTicketFactory(primary=True)
-        self.assertEqual(ServiceTicket.objects.validate_ticket(st.ticket,
-                                                               self.service_url,
-                                                               renew=True), st)
+        ticket = ServiceTicket.objects.validate_ticket(st.ticket, self.url,
+                                                       renew=True)
+        self.assertEqual(ticket, st)
 
     def test_validate_ticket_renew_secondary(self):
         """
-        When ``renew`` is set to ``True``, the ``ServiceTicket``
-        validation process should fail if the ticket was not issued
-        from the presentation of the user's primary credentials.
+        When ``renew`` is set, the validation process should fail if
+        the ticket was not issued from the presentation of the user's
+        primary credentials.
         """
         st = ServiceTicketFactory()
-        self.assertRaises(InvalidTicket, ServiceTicket.objects.validate_ticket,
-                          st.ticket, self.service_url, renew=True)
+        with self.assertRaises(InvalidTicket):
+            ServiceTicket.objects.validate_ticket(st.ticket, self.url,
+                                                  renew=True)
 
-    def test_invalid_ticket_deletion(self):
+    def test_delete_invalid_tickets(self):
         """
-        Calling ``delete_invalid_tickets()`` should only delete
-        ``ServiceTicket``s that are either expired or consumed.
-        Invalid ``ServiceTicket``s that are referenced by
-        ``ProxyGrantingTicket``s should not be deleted.
+        Expired or consumed tickets should be deleted. Invalid tickets
+        referenced by other tickets should not be deleted.
         """
-        ServiceTicketFactory()
-        expired = ServiceTicketFactory(expires=now() - timedelta(seconds=1))
-        consumed = ServiceTicketFactory(consumed=now())
-        referenced = ServiceTicketFactory(consumed=now())
+        ServiceTicketFactory()  # Should not be deleted
+        expired = ExpiredServiceTicketFactory()
+        consumed = ConsumedServiceTicketFactory()
+        referenced = ConsumedServiceTicketFactory()  # Should not be deleted
         ProxyGrantingTicketFactory(granted_by_st=referenced)
-
         ServiceTicket.objects.delete_invalid_tickets()
+
         self.assertEqual(ServiceTicket.objects.count(), 2)
         self.assertRaises(ServiceTicket.DoesNotExist,
                           ServiceTicket.objects.get,
@@ -185,324 +219,239 @@ class ServiceTicketTests(TestCase):
 
     def test_consume_tickets(self):
         """
-        Calling ``consume_tickets()`` should consume tickets belonging
-        to the provided user.
+        All tickets belonging to the specified user should be consumed.
         """
         st1 = ServiceTicketFactory()
         st2 = ServiceTicketFactory()
         ServiceTicket.objects.consume_tickets(self.user)
-
         self.assertTrue(ServiceTicket.objects.get(ticket=st1).is_consumed())
         self.assertTrue(ServiceTicket.objects.get(ticket=st2).is_consumed())
 
 
+class TicketTests(TestCase):
+    """
+    Test the ``Ticket`` abstract model.
+    """
+    def test_ticket_consumed(self):
+        """
+        ``is_consumed()`` should return ``True`` for a consumed ticket.
+        """
+        st = ServiceTicketFactory()
+        st.consume()
+        st = ServiceTicket.objects.get(ticket=st.ticket)
+        self.assertTrue(st.is_consumed())
+
+    def test_ticket_not_consumed(self):
+        """
+        ``is_consumed()`` should return ``False`` for a valid ticket.
+        """
+        st = ServiceTicketFactory()
+        self.assertFalse(st.is_consumed())
+
+    def test_ticket_expired(self):
+        """
+        ``is_expired()`` should return ``True`` for an expired ticket.
+        """
+        st = ExpiredServiceTicketFactory()
+        self.assertTrue(st.is_expired())
+
+    def test_ticket_not_expired(self):
+        """
+        ``is_expired()`` should return ``False`` for a valid ticket.
+        """
+        st = ServiceTicketFactory()
+        self.assertFalse(st.is_expired())
+
+
+class ServiceTicketTests(TestCase):
+    """
+    Test the ``ServiceTicket`` model.
+    """
+    def test_create_service_ticket(self):
+        """
+        A ``ServiceTicket`` ought to be created with an appropriate
+        prefix.
+        """
+        st = ServiceTicketFactory()
+        self.assertTrue(st.ticket.startswith(st.TICKET_PREFIX))
+
+    def test_primary(self):
+        """
+        ``is_primary()`` should return ``True`` if the ``ServiceTicket``
+        was created from the presentation of a user's credentials.
+        """
+        st = ServiceTicketFactory(primary=True)
+        self.assertTrue(st.is_primary())
+
+    def test_secondary(self):
+        """
+        ``is_primary()`` should return ``False`` if the ``ServiceTicket``
+        was not created from the presentation of a user's credentials.
+        """
+        st = ServiceTicketFactory()
+        self.assertFalse(st.is_primary())
+
+
 class ProxyTicketTests(TestCase):
     """
-    Test the model and manager used for ``ProxyTicket``s.
+    Test the ``ProxyTicket`` model.
     """
-    service_url = 'http://www.example.com/'
+    def test_create_proxy_ticket(self):
+        """
+        A ``ProxyTicket`` ought to be created with an appropriate
+        prefix.
+        """
+        pt = ProxyTicketFactory()
+        self.assertTrue(pt.ticket.startswith(pt.TICKET_PREFIX))
+
+
+class ProxyGrantingTicketManager(TestCase):
+    """
+    Test the ``ProxyGrantingTicketManager`` model manager.
+    """
+    url = 'http://www.example.com'
 
     def setUp(self):
         self.user = UserFactory()
-        self.pgt = ProxyGrantingTicketFactory()
-
-        self.old_valid_services = getattr(settings,
-                                          'MAMA_CAS_VALID_SERVICES', ())
-        settings.MAMA_CAS_VALID_SERVICES = ('http://.*\.example\.com/',)
-
-    def tearDown(self):
-        """
-        Undo any modifications made to the test environment.
-        """
-        settings.MAMA_CAS_VALID_SERVICES = self.old_valid_services
+        self.pt = ProxyTicketFactory()
+        settings.MAMA_CAS_VALID_SERVICES = ('http://.*\.example\.com',)
 
     def test_create_ticket(self):
         """
-        A new ``ProxyTicket`` ought to exist in the database with
-        a valid ticket string, be neither consumed or expired and
-        be related to the ``User`` and ``ProxyGrantingTicket`` that
-        authorized its creation.
+        A ``ProxyGrantingTicket`` ought to be created with the
+        appropriate ticket strings.
         """
-        pt = ProxyTicketFactory(granted_by_pgt=self.pgt)
-        self.assertEqual(ProxyTicket.objects.count(), 1)
-        self.assertTrue(re.search('^PT-[0-9]{10,}-[a-zA-Z0-9]{32}$', pt.ticket))
-        self.assertFalse(pt.is_consumed())
-        self.assertFalse(pt.is_expired())
-        self.assertEqual(pt.user, self.user)
-        self.assertEqual(pt.granted_by_pgt, self.pgt)
+        pgturl = 'https://www.example.com'
+        pgt = ProxyGrantingTicket.objects.create_ticket(pgturl,
+                                                        validate=False,
+                                                        user=self.user,
+                                                        granted_by_pt=self.pt)
+        self.assertTrue(re.search(pgt.TICKET_RE, pgt.ticket))
+        self.assertTrue(pgt.iou.startswith(pgt.IOU_PREFIX))
+
+    def test_create_ticket_invalid_pgturl(self):
+        """
+        If an invalid URL is provided, ``None`` should be returned
+        instead of a ``ProxyGrantingTicket``.
+        """
+        pgturl = 'http://www.example.com'
+        pgt = ProxyGrantingTicket.objects.create_ticket(pgturl,
+                                                        user=self.user,
+                                                        granted_by_pt=self.pt)
+        self.assertIsNone(pgt)
+
+    def test_validate_pgturl_invalid_pgturl(self):
+        """
+        If an invalid URL Is provided, an exception should be raised.
+        """
+        pgturl = 'http://www.example.com'
+        pgtid = ProxyGrantingTicket.objects.create_ticket_str()
+        prefix = ProxyGrantingTicket.objects.model.IOU_PREFIX
+        pgtiou = ProxyGrantingTicket.objects.create_ticket_str(prefix=prefix)
+        with self.assertRaises(InternalError):
+            ProxyGrantingTicket.objects.validate_pgturl(pgturl, pgtid, pgtiou)
 
     def test_validate_ticket(self):
         """
-        Validation ought to return the correct ``ProxyTicket`` when
-        provided with a valid ticket string and data. The validation
-        process also ought to consume the ``ProxyTicket``.
+        Validation ought to succeed when provided with a valid ticket
+        string and data. The ticket should not be consumed in the
+        process.
         """
-        pt = ProxyTicketFactory()
-        self.assertTrue(ProxyTicket.objects.validate_ticket(pt.ticket,
-                                                            self.service_url), pt)
-        self.assertTrue(ProxyTicket.objects.get(ticket=pt.ticket).is_consumed())
+        pgt = ProxyGrantingTicketFactory()
+        ticket = ProxyGrantingTicket.objects.validate_ticket(pgt.ticket, self.url)
+        self.assertEqual(ticket, pgt)
+        self.assertFalse(ticket.is_consumed())
 
     def test_validate_ticket_no_ticket(self):
         """
-        The ``ProxyTicket`` validation process ought to fail when
-        no ticket string is provided.
+        The validation process ought to fail when no ticket string is
+        provided.
         """
-        self.assertRaises(InvalidRequest, ProxyTicket.objects.validate_ticket,
-                          None, None)
+        with self.assertRaises(InvalidRequest):
+            ProxyGrantingTicket.objects.validate_ticket(None, self.url)
 
     def test_validate_ticket_no_service(self):
         """
-        The ``ProxyTicket`` validation process ought to fail when
-        no service identifier is provided and the ticket ought to
-        be consumed.
+        The validation process ought to fail when no service identifier
+        is provided.
         """
-        pt = ProxyTicketFactory()
-        self.assertRaises(InvalidRequest, ProxyTicket.objects.validate_ticket,
-                          pt.ticket, None)
-        self.assertTrue(ProxyTicket.objects.get(ticket=pt.ticket).is_consumed())
+        ticket = 'PGT-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+        with self.assertRaises(InvalidRequest):
+            ProxyGrantingTicket.objects.validate_ticket(ticket, None)
 
     def test_validate_ticket_invalid_ticket(self):
         """
-        The ``ProxyTicket`` validation process ought to fail when
-        an invalid ticket string is provided.
+        The validation process ought to fail when an invalid ticket
+        string is provided.
         """
-        self.assertRaises(InvalidTicket, ProxyTicket.objects.validate_ticket,
-                          '12345', self.service_url)
+        with self.assertRaises(InvalidTicket):
+            ProxyGrantingTicket.objects.validate_ticket('12345', self.url)
 
-    def test_validate_ticket_unknown_ticket(self):
+    def test_validate_ticket_does_not_exist(self):
         """
-        The ``ProxyTicket`` validation process ought to fail when
-        a ticket cannot be found in the database.
+        The validation process ought to fail when a valid ticket string
+        cannot be found in the database.
         """
-        self.assertRaises(InvalidTicket, ProxyTicket.objects.validate_ticket,
-                          'PT-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-                          self.service_url)
-
-    def test_validate_ticket_invalid_service(self):
-        """
-        The ``ProxyTicket`` validation process ought to fail when
-        a service identifier is provided that does not match the
-        ticket's service identifier.
-        """
-        pt = ProxyTicketFactory()
-        self.assertRaises(InvalidService, ProxyTicket.objects.validate_ticket,
-                          pt.ticket, 'http://www.example.org/')
-
-    def test_validate_ticket_invalid_service_origin(self):
-        """
-        The ``ProxyTicket`` validation process ought to fail when
-        the service origin does not match the ticket's service origin.
-        """
-        pt = ProxyTicketFactory()
-        self.assertRaises(InvalidService, ProxyTicket.objects.validate_ticket,
-                          pt.ticket, 'http://sub.example.com/')
-
-    def test_validate_ticket_expired_ticket(self):
-        """
-        The ``ProxyTicket`` validation process ought to fail when
-        an expired ticket is provided.
-        """
-        pt = ProxyTicketFactory()
-        pt.expires = now() - timedelta(seconds=1)
-        pt.save()
-        self.assertRaises(InvalidTicket, ProxyTicket.objects.validate_ticket,
-                          pt.ticket, self.service_url)
+        ticket = 'PGT-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+        with self.assertRaises(BadPgt):
+            ProxyGrantingTicket.objects.validate_ticket(ticket, self.url)
 
     def test_validate_ticket_consumed_ticket(self):
         """
-        The ``ProxyTicket`` validation process ought to fail when
-        a consumed ticket is provided.
+        The validation process ought to fail when a consumed ticket
+        is provided.
         """
-        pt = ProxyTicketFactory(consumed=now())
-        self.assertRaises(InvalidTicket, ProxyTicket.objects.validate_ticket,
-                          pt.ticket, self.service_url)
+        pgt = ConsumedProxyGrantingTicketFactory()
+        with self.assertRaises(InvalidTicket):
+            ProxyGrantingTicket.objects.validate_ticket(pgt.ticket, self.url)
 
-    def test_invalid_ticket_deletion(self):
+    def test_validate_ticket_expired_ticket(self):
         """
-        Calling ``delete_invalid_tickets()`` should only delete
-        ``ProxyTicket``s that are either expired or consumed.
-        Invalid ``ProxyTicket``s that are referenced by
-        ``ProxyGrantingTicket``s should not be deleted.
+        The validation process ought to fail when an expired ticket
+        is provided.
         """
-        ProxyTicketFactory()
-        expired = ProxyTicketFactory(expires=now() - timedelta(seconds=1))
-        consumed = ProxyTicketFactory(consumed=now())
-        referenced = ProxyTicketFactory(consumed=now())
-        ProxyGrantingTicketFactory(granted_by_pt=referenced)
+        pgt = ExpiredProxyGrantingTicketFactory()
+        with self.assertRaises(InvalidTicket):
+            ProxyGrantingTicket.objects.validate_ticket(pgt.ticket, self.url)
 
-        ProxyTicket.objects.delete_invalid_tickets()
-        self.assertEqual(ProxyTicket.objects.count(), 2)
-        self.assertRaises(ProxyTicket.DoesNotExist, ProxyTicket.objects.get,
-                          ticket=expired.ticket)
-        self.assertRaises(ProxyTicket.DoesNotExist, ProxyTicket.objects.get,
-                          ticket=consumed.ticket)
-
-    def test_consume_tickets(self):
+    def test_validate_ticket_invalid_service(self):
         """
-        Calling ``consume_tickets()`` should consume tickets belonging
-        to the provided user.
+        The validation process ought to fail when an invalid service
+        identifier is provided.
         """
-        pt1 = ProxyTicketFactory()
-        pt2 = ProxyTicketFactory()
-        ProxyTicket.objects.consume_tickets(self.user)
-
-        self.assertTrue(ProxyTicket.objects.get(ticket=pt1).is_consumed())
-        self.assertTrue(ProxyTicket.objects.get(ticket=pt2).is_consumed())
+        service = 'http://www.example.org'
+        pgt = ProxyGrantingTicketFactory()
+        with self.assertRaises(InvalidService):
+            ProxyGrantingTicket.objects.validate_ticket(pgt.ticket, service)
 
 
 class ProxyGrantingTicketTests(TestCase):
     """
-    Test the model and manager used for ``ProxyGrantingTicket``s.
+    Test the ``ProxyGrantingTicket`` model.
     """
-    pgt_url = 'http://www.example.com/'
-
-    def setUp(self):
-        self.user = UserFactory()
-
-        self.old_valid_services = getattr(settings,
-                                          'MAMA_CAS_VALID_SERVICES', ())
-        settings.MAMA_CAS_VALID_SERVICES = ('http://.*\.example\.com/',)
-
-    def tearDown(self):
+    def test_create_proxy_granting_ticket(self):
         """
-        Undo any modifications made to the test environment.
-        """
-        settings.MAMA_CAS_VALID_SERVICES = self.old_valid_services
-
-    def test_create_ticket(self):
-        """
-        A new ``ProxyGrantingTicket`` ought to exist in the database
-        with a valid ticket string, be neither consumed or expired and
-        be related to the ``User`` that authorized its creation.
+        A ``ProxyGrantingTicket`` ought to be created with an
+        appropriate prefix.
         """
         pgt = ProxyGrantingTicketFactory()
-        self.assertEqual(ProxyGrantingTicket.objects.count(), 1)
-        self.assertTrue(re.search('^PGT-[0-9]{10,}-[a-zA-Z0-9]{32}$',
-                                  pgt.ticket))
-        self.assertTrue(re.search('^PGTIOU-[0-9]{10,}-[a-zA-Z0-9]{32}$',
-                                  pgt.iou))
-        self.assertFalse(pgt.is_consumed())
-        self.assertFalse(pgt.is_expired())
-        self.assertEqual(pgt.user, self.user)
-
-    def test_validate_ticket(self):
-        """
-        Validation ought to return the correct ``ProxyGrantingTicket``
-        when provided with a valid ticket string and data. The
-        validation process should not consume the
-        ``ProxyGrantingTicket``.
-        """
-        pgt = ProxyGrantingTicketFactory()
-        self.assertTrue(ProxyGrantingTicket.objects.validate_ticket(pgt.ticket,
-                                                                    self.pgt_url), pgt)
-        self.assertFalse(pgt.is_consumed())
-
-    def test_validate_ticket_no_ticket(self):
-        """
-        The ``ProxyGrantingTicket`` validation process ought to fail
-        when no ticket string is provided.
-        """
-        self.assertRaises(InvalidRequest,
-                          ProxyGrantingTicket.objects.validate_ticket,
-                          False, False)
-
-    def test_validate_ticket_no_service(self):
-        """
-        The ``ProxyGrantingTicket`` validation process ought to fail
-        when no service identifier is provided.
-        """
-        self.assertRaises(InvalidRequest,
-                          ProxyGrantingTicket.objects.validate_ticket,
-                          'PGT-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-                          None)
-
-    def test_validate_ticket_invalid_ticket(self):
-        """
-        The ``ProxyGrantingTicket`` validation process ought to fail
-        when an invalid ticket string is provided.
-        """
-        self.assertRaises(InvalidTicket,
-                          ProxyGrantingTicket.objects.validate_ticket,
-                          '12345', self.pgt_url)
-
-    def test_validate_ticket_unknown_ticket(self):
-        """
-        The ``ProxyGrantingTicket`` validation process ought to fail
-        when a ticket cannot be found in the database.
-        """
-        self.assertRaises(BadPgt, ProxyGrantingTicket.objects.validate_ticket,
-                          'PGT-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-                          self.pgt_url)
-
-    def test_validate_ticket_expired_ticket(self):
-        """
-        The ``ProxyGrantingTicket`` validation process ought to fail
-        when an expired ticket is provided.
-        """
-        pgt = ProxyGrantingTicketFactory(expires=now() - timedelta(seconds=1))
-        self.assertRaises(InvalidTicket,
-                          ProxyGrantingTicket.objects.validate_ticket,
-                          pgt.ticket, self.pgt_url)
-
-    def test_validate_ticket_consumed_ticket(self):
-        """
-        The ``ProxyGrantingTicket`` validation process ought to fail
-        when a consumed ticket is provided.
-        """
-        pgt = ProxyGrantingTicketFactory(consumed=now())
-        self.assertRaises(InvalidTicket,
-                          ProxyGrantingTicket.objects.validate_ticket,
-                          pgt.ticket, self.pgt_url)
-
-    def test_invalid_ticket_deletion(self):
-        """
-        Calling ``delete_invalid_tickets()`` should only delete
-        ``ProxyGrantingTicket``s that are either expired or consumed.
-        ``ProxyGrantingTicket``s referenced by ``ProxyTicket``s
-        should not be deleted.
-        """
-        ProxyGrantingTicketFactory()
-        expired = ProxyGrantingTicketFactory(expires=now() - timedelta(seconds=1))
-        consumed = ProxyGrantingTicketFactory(consumed=now())
-        referenced = ProxyGrantingTicketFactory(consumed=now())
-        ProxyTicketFactory(granted_by_pgt=referenced)
-
-        ProxyGrantingTicket.objects.delete_invalid_tickets()
-        self.assertEqual(ProxyGrantingTicket.objects.count(), 2)
-        self.assertRaises(ProxyGrantingTicket.DoesNotExist,
-                          ProxyGrantingTicket.objects.get,
-                          ticket=expired.ticket)
-        self.assertRaises(ProxyGrantingTicket.DoesNotExist,
-                          ProxyGrantingTicket.objects.get,
-                          ticket=consumed.ticket)
-
-    def test_consume_tickets(self):
-        """
-        Calling ``consume_tickets()`` should consume tickets belonging
-        to the provided user.
-        """
-        pgt1 = ProxyGrantingTicketFactory()
-        pgt2 = ProxyGrantingTicketFactory()
-
-        ProxyGrantingTicket.objects.consume_tickets(self.user)
-        self.assertTrue(ProxyGrantingTicket.objects.get(ticket=pgt1).is_consumed())
-        self.assertTrue(ProxyGrantingTicket.objects.get(ticket=pgt2).is_consumed())
+        self.assertTrue(pgt.ticket.startswith(pgt.TICKET_PREFIX))
 
 
 class ManagementCommandTests(TestCase):
     """
-    Test management commands that operate on ``Ticket``s.
+    Test management commands that operate on tickets.
     """
     def test_cleanupcas_management_command(self):
         """
-        The ``cleanupcas`` management command should delete ``Ticket``s
-        that are either expired or consumed.
+        The ``cleanupcas`` management command should delete tickets
+        that are expired or consumed.
         """
-        st = ServiceTicketFactory(consumed=now())
-        pgt = ProxyGrantingTicketFactory(granted_by_st=st, consumed=now())
-        ProxyTicketFactory(granted_by_pgt=pgt, consumed=now())
-
+        st = ConsumedServiceTicketFactory()
+        pgt = ConsumedProxyGrantingTicketFactory(granted_by_st=st)
+        ExpiredProxyTicketFactory(granted_by_pgt=pgt)
         management.call_command('cleanupcas')
+
         self.assertEqual(ServiceTicket.objects.count(), 0)
         self.assertEqual(ProxyGrantingTicket.objects.count(), 0)
         self.assertEqual(ProxyTicket.objects.count(), 0)

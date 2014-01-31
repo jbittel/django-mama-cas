@@ -1,3 +1,7 @@
+from datetime import timedelta
+
+from django.utils.timezone import now
+
 import factory
 
 from mama_cas.compat import user_model
@@ -13,8 +17,8 @@ class UserFactory(factory.django.DjangoModelFactory):
 
     first_name = 'Ellen'
     last_name = 'Cohen'
-    username = first_name.lower()
-    email = '%s@example.com' % username
+    username = factory.LazyAttribute(lambda o: o.first_name.lower())
+    email = factory.LazyAttribute(lambda o: '%s@example.com' % o.username)
     password = 'mamas&papas'
 
     @classmethod
@@ -46,6 +50,14 @@ class ServiceTicketFactory(TicketFactory):
     service = 'http://www.example.com'
 
 
+class ExpiredServiceTicketFactory(ServiceTicketFactory):
+    expires = now() - timedelta(seconds=1)
+
+
+class ConsumedServiceTicketFactory(ServiceTicketFactory):
+    consumed = now()
+
+
 class ProxyGrantingTicketFactory(TicketFactory):
     FACTORY_FOR = ProxyGrantingTicket
 
@@ -53,8 +65,19 @@ class ProxyGrantingTicketFactory(TicketFactory):
 
     @classmethod
     def _create(cls, target_class, *args, **kwargs):
+        if not args:
+            args = ('https://www.example.com',)
+            kwargs['validate'] = False
         return super(ProxyGrantingTicketFactory, cls)._create(target_class,
-                'https://www.example.com/', *args, validate=False, **kwargs)
+                                                              *args, **kwargs)
+
+
+class ExpiredProxyGrantingTicketFactory(ProxyGrantingTicketFactory):
+    expires = now() - timedelta(seconds=1)
+
+
+class ConsumedProxyGrantingTicketFactory(ProxyGrantingTicketFactory):
+    consumed = now()
 
 
 class ProxyTicketFactory(TicketFactory):
@@ -62,3 +85,11 @@ class ProxyTicketFactory(TicketFactory):
 
     service = 'http://www.example.com'
     granted_by_pgt = factory.SubFactory(ProxyGrantingTicketFactory)
+
+
+class ExpiredProxyTicketFactory(ProxyTicketFactory):
+    expires = now() - timedelta(seconds=1)
+
+
+class ConsumedProxyTicketFactory(ProxyTicketFactory):
+    consumed = now()
