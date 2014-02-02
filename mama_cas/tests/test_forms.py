@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.test import TestCase
 
 from .factories import UserFactory
@@ -36,6 +37,18 @@ class LoginFormTests(TestCase):
         form = LoginForm(data={'username': 'ellen',
                                'password': 'journeymen'})
         self.assertFalse(form.is_valid())
+
+    def test_login_form_exception(self):
+        """
+        If an authentication backend raises an exception, the
+        exception should be handled and the form should be invalid.
+        """
+        auth_backends = settings.AUTHENTICATION_BACKENDS
+        settings.AUTHENTICATION_BACKENDS = ('mama_cas.tests.backends.ExceptionBackend',)
+        form = LoginForm(data={'username': 'ellen',
+                               'password': 'mamas&papas'})
+        self.assertFalse(form.is_valid())
+        settings.AUTHENTICATION_BACKENDS = auth_backends
 
     def test_login_form_inactive(self):
         """
