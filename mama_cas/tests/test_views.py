@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+from mock import patch
+
 try:
     from urllib.parse import quote
 except ImportError:  # pragma: no cover
@@ -8,7 +10,6 @@ except ImportError:  # pragma: no cover
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.test import TestCase
-from django.utils import unittest
 
 from .factories import UserFactory
 from .factories import ProxyGrantingTicketFactory
@@ -440,21 +441,19 @@ class ServiceValidateViewTests(TestCase):
         response = self.client.get(reverse('cas_service_validate') + query_str)
         self.assertContains(response, 'INVALID_TICKET')
 
-    @unittest.skipIf(pgt_url == 'https://www.example.com/',
-                     'set pgt_url to a valid HTTPS URL')
     def test_service_validate_view_pgturl(self):
         """
         When called with correct parameters and a ``pgtUrl`` parameter,
         a ``GET`` request to the view should return a validation
         success and also attempt to create a ``ProxyGrantingTicket``.
-
-        NOTE: this test will fail unless ``pgt_url`` is configured with
-        a valid proxy callback URL.
         """
         query_str = "?service=%s&ticket=%s&pgtUrl=%s" % (self.service_url,
                                                          self.st.ticket,
                                                          self.pgt_url)
-        response = self.client.get(reverse('cas_service_validate') + query_str)
+        url = reverse('cas_service_validate') + query_str
+        with patch('requests.get') as mock:
+            mock.return_value.status_code = 200
+            response = self.client.get(url)
         self.assertContains(response, 'ellen')
         self.assertContains(response, 'proxyGrantingTicket')
 
@@ -621,21 +620,19 @@ class ProxyValidateViewTests(TestCase):
         self.assertContains(response, 'http://ww2.example.com')
         self.assertContains(response, 'http://www.example.com')
 
-    @unittest.skipIf(pgt_url == 'https://www.example.com/',
-                     'set pgt_url to a valid HTTPS URL')
     def test_proxy_validate_view_pgturl(self):
         """
         When called with correct parameters and a ``pgtUrl`` parameter,
         a ``GET`` request to the view should return a validation
         success and also attempt to create a ``ProxyGrantingTicket``.
-
-        NOTE: this test will fail unless ``pgt_url`` is configured with
-        a valid proxy callback URL.
         """
         query_str = "?service=%s&ticket=%s&pgtUrl=%s" % (self.service_url,
                                                          self.pt.ticket,
                                                          self.pgt_url)
-        response = self.client.get(reverse('cas_proxy_validate') + query_str)
+        url = reverse('cas_proxy_validate') + query_str
+        with patch('requests.get') as mock:
+            mock.return_value.status_code = 200
+            response = self.client.get(url)
         self.assertContains(response, 'ellen')
         self.assertContains(response, 'proxyGrantingTicket')
 
