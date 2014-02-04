@@ -250,7 +250,7 @@ class ProxyGrantingTicketManager(TicketManager):
         pgtiou = self.create_ticket_str(prefix=self.model.IOU_PREFIX)
         try:
             if validate:
-                self.validate_pgturl(pgturl, pgtid, pgtiou)
+                self.validate_callback(pgturl, pgtid, pgtiou)
         except InternalError as e:
             # pgtUrl validation failed, so nothing has been created
             logger.warning("%s %s" % (e.code, e))
@@ -262,7 +262,7 @@ class ProxyGrantingTicketManager(TicketManager):
                                                                          iou=pgtiou,
                                                                          **kwargs)
 
-    def validate_pgturl(self, pgturl, pgtid, pgtiou):
+    def validate_callback(self, url, pgtid, pgtiou):
         """
         Verify the provided proxy callback URL. This verification process
         requires three steps:
@@ -275,23 +275,29 @@ class ProxyGrantingTicketManager(TicketManager):
         It is not required for validation that 3xx redirects be followed.
         """
         # Ensure the scheme is HTTPS before proceeding
-        if not is_scheme_https(pgturl):
-            raise InternalError("Proxy callback %s is not HTTPS" % pgturl)
+        if not is_scheme_https(url):
+            raise InternalError("Proxy callback %s is not HTTPS" % url)
 
         # Connect to proxy callback URL, checking the SSL certificate
-        pgturl = add_query_params(pgturl, {'pgtId': pgtid, 'pgtIou': pgtiou})
+        url_params = add_query_params(url, {'pgtId': pgtid, 'pgtIou': pgtiou})
+        verify = os.environ.get('REQUESTS_CA_BUNDLE', True)
         try:
-            verify = os.environ.get('REQUESTS_CA_BUNDLE', True)
-            r = requests.get(pgturl, verify=verify)
-        except (requests.exceptions.ConnectionError,
-                requests.exceptions.SSLError) as e:
-            raise InternalError("Proxy callback %s returned %s" % (pgturl, e))
+            r = requests.get(url_params, verify=verify, timeout=3.0)
+        except requests.exceptions.SSLError:
+            msg = "SSL cert validation failed for proxy callback %s" % url
+            raise InternalError(msg)
+        except requests.exceptions.ConnectionError:
+            msg = "Error connecting to proxy callback %s" % url
+            raise InternalError(msg)
+        except requests.exceptions.Timeout:
+            msg = "Timeout connecting to proxy callback %s" % url
+            raise InternalError(msg)
 
         # Check the returned HTTP status code
         try:
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:
-            raise InternalError("Proxy callback %s returned %s" % (pgturl, e))
+            raise InternalError("Proxy callback %s returned %s" % (url, e))
 
     def validate_ticket(self, ticket, service):
         """
