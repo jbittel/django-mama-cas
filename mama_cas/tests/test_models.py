@@ -1,10 +1,16 @@
 import re
 from datetime import timedelta
+from mock import patch
 
 from django.conf import settings
 from django.core import management
 from django.test import TestCase
 from django.utils.timezone import now
+
+from requests.exceptions import ConnectionError
+from requests.exceptions import SSLError
+from requests.exceptions import Timeout
+from requests.exceptions import HTTPError
 
 from .factories import ConsumedProxyGrantingTicketFactory
 from .factories import ConsumedServiceTicketFactory
@@ -310,6 +316,7 @@ class ProxyGrantingTicketManager(TestCase):
     Test the ``ProxyGrantingTicketManager`` model manager.
     """
     url = 'http://www.example.com'
+    pgturl = 'https://www.example.com'
 
     def setUp(self):
         self.user = UserFactory()
@@ -321,8 +328,7 @@ class ProxyGrantingTicketManager(TestCase):
         A ``ProxyGrantingTicket`` ought to be created with the
         appropriate ticket strings.
         """
-        pgturl = 'https://www.example.com'
-        pgt = ProxyGrantingTicket.objects.create_ticket(pgturl,
+        pgt = ProxyGrantingTicket.objects.create_ticket(self.pgturl,
                                                         validate=False,
                                                         user=self.user,
                                                         granted_by_pt=self.pt)
@@ -334,22 +340,92 @@ class ProxyGrantingTicketManager(TestCase):
         If an invalid URL is provided, ``None`` should be returned
         instead of a ``ProxyGrantingTicket``.
         """
-        pgturl = 'http://www.example.com'
-        pgt = ProxyGrantingTicket.objects.create_ticket(pgturl,
+        pgt = ProxyGrantingTicket.objects.create_ticket(self.pgturl,
                                                         user=self.user,
                                                         granted_by_pt=self.pt)
         self.assertIsNone(pgt)
 
-    def test_validate_pgturl_invalid_pgturl(self):
+    def test_validate_callback(self):
         """
-        If an invalid URL Is provided, an exception should be raised.
+        If a valid URL is provided, an exception should not be raised.
         """
-        pgturl = 'http://www.example.com'
+        pgtid = ProxyGrantingTicket.objects.create_ticket_str()
+        prefix = ProxyGrantingTicket.objects.model.IOU_PREFIX
+        pgtiou = ProxyGrantingTicket.objects.create_ticket_str(prefix=prefix)
+        with patch('requests.get') as mock:
+            mock.return_value.status_code = 200
+            try:
+                ProxyGrantingTicket.objects.validate_callback(self.pgturl,
+                                                              pgtid, pgtiou)
+            except InternalError:
+                self.fail("InternalError raised validating proxy callback URL")
+
+    def test_validate_callback_invalid_pgturl(self):
+        """
+        If an invalid URL is provided, an exception should be raised.
+        """
         pgtid = ProxyGrantingTicket.objects.create_ticket_str()
         prefix = ProxyGrantingTicket.objects.model.IOU_PREFIX
         pgtiou = ProxyGrantingTicket.objects.create_ticket_str(prefix=prefix)
         with self.assertRaises(InternalError):
-            ProxyGrantingTicket.objects.validate_pgturl(pgturl, pgtid, pgtiou)
+            ProxyGrantingTicket.objects.validate_callback(self.pgturl,
+                                                          pgtid, pgtiou)
+
+    def test_validate_callback_ssl_error(self):
+        """
+        If the validation request encounters an SSL error, an
+        InternalError should be raised.
+        """
+        pgtid = ProxyGrantingTicket.objects.create_ticket_str()
+        prefix = ProxyGrantingTicket.objects.model.IOU_PREFIX
+        pgtiou = ProxyGrantingTicket.objects.create_ticket_str(prefix=prefix)
+        with patch('requests.get') as mock:
+            mock.side_effect = SSLError
+            with self.assertRaises(InternalError):
+                ProxyGrantingTicket.objects.validate_callback(self.pgturl,
+                                                              pgtid, pgtiou)
+
+    def test_validate_callback_connection_error(self):
+        """
+        If the validation request encounters a connection error, an
+        InternalError should be raised.
+        """
+        pgtid = ProxyGrantingTicket.objects.create_ticket_str()
+        prefix = ProxyGrantingTicket.objects.model.IOU_PREFIX
+        pgtiou = ProxyGrantingTicket.objects.create_ticket_str(prefix=prefix)
+        with patch('requests.get') as mock:
+            mock.side_effect = ConnectionError
+            with self.assertRaises(InternalError):
+                ProxyGrantingTicket.objects.validate_callback(self.pgturl,
+                                                              pgtid, pgtiou)
+
+    def test_validate_callback_timeout(self):
+        """
+        If the validation request times out, an InternalError should
+        be raised.
+        """
+        pgtid = ProxyGrantingTicket.objects.create_ticket_str()
+        prefix = ProxyGrantingTicket.objects.model.IOU_PREFIX
+        pgtiou = ProxyGrantingTicket.objects.create_ticket_str(prefix=prefix)
+        with patch('requests.get') as mock:
+            mock.side_effect = Timeout
+            with self.assertRaises(InternalError):
+                ProxyGrantingTicket.objects.validate_callback(self.pgturl,
+                                                              pgtid, pgtiou)
+
+    def test_validate_callback_invalid_status(self):
+        """
+        If the validation request returns an invalid status code, an
+        InternalError should be raised.
+        """
+        pgtid = ProxyGrantingTicket.objects.create_ticket_str()
+        prefix = ProxyGrantingTicket.objects.model.IOU_PREFIX
+        pgtiou = ProxyGrantingTicket.objects.create_ticket_str(prefix=prefix)
+        with patch('requests.get') as mock:
+            mock.return_value.raise_for_status.side_effect = HTTPError
+            with self.assertRaises(InternalError):
+                ProxyGrantingTicket.objects.validate_callback(self.pgturl,
+                                                              pgtid, pgtiou)
 
     def test_validate_ticket(self):
         """
