@@ -2,9 +2,9 @@ import re
 from datetime import timedelta
 from mock import patch
 
-from django.conf import settings
 from django.core import management
 from django.test import TestCase
+from django.test.utils import override_settings
 from django.utils.timezone import now
 
 from requests.exceptions import ConnectionError
@@ -31,6 +31,7 @@ from mama_cas.exceptions import InvalidService
 from mama_cas.exceptions import InvalidTicket
 
 
+@override_settings(MAMA_CAS_VALID_SERVICES=('.*\.example\.com',))
 class TicketManagerTests(TestCase):
     """
     Test the ``TicketManager`` model manager.
@@ -39,7 +40,6 @@ class TicketManagerTests(TestCase):
 
     def setUp(self):
         self.user = UserFactory()
-        settings.MAMA_CAS_VALID_SERVICES = ('http://.*\.example\.com',)
 
     def test_create_ticket(self):
         """
@@ -311,6 +311,7 @@ class ProxyTicketTests(TestCase):
         self.assertTrue(pt.ticket.startswith(pt.TICKET_PREFIX))
 
 
+@override_settings(MAMA_CAS_VALID_SERVICES=('.*\.example\.com',))
 class ProxyGrantingTicketManager(TestCase):
     """
     Test the ``ProxyGrantingTicketManager`` model manager.
@@ -321,7 +322,6 @@ class ProxyGrantingTicketManager(TestCase):
     def setUp(self):
         self.user = UserFactory()
         self.pt = ProxyTicketFactory()
-        settings.MAMA_CAS_VALID_SERVICES = ('http://.*\.example\.com',)
 
     def test_create_ticket(self):
         """

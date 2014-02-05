@@ -5,9 +5,9 @@ try:
 except ImportError:  # pragma: no cover
     import xml.etree.ElementTree as etree
 
-from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase
+from django.test.utils import override_settings
 
 from .factories import ProxyGrantingTicketFactory
 from .factories import ProxyTicketFactory
@@ -99,13 +99,12 @@ class ValidationResponseTests(TestCase):
         self.assertEqual(proxies[0].text, proxy_list[0])
         self.assertEqual(proxies[1].text, proxy_list[1])
 
+    @override_settings(MAMA_CAS_ATTRIBUTE_FORMAT='jasig')
     def test_validation_response_jasig_attributes(self):
         """
         When given custom user attributes, a ``ValidationResponse``
         should include the attributes in the configured format.
         """
-        attr_format = getattr(settings, 'MAMA_CAS_ATTRIBUTE_FORMAT', 'jasig')
-        settings.MAMA_CAS_ATTRIBUTE_FORMAT = 'jasig'
         attrs = {'givenName': 'Ellen', 'sn': 'Cohen', 'email': 'ellen@example.com'}
         resp = ValidationResponse(context={'ticket': self.st, 'error': None,
                                            'attributes': attrs.items()},
@@ -122,15 +121,12 @@ class ValidationResponseTests(TestCase):
             del attrs[child.tag]
         self.assertEqual(len(attrs), 0)
 
-        settings.MAMA_CAS_ATTRIBUTE_FORMAT = attr_format
-
+    @override_settings(MAMA_CAS_ATTRIBUTE_FORMAT='rubycas')
     def test_validation_response_rubycas_attributes(self):
         """
         When given custom user attributes, a ``ValidationResponse``
         should include the attributes in the configured format.
         """
-        attr_format = getattr(settings, 'MAMA_CAS_ATTRIBUTE_FORMAT', 'jasig')
-        settings.MAMA_CAS_ATTRIBUTE_FORMAT = 'rubycas'
         attrs = {'givenName': 'Ellen', 'sn': 'Cohen', 'email': 'ellen@example.com'}
         resp = ValidationResponse(context={'ticket': self.st, 'error': None,
                                            'attributes': attrs.items()},
@@ -151,15 +147,12 @@ class ValidationResponseTests(TestCase):
             del attrs[child.tag]
         self.assertEqual(len(attrs), 0)
 
-        settings.MAMA_CAS_ATTRIBUTE_FORMAT = attr_format
-
+    @override_settings(MAMA_CAS_ATTRIBUTE_FORMAT='namevalue')
     def test_validation_response_namevalue_attributes(self):
         """
         When given custom user attributes, a ``ValidationResponse``
         should include the attributes in the configured format.
         """
-        attr_format = getattr(settings, 'MAMA_CAS_ATTRIBUTE_FORMAT', 'jasig')
-        settings.MAMA_CAS_ATTRIBUTE_FORMAT = 'namevalue'
         attrs = {'givenName': 'Ellen', 'sn': 'Cohen', 'email': 'ellen@example.com'}
         resp = ValidationResponse(context={'ticket': self.st, 'error': None,
                                            'attributes': attrs.items()},
@@ -176,21 +169,17 @@ class ValidationResponseTests(TestCase):
             del attrs[elem.get('name')]
         self.assertEqual(len(attrs), 0)
 
-        settings.MAMA_CAS_ATTRIBUTE_FORMAT = attr_format
-
+    @override_settings(MAMA_CAS_ATTRIBUTE_FORMAT='invalid')
     def test_validation_response_invalid_attribute_format(self):
         """
         Configuring an invalid attribute format should raise an
         ``ImproperlyConfigured`` exception.
         """
-        attr_format = getattr(settings, 'MAMA_CAS_ATTRIBUTE_FORMAT', 'jasig')
-        settings.MAMA_CAS_ATTRIBUTE_FORMAT = 'invalid'
         attrs = {'givenName': 'Ellen', 'sn': 'Cohen', 'email': 'ellen@example.com'}
         with self.assertRaises(ImproperlyConfigured):
             ValidationResponse(context={'ticket': self.st, 'error': None,
                                         'attributes': attrs.items()},
                                content_type='text/xml')
-        settings.MAMA_CAS_ATTRIBUTE_FORMAT = attr_format
 
 
 class ProxyResponseTests(TestCase):

@@ -7,9 +7,9 @@ try:
 except ImportError:  # pragma: no cover
     from urllib import quote
 
-from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.test import TestCase
+from django.test.utils import override_settings
 
 from .factories import UserFactory
 from .factories import ProxyGrantingTicketFactory
@@ -198,6 +198,8 @@ class WarnViewTests(TestCase):
         self.assertRedirects(response, reverse('cas_login') + '?warned=true')
 
 
+@override_settings(MAMA_CAS_VALID_SERVICES=('.*\.example\.com',))
+@override_settings(MAMA_CAS_FOLLOW_LOGOUT_URL=False)
 class LogoutViewTests(TestCase):
     """
     Test the ``LogoutView`` view.
@@ -208,20 +210,6 @@ class LogoutViewTests(TestCase):
 
     def setUp(self):
         self.user = UserFactory()
-
-        self.old_valid_services = getattr(settings,
-                                          'MAMA_CAS_VALID_SERVICES', ())
-        settings.MAMA_CAS_VALID_SERVICES = ('.*\.example\.com',)
-        self.old_follow_url = getattr(settings,
-                                      'MAMA_CAS_FOLLOW_LOGOUT_URL', False)
-        settings.MAMA_CAS_FOLLOW_LOGOUT_URL = False
-
-    def tearDown(self):
-        """
-        Undo any modifications made to the test environment.
-        """
-        settings.MAMA_CAS_VALID_SERVICES = self.old_valid_services
-        settings.MAMA_CAS_FOLLOW_LOGOUT_URL = self.old_follow_url
 
     def test_logout_view(self):
         """
@@ -252,14 +240,13 @@ class LogoutViewTests(TestCase):
         self.assertRedirects(response, reverse('cas_login'))
         self.assertFalse('_auth_user_id' in self.client.session)
 
+    @override_settings(MAMA_CAS_FOLLOW_LOGOUT_URL=True)
     def test_logout_view_follow_url(self):
         """
         When called with a logged in user and MAMA_CAS_FOLLOW_LOGOUT_URL
         is set to ``True``, a ``GET`` request to the view should log the
         user out and redirect to the supplied URL.
         """
-        settings.MAMA_CAS_FOLLOW_LOGOUT_URL = True
-
         response = self.client.post(reverse('cas_login'), self.user_info)
         query_str = '?url=http://www.example.com'
         response = self.client.get(reverse('cas_logout') + query_str)
@@ -268,6 +255,7 @@ class LogoutViewTests(TestCase):
         self.assertFalse('_auth_user_id' in self.client.session)
 
 
+@override_settings(MAMA_CAS_VALID_SERVICES=('.*\.example\.com',))
 class ValidateViewTests(TestCase):
     """
     Test the ``ValidateView`` view.
@@ -276,16 +264,6 @@ class ValidateViewTests(TestCase):
 
     def setUp(self):
         self.st = ServiceTicketFactory()
-
-        self.old_valid_services = getattr(settings,
-                                          'MAMA_CAS_VALID_SERVICES', ())
-        settings.MAMA_CAS_VALID_SERVICES = ('http://.*\.example\.com/',)
-
-    def tearDown(self):
-        """
-        Undo any modifications made to the test environment.
-        """
-        settings.MAMA_CAS_VALID_SERVICES = self.old_valid_services
 
     def test_validate_view(self):
         """
@@ -347,6 +325,11 @@ class ValidateViewTests(TestCase):
         self.assertEqual(response.get('Content-Type'), 'text/plain')
 
 
+@override_settings(MAMA_CAS_VALID_SERVICES=('.*\.example\.com',))
+@override_settings(MAMA_CAS_USER_ATTRIBUTES={'givenName': 'first_name',
+                                             'sn': 'last_name',
+                                             'email': 'email',
+                                             'test': 'invalid'})
 class ServiceValidateViewTests(TestCase):
     """
     Test the ``ServiceValidateView`` view.
@@ -356,23 +339,6 @@ class ServiceValidateViewTests(TestCase):
 
     def setUp(self):
         self.st = ServiceTicketFactory()
-
-        self.old_user_attributes = getattr(settings,
-                                           'MAMA_CAS_USER_ATTRIBUTES', {})
-        settings.MAMA_CAS_USER_ATTRIBUTES = {'givenName': 'first_name',
-                                             'sn': 'last_name',
-                                             'email': 'email',
-                                             'test': 'invalid'}
-        self.old_valid_services = getattr(settings,
-                                          'MAMA_CAS_VALID_SERVICES', ())
-        settings.MAMA_CAS_VALID_SERVICES = ('http://.*\.example\.com/',)
-
-    def tearDown(self):
-        """
-        Undo any modifications made to the test environment.
-        """
-        settings.MAMA_CAS_USER_ATTRIBUTES = self.old_user_attributes
-        settings.MAMA_CAS_VALID_SERVICES = self.old_valid_services
 
     def test_service_validate_view(self):
         """
@@ -470,19 +436,17 @@ class ServiceValidateViewTests(TestCase):
         self.assertContains(response, 'ellen')
         self.assertNotContains(response, 'proxyGrantingTicket')
 
+    @override_settings(MAMA_CAS_ATTRIBUTE_FORMAT='jasig')
     def test_service_validate_view_user_attributes(self):
         """
         When ``MAMA_CAS_USER_ATTRIBUTES`` is defined in the settings
         file, a service validation success should include the list of
         configured user attributes.
         """
-        attr_format = getattr(settings, 'MAMA_CAS_ATTRIBUTE_FORMAT', 'jasig')
-        settings.MAMA_CAS_ATTRIBUTE_FORMAT = 'jasig'
         query_str = "?service=%s&ticket=%s" % (self.service_url,
                                                self.st.ticket)
         response = self.client.get(reverse('cas_service_validate') + query_str)
         self.assertContains(response, 'attributes')
-        settings.MAMA_CAS_ATTRIBUTE_FORMAT = attr_format
 
     def test_service_validate_view_invalid_service_url(self):
         """
@@ -497,6 +461,11 @@ class ServiceValidateViewTests(TestCase):
         self.assertContains(response, 'INVALID_SERVICE')
 
 
+@override_settings(MAMA_CAS_VALID_SERVICES=('.*\.example\.com',))
+@override_settings(MAMA_CAS_USER_ATTRIBUTES={'givenName': 'first_name',
+                                             'sn': 'last_name',
+                                             'email': 'email',
+                                             'test': 'invalid'})
 class ProxyValidateViewTests(TestCase):
     """
     Test the ``ProxyValidateView`` view.
@@ -509,23 +478,6 @@ class ProxyValidateViewTests(TestCase):
         self.st = ServiceTicketFactory()
         self.pgt = ProxyGrantingTicketFactory()
         self.pt = ProxyTicketFactory()
-
-        self.old_user_attributes = getattr(settings,
-                                           'MAMA_CAS_USER_ATTRIBUTES', {})
-        settings.MAMA_CAS_USER_ATTRIBUTES = {'givenName': 'first_name',
-                                             'sn': 'last_name',
-                                             'email': 'email',
-                                             'test': 'invalid'}
-        self.old_valid_services = getattr(settings,
-                                          'MAMA_CAS_VALID_SERVICES', ())
-        settings.MAMA_CAS_VALID_SERVICES = ('http://.*\.example\.com',)
-
-    def tearDown(self):
-        """
-        Undo any modifications made to the test environment.
-        """
-        settings.MAMA_CAS_USER_ATTRIBUTES = self.old_user_attributes
-        settings.MAMA_CAS_VALID_SERVICES = self.old_valid_services
 
     def test_proxy_validate_view(self):
         """
@@ -649,19 +601,17 @@ class ProxyValidateViewTests(TestCase):
         self.assertContains(response, 'ellen')
         self.assertNotContains(response, 'proxyGrantingTicket')
 
+    @override_settings(MAMA_CAS_ATTRIBUTE_FORMAT='jasig')
     def test_proxy_validate_view_user_attributes(self):
         """
         When ``MAMA_CAS_USER_ATTRIBUTES`` is defined in the settings
         file, a proxy validation success should include the list of
         configured user attributes.
         """
-        attr_format = getattr(settings, 'MAMA_CAS_ATTRIBUTE_FORMAT', 'jasig')
-        settings.MAMA_CAS_ATTRIBUTE_FORMAT = 'jasig'
         query_str = "?service=%s&ticket=%s" % (self.service_url,
                                                self.st.ticket)
         response = self.client.get(reverse('cas_proxy_validate') + query_str)
         self.assertContains(response, 'attributes')
-        settings.MAMA_CAS_ATTRIBUTE_FORMAT = attr_format
 
     def test_proxy_validate_view_invalid_service_url(self):
         """
@@ -686,16 +636,6 @@ class ProxyViewTests(TestCase):
     def setUp(self):
         self.st = ServiceTicketFactory()
         self.pgt = ProxyGrantingTicketFactory()
-
-        self.old_valid_services = getattr(settings,
-                                          'MAMA_CAS_VALID_SERVICES', ())
-        settings.MAMA_CAS_VALID_SERVICES = ('http://.*\.example\.com/',)
-
-    def tearDown(self):
-        """
-        Undo any modifications made to settings.
-        """
-        settings.MAMA_CAS_VALID_SERVICES = self.old_valid_services
 
     def test_proxy_view(self):
         """
@@ -745,12 +685,12 @@ class ProxyViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get('Content-Type'), 'text/xml')
 
+    @override_settings(MAMA_CAS_VALID_SERVICES=('.*\.example\.com',))
     def test_proxy_view_invalid_service_url(self):
         """
-        When ``MAMA_CAS_VALID_SERVICES`` is defined in the settings
-        file, a service string should be checked against the list of
-        valid services. If it does not match, a proxy authentication
-        failure should be returned.
+        When ``MAMA_CAS_VALID_SERVICES`` is defined, a service string
+        should be checked against the list of valid services. If it does
+        not match, a proxy authentication failure should be returned.
         """
         query_str = "?targetService=%s&pgt=%s" % (self.invalid_service,
                                                   self.pgt.ticket)

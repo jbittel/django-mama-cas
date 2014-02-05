@@ -1,6 +1,6 @@
-from django.conf import settings
 from django.core.urlresolvers import NoReverseMatch
 from django.test import TestCase
+from django.test.utils import override_settings
 
 from mama_cas.utils import add_query_params
 from mama_cas.utils import is_scheme_https
@@ -44,27 +44,23 @@ class UtilsTests(TestCase):
         self.assertEqual('https://www.example.com',
                          clean_service_url('https://www.example.com/'))
 
+    @override_settings(MAMA_CAS_VALID_SERVICES=('http://.*\.example\.com',))
     def test_is_valid_service_url(self):
         """
         When valid services are configured, ``is_valid_service_url()``
         should return ``True`` if the provided URL matches, and
         ``False`` otherwise.
         """
-        old_valid_services = getattr(settings, 'MAMA_CAS_VALID_SERVICES', ())
-        settings.MAMA_CAS_VALID_SERVICES = ('http://.*\.example\.com',)
         self.assertTrue(is_valid_service_url('http://www.example.com'))
         self.assertFalse(is_valid_service_url('http://www.example.org'))
-        settings.MAMA_CAS_VALID_SERVICES = old_valid_services
 
+    @override_settings(MAMA_CAS_VALID_SERVICES=())
     def test_empty_valid_services(self):
         """
         When no valid services are configured,
         ``is_valid_service_url()`` should return ``True``.
         """
-        old_valid_services = getattr(settings, 'MAMA_CAS_VALID_SERVICES', ())
-        settings.MAMA_CAS_VALID_SERVICES = ()
         self.assertTrue(is_valid_service_url('http://www.example.com'))
-        settings.MAMA_CAS_VALID_SERVICES = old_valid_services
 
     def test_redirect(self):
         """
