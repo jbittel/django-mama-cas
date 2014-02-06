@@ -4,7 +4,6 @@ from django.test.utils import override_settings
 from .factories import UserFactory
 from mama_cas.forms import LoginForm
 from mama_cas.forms import LoginFormEmail
-from mama_cas.forms import LoginFormWarn
 
 
 class LoginFormTests(TestCase):
@@ -59,12 +58,13 @@ class LoginFormTests(TestCase):
                                'password': 'mamas&papas'})
         self.assertFalse(form.is_valid())
 
+    @override_settings(MAMA_CAS_ALLOW_AUTH_WARN=True)
     def test_login_form_warn(self):
         """
         The form should contain an additional ``warn`` field.
         """
-        form = LoginFormWarn(data={'username': 'ellen',
-                                   'password': 'mamas&papas'})
+        form = LoginForm(data={'username': 'ellen',
+                               'password': 'mamas&papas'})
         self.assertTrue('warn' in form.fields)
 
     def test_login_form_email(self):

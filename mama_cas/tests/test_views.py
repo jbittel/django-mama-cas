@@ -16,7 +16,6 @@ from .factories import ProxyGrantingTicketFactory
 from .factories import ProxyTicketFactory
 from .factories import ServiceTicketFactory
 from mama_cas.forms import LoginForm
-from mama_cas.forms import LoginFormWarn
 from mama_cas.models import ServiceTicket
 
 
@@ -133,14 +132,15 @@ class LoginViewTests(TestCase):
         self.assertTrue(st.ticket in response['Location'])
 
 
+@override_settings(MAMA_CAS_ALLOW_AUTH_WARN=True)
 class WarnViewTests(TestCase):
     """
     Test the ``WarnView`` view.
     """
     user_info = {'username': 'ellen',
                  'password': 'mamas&papas',
-                 'email': 'ellen@example.com'}
-    service_url = 'http://www.example.com/'
+                 'warn': 'on'}
+    url = 'http://www.example.com/'
 
     def setUp(self):
         self.user = UserFactory()
@@ -155,23 +155,41 @@ class WarnViewTests(TestCase):
         self.assertTrue('Cache-Control' in response)
         self.assertEqual(response['Cache-Control'], 'max-age=0')
 
-    def test_warn_view_redirect(self):
+    def test_warn_view_session(self):
         """
         When a user logs in with the warn parameter present, the user's
-        session should contain a ``warn`` attribute and a
-        ``ServiceTicket`` request to the credential requestor should
-        redirect to the warn view.
+        session should contain a ``warn`` attribute.
         """
-        response = self.client.get(reverse('cas_login'))
-        # Only continue the test if the required form class is in use
-        if isinstance(response.context['form'], LoginFormWarn):
-            form_data = self.user_info.copy()
-            form_data.update({'warn': 'true'})
-            response = self.client.post(reverse('cas_login'), form_data)
-            query_str = "?service=%s" % quote(self.service_url, '')
-            response = self.client.get(reverse('cas_login') + query_str)
-            self.assertEqual(self.client.session.get('warn'), True)
-            self.assertRedirects(response, reverse('cas_warn') + query_str)
+        self.client.post(reverse('cas_login'), self.user_info)
+        self.assertEqual(self.client.session.get('warn'), True)
+
+    def test_warn_view_auth_redirect(self):
+        """
+        When a logged in user requests a ``ServiceTicket`` and the
+        ``warn`` attribute is set, it should redirect to the warn view
+        with the appropriate parameters.
+        """
+        self.client.post(reverse('cas_login'), self.user_info)
+        quote_url = quote(self.url, '')
+        query_str = "?service=%s" % quote_url
+        response = self.client.get(reverse('cas_login') + query_str)
+        self.assertTrue('/warn' in response['Location'])
+        self.assertTrue("service=%s" % quote_url in response['Location'])
+        self.assertTrue('ticket=ST-' in response['Location'])
+
+    def test_warn_view_auth_gateway_redirect(self):
+        """
+        When a logged in user requests a ``ServiceTicket`` with the
+        gateway parameter and the ``warn`` attribute is set, it should
+        redirect to the warn view with the appropriate parameters.
+        """
+        self.client.post(reverse('cas_login'), self.user_info)
+        quote_url = quote(self.url, '')
+        query_str = "?gateway=true&service=%s" % quote_url
+        response = self.client.get(reverse('cas_login') + query_str)
+        self.assertTrue('/warn' in response['Location'])
+        self.assertTrue("service=%s" % quote_url in response['Location'])
+        self.assertTrue('ticket=ST-' in response['Location'])
 
     def test_warn_view_display(self):
         """
@@ -181,21 +199,23 @@ class WarnViewTests(TestCase):
         """
         self.client.login(username=self.user_info['username'],
                           password=self.user_info['password'])
-        query_str = "?service=%s" % quote(self.service_url, '')
+        query_str = "?service=%s" % quote(self.url, '')
         response = self.client.get(reverse('cas_warn') + query_str)
-        self.assertContains(response, self.service_url)
+        self.assertContains(response, self.url)
         self.assertTemplateUsed(response, 'mama_cas/warn.html')
 
-    def test_warn_view_warned(self):
+    def test_warn_view_post(self):
         """
-        When a logged in user submits the form on the warn view, the
-        user should be redirected to the login view with the ``warned``
-        parameter present.
+        When a logged in user posts to the warn view, it should
+        redirect to the service with the ticket present.
         """
+        st = ServiceTicketFactory()
         self.client.login(username=self.user_info['username'],
                           password=self.user_info['password'])
-        response = self.client.post(reverse('cas_warn'))
-        self.assertRedirects(response, reverse('cas_login') + '?warned=true')
+        query_str = "?service=%s&ticket=%s" % (quote(self.url, ''), st.ticket)
+        response = self.client.post(reverse('cas_warn') + query_str)
+        self.assertTrue(response['Location'].startswith(self.url))
+        self.assertTrue("ticket=%s" % st.ticket in response['Location'])
 
 
 @override_settings(MAMA_CAS_VALID_SERVICES=('.*\.example\.com',))
