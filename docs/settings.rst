@@ -112,4 +112,12 @@ required and have sane defaults, but can be used to customize the behavior.
       The default setting of ``False`` conforms to the CAS protocol
       specification.
 
+.. attribute:: MAMA_CAS_ALLOW_AUTH_WARN
+
+   :default: ``False``
+
+   If set, allows the user to control transparency of the single sign-
+   on process. When enabled, an additional checkbox will be displayed
+   on the login form.
+
 .. _phpCAS: https://wiki.jasig.org/display/CASC/phpCAS

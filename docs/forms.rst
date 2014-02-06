@@ -27,27 +27,22 @@ Authentication Forms
       required.
 
    ``service``
-      The service the client is attempting to access, typically represented
-      as a URL. This is a hidden, optional field and is automatically added
-      to the form when present.
-
-   The form's ``clean()`` method attempts authentication against the
-   configured authentication backends and verifies the user account is active.
-   If either check fails, a ``FormValidation`` error is raised with an
-   appropriate error message.
-
-The following form classes all inherit from ``LoginForm``, providing
-additional or alternate behavior during the login process.
-
-.. class:: LoginFormWarn
-
-   A subclass of :class:`LoginForm` which adds one additional, optional field:
+      A hidden, optional field that contains the service the client is
+      requesting access to, if present.
 
    ``warn``
-      A checkbox that indicates whether or not the single sign-on process
-      should be transparent. This causes the user to be notified before being
-      authenticated to another service and provides the option to continue
-      the authentication attempt or end the single sign-on session.
+      A checkbox for configuring transparency of the single sign-on
+      process. If checked, the user will be notified before being
+      authenticated to subsequent services. This field will only be
+      displayed if ``MAMA_CAS_ALLOW_AUTH_WARN`` is enabled.
+
+   The form's ``clean()`` method attempts authentication against the
+   configured authentication backends and verifies the user account is
+   active. If authentication fails, a ``FormValidation`` error is raised
+   with an appropriate error message.
+
+The following form classes inherit from ``LoginForm``, providing
+additional or alternate behavior during the login process.
 
 .. class:: LoginFormEmail
 
@@ -55,13 +50,3 @@ additional or alternate behavior during the login process.
    performs additional cleanup on the ``username`` field. If an email address
    is provided for the username, it extracts only the username portion of the
    string.
-
-Additional Forms
-----------------
-
-.. class:: WarnForm
-
-   This form is used when warning the user that an authentication attempt is
-   taking place. It contains no visible form fields, but contains two hidden
-   fields, ``service`` and ``gateway``. This allows the values of these
-   parameters to be passed through the warning process.
