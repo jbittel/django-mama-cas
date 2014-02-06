@@ -1,6 +1,7 @@
 import logging
 
 from django import forms
+from django.conf import settings
 from django.contrib.auth import authenticate
 from django.utils.http import urlunquote_plus
 from django.utils.translation import ugettext_lazy as _
@@ -20,6 +21,14 @@ class LoginForm(forms.Form):
                                error_messages={'required':
                                                _("Please enter your password")})
     service = forms.CharField(widget=forms.HiddenInput, required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(LoginForm, self).__init__(*args, **kwargs)
+        if getattr(settings, 'MAMA_CAS_ALLOW_AUTH_WARN', False):
+            self.fields['warn'] = forms.BooleanField(
+                    widget=forms.CheckboxInput(),
+                    label=_("Warn before automatic login to other services"),
+                    required=False)
 
     def clean_service(self):
         """
@@ -59,17 +68,6 @@ class LoginForm(forms.Form):
         return self.cleaned_data
 
 
-class LoginFormWarn(LoginForm):
-    """
-    Subclass of ``LoginForm`` adding an optional checkbox allowing the
-    user to be notified whenever authentication occurs.
-    """
-    warn = forms.BooleanField(widget=forms.CheckboxInput(),
-                              label=_("Warn before automatic login to "
-                                      "additional services"),
-                              required=False)
-
-
 class LoginFormEmail(LoginForm):
     """
     Subclass of ``LoginForm`` that extracts the username if an email
@@ -82,22 +80,3 @@ class LoginFormEmail(LoginForm):
         """
         username = self.cleaned_data.get('username')
         return username.split('@')[0]
-
-
-class WarnForm(forms.Form):
-    """
-    Form used to interrupt the automatic authentication process by
-    informing the user whenever authentication occurs.
-
-    Visibly, the form consists of a submit button, but these hidden
-    fields pass this data through the form during the process.
-    """
-    service = forms.CharField(widget=forms.HiddenInput, required=False)
-    gateway = forms.CharField(widget=forms.HiddenInput, required=False)
-
-    def clean_service(self):
-        """
-        Remove any HTML percent encoding in the service URL.
-        """
-        service = self.cleaned_data.get('service')
-        return urlunquote_plus(service)

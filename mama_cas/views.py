@@ -7,10 +7,10 @@ from django.http import HttpResponse
 from django.utils.http import urlquote_plus
 from django.utils.translation import ugettext as _
 from django.views.generic import FormView
+from django.views.generic import TemplateView
 from django.views.generic import View
 
 from mama_cas.forms import LoginForm
-from mama_cas.forms import WarnForm
 from mama_cas.mixins import CasResponseMixin
 from mama_cas.mixins import CustomAttributesMixin
 from mama_cas.mixins import LoginRequiredMixin
@@ -56,7 +56,6 @@ class LoginView(NeverCacheMixin, LogoutUserMixin, FormView):
         service = request.GET.get('service')
         renew = bool(request.GET.get('renew'))
         gateway = bool(request.GET.get('gateway'))
-        warned = request.GET.get('warned')
 
         if renew:
             logger.debug("Renew request received by credential requestor")
@@ -65,12 +64,11 @@ class LoginView(NeverCacheMixin, LogoutUserMixin, FormView):
         elif gateway and service:
             logger.debug("Gateway request received by credential requestor")
             if request.user.is_authenticated():
-                if self.warn_user() and not warned:
-                    return redirect('cas_warn', params={'service': service,
-                                                        'gateway': gateway})
-
                 st = ServiceTicket.objects.create_ticket(service=service,
                                                          user=request.user)
+                if self.warn_user():
+                    return redirect('cas_warn', params={'service': service,
+                                                        'ticket': st.ticket})
                 return redirect(service, params={'ticket': st.ticket})
             else:
                 return redirect(service)
@@ -78,11 +76,11 @@ class LoginView(NeverCacheMixin, LogoutUserMixin, FormView):
             if service:
                 logger.debug("Service ticket request received "
                              "by credential requestor")
-                if self.warn_user() and not warned:
-                    return redirect('cas_warn', params={'service': service})
-
                 st = ServiceTicket.objects.create_ticket(service=service,
                                                          user=request.user)
+                if self.warn_user():
+                    return redirect('cas_warn', params={'service': service,
+                                                        'ticket': st.ticket})
                 return redirect(service, params={'ticket': st.ticket})
             else:
                 msg = _("You are logged in as %s") % request.user
@@ -148,31 +146,18 @@ class LoginView(NeverCacheMixin, LogoutUserMixin, FormView):
             return {'service': urlquote_plus(service)}
 
 
-class WarnView(NeverCacheMixin, LoginRequiredMixin, FormView):
+class WarnView(NeverCacheMixin, LoginRequiredMixin, TemplateView):
     """
     (2.2.1) Disables transparent authentication by informing the user
     that service authentication is taking place. The user can choose
     to continue or cancel the authentication attempt.
     """
     template_name = 'mama_cas/warn.html'
-    form_class = WarnForm
 
-    def form_valid(self, form):
-        service = form.cleaned_data.get('service')
-        gateway = bool(form.cleaned_data.get('gateway'))
-        return redirect('cas_login', params={'service': service,
-                                             'gateway': gateway,
-                                             'warned': 'true'})
-
-    def get_initial(self):
-        initial = {}
-        service = self.request.GET.get('service')
-        gateway = bool(self.request.GET.get('gateway'))
-        if service:
-            initial['service'] = urlquote_plus(service)
-        if gateway:
-            initial['gateway'] = gateway
-        return initial
+    def post(self, request, *args, **kwargs):
+        service = request.GET.get('service')
+        ticket = request.GET.get('ticket')
+        return redirect(service, params={'ticket': ticket})
 
     def get_context_data(self, **kwargs):
         kwargs['service'] = self.request.GET.get('service')
