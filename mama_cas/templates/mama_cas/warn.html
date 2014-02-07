@@ -13,11 +13,8 @@
 <div class="warnlist"><ul>
     <li>Automatic login is being requested as <strong>{{ user.username }}</strong>{% if service %} for <strong>{{ service }}</strong>{% endif %}. Do you want to proceed?</li>
 </ul></div>
-<form id="warn-form" class="group" action="" method="post">
+<form id="warn-form" class="group" method="post">
     {% csrf_token %}
-    {% for field in form.hidden_fields %}
-        {{ field }}
-    {% endfor %}
     <fieldset class="actions">
         <input class="button box" type="submit" name="submit_warn" value="{% trans "Yes, continue" %}" />
     </fieldset>
