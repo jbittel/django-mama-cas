@@ -1,6 +1,6 @@
 from django.contrib.auth.backends import ModelBackend
- 
-  
+
+
 class ExceptionBackend(ModelBackend):
     """
     This authentication backend raises an exception on authentication
