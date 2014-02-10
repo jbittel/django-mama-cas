@@ -268,11 +268,10 @@ class ProxyValidateView(NeverCacheMixin, ValidateTicketMixin,
             # If no ticket parameter is present, attempt to validate it
             # anyway so the appropriate error is raised
             t, pgt, proxies, error = self.validate_proxy_ticket(self.request)
-            attributes = self.get_custom_attributes(t)
         else:
             t, pgt, error = self.validate_service_ticket(self.request)
             proxies = None
-            attributes = self.get_custom_attributes(t)
+        attributes = self.get_custom_attributes(t)
         return {'ticket': t, 'pgt': pgt, 'proxies': proxies,
                 'error': error, 'attributes': attributes}
 
