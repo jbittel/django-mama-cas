@@ -26,7 +26,7 @@ with open('README.rst') as f:
 setup(
     name='django-mama-cas',
     version=version,
-    description='A CAS server single sign-on application for Django',
+    description='A Django Central Authentication Service (CAS) single sign-on server',
     long_description=readme,
     author='Jason Bittel',
     author_email='jason.bittel@gmail.com',
