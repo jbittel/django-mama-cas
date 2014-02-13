@@ -21,6 +21,8 @@ from mama_cas.models import ProxyTicket
 from mama_cas.models import ServiceTicket
 from mama_cas.response import ValidationResponse
 from mama_cas.response import ProxyResponse
+from mama_cas.utils import add_query_params
+from mama_cas.utils import clean_service_url
 from mama_cas.utils import is_valid_service_url
 from mama_cas.utils import redirect
 
@@ -154,14 +156,14 @@ class WarnView(NeverCacheMixin, LoginRequiredMixin, TemplateView):
     """
     template_name = 'mama_cas/warn.html'
 
-    def post(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         service = request.GET.get('service')
         ticket = request.GET.get('ticket')
-        return redirect(service, params={'ticket': ticket})
-
-    def get_context_data(self, **kwargs):
-        kwargs['service'] = self.request.GET.get('service')
-        return kwargs
+        msg = _("Do you want to access %s as %s?") % (clean_service_url(service),
+                                                      request.user)
+        messages.info(request, msg)
+        kwargs['service'] = add_query_params(service, {'ticket': ticket})
+        return super(WarnView, self).get(request, *args, **kwargs)
 
 
 class LogoutView(NeverCacheMixin, LogoutUserMixin, View):

@@ -10,16 +10,16 @@
 {% endblock extra_head %}
 
 {% block content %}
-<div class="warnlist"><ul>
-    <li>Automatic login is being requested as <strong>{{ user.username }}</strong>{% if service %} for <strong>{{ service }}</strong>{% endif %}. Do you want to proceed?</li>
-</ul></div>
-<form id="warn-form" class="group" method="post">
-    {% csrf_token %}
-    <fieldset class="actions">
-        <input class="button box" type="submit" name="submit_warn" value="{% trans "Yes, continue" %}" />
-    </fieldset>
-</form>
-<div class="logout">
-    <a href="{% url 'cas_logout' %}">{% trans "No, log me out" %}</a>
-</div>
+    {% if messages %}
+        <div class="messagelist"><ul>
+        {% for message in messages %}
+            <li class="{{ message.tags }}">{{ message|urlize }}</li>
+        {% endfor %}
+        </ul></div>
+    {% endif %}
+
+    <a href="{{ service }}"><span class="button box">{% trans "Yes, continue" %}</span></a>
+    <div class="logout">
+        <a href="{% url 'cas_logout' %}">{% trans "No, log me out" %}</a>
+    </div>
 {% endblock content %}
