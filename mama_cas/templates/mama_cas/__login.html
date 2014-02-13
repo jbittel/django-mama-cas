@@ -1,0 +1,29 @@
+{% extends "mama_cas/__base.html" %}
+{% load i18n %}
+
+{% block content %}
+    {% include "mama_cas/_messages.html" %}
+
+    <form id="login-form" class="group" method="post">
+        {% csrf_token %}
+        {% for field in form.hidden_fields %}
+            {{ field }}
+        {% endfor %}
+        <fieldset class="inputs">
+            <div class="field group box{% if form.username.errors %} errorfield{% endif %}">
+                <span class="fieldlabel">{{ form.username.label_tag }}</span>{{ form.username }}
+            </div>
+            <div class="field group box{% if form.password.errors %} errorfield{% endif %}">
+                <span class="fieldlabel">{{ form.password.label_tag }}</span>{{ form.password }}
+            </div>
+            {% if form.warn %}
+                <div class="field group">
+                    {{ form.warn }}<span class="label">{{ form.warn.label_tag }}</span>
+                </div>
+            {% endif %}
+        </fieldset>
+        <fieldset class="actions">
+            <input class="button box" type="submit" name="submit_login" value="{% trans "Login" %}" />
+        </fieldset>
+    </form>
+{% endblock content %}

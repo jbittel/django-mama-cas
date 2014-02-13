@@ -1,0 +1,66 @@
+{% load i18n %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    {% block meta_tags %}
+        <meta charset="utf-8" />
+        <meta name="robots" content="noindex,nofollow" />
+    {% endblock meta_tags %}
+    <title>
+        {% block title %}{% trans "Central Authentication Service" %}{% endblock title %}
+    </title>
+    {% block styles %}
+        <style type="text/css">
+            html,body { background:#eee; color:#777; font:10px arial,sans-serif; margin:0; padding:0 }
+            h1 { color:#777; font-size:2.4em; padding-bottom:15px; text-align:center; font-weight:400; margin:0 }
+            fieldset { border:0 none; margin:10px 0 0; padding:0 }
+            label { display:block; font-size:1.6em; cursor:pointer; margin:5px }
+            span.label label { display:inline; font-size:1.1em; color:#777 }
+            span.button { display:block; margin:10px auto 0; text-align:center; line-height:40px }
+            h1,label,.actions input { text-shadow:0 1px 0 #f9f9f9 }
+            textarea,input { outline:none }
+            a:link, a:visited { text-decoration:none; color:#777 }
+            a:hover { color:#39f }
+            #header { height:160px }
+            #content { background-color:rgba(255,255,255,0.85); border:1px solid #dcdcdc; width:325px; margin:0 auto; padding:20px 30px 40px }
+            #footer { width:325px; margin:0 auto 200px }
+            .inputs input { border:0 none; color:#666; font-size:1.6em; width:65%; padding:10px 0 0 10px }
+            .actions { text-align:center }
+            .box { border:1px solid #ddd; border-radius:3px; -webkit-box-shadow:0 5px 5px -7px rgba(51,153,255,.7); -moz-box-shadow:0 5px 5px -7px rgba(51,153,255,.7); box-shadow:0 5px 5px -7px rgba(51,153,255,.7) }
+            .field,.button { background-color:#fff; height:40px; overflow:hidden; color:#39f; margin-top:10px }
+            .button { background-color:#eee; width:37%; cursor:pointer; font-size:1.4em; margin:0 }
+            .button:hover { background-color:rgba(0,0,0,.09) }
+            .button:active { -webkit-box-shadow:0 1px 4px 0 rgba(51,153,255,.3) inset; -moz-box-shadow:0 1px 4px 0 rgba(51,153,255,.3) inset; box-shadow:0 1px 4px 0 rgba(51,153,255,.3) inset }
+            .fieldlabel { background-color:#eee; border-right:1px solid #ddd; float:left; width:9em; cursor:pointer; height:30px; padding:5px }
+            .label { font-size:1.2em }
+            .messagelist,.errorlist { background-color:#f8fff0; border:1px solid #be7; color:#234600; font-size:1.2em; margin:0 auto }
+            .messagelist li,.errorlist li { margin-left:-10px; padding:2px 0 }
+            .messagelist a:link,.messagelist a:visited { color:#234600; text-decoration:underline }
+            .errorlist { background-color:#fbe3e4; color:#8a1f11; border-color:#fbc2c4 }
+            .errorfield { border-color:#8a1f11 }
+            .group:before,.group:after { content:""; display:table }
+            .group:after { clear:both }
+            .group { zoom:1 }
+            .logout { margin-top:12px; float:right }
+            .logout a:link,.logout a:visited { font-size:1.2em; color:#777 }
+        </style>
+    {% endblock styles %}
+    {% block javascript %}{% endblock javascript %}
+    {% block extra_head %}{% endblock extra_head %}
+</head>
+<body>
+    <div id="header">
+        {% block header %}{% endblock header %}
+    </div>
+    <div id="content" class="box">
+        <h1>
+            {% block content_title %}{% trans "Central Authentication Service" %}{% endblock content_title %}
+        </h1>
+        {% block content %}{% endblock content %}
+    </div>
+    <div id="footer">
+        {% block footer %}{% endblock footer %}
+    </div>
+</body>
+</html>

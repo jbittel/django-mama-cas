@@ -1,0 +1,12 @@
+{% extends "mama_cas/__base.html" %}
+{% load i18n %}
+{% load url from future %}
+
+{% block content %}
+    {% include "mama_cas/_messages.html" %}
+
+    <a href="{{ service }}"><span class="button box">{% trans "Yes, continue" %}</span></a>
+    <div class="logout">
+        <a href="{% url 'cas_logout' %}">{% trans "No, log me out" %}</a>
+    </div>
+{% endblock content %}
