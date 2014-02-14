@@ -165,6 +165,9 @@ class WarnView(NeverCacheMixin, LoginRequiredMixin, TemplateView):
         kwargs['service'] = add_query_params(service, {'ticket': ticket})
         return super(WarnView, self).get(request, *args, **kwargs)
 
+    def get_context_data(self, **kwargs):
+        return kwargs
+
 
 class LogoutView(NeverCacheMixin, LogoutUserMixin, View):
     """
