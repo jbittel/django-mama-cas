@@ -40,8 +40,24 @@ Upgrade with `pip`_::
 Before upgrading, see the `changelog`_ for any backward incompatible
 changes or other important upgrade notes.
 
+Contributing
+------------
+
+Contributions are welcome! The preferred process for changes is by submitting
+GitHub pull requests. New code should follow both `PEP8`_ and the `Django
+coding style`_, generally respecting the style of the surrounding code. When
+appropriate, pull requests should include added or updated tests, as well as
+any necessary documentation changes.
+
+Development dependencies can be installed from ``requirements.txt``. Execute
+the test suite with::
+
+   py.test mama_cas/tests/ --cov=mama_cas --cov-report=html
+
 .. _Central Authentication Service (CAS): http://www.jasig.org/cas
 .. _github.com/jbittel/django-mama-cas: https://github.com/jbittel/django-mama-cas
 .. _django-mama-cas.readthedocs.org: http://django-mama-cas.readthedocs.org/
 .. _pip: http://www.pip-installer.org/
 .. _changelog: http://django-mama-cas.readthedocs.org/en/latest/changelog.html
+.. _PEP8: http://www.python.org/dev/peps/pep-0008
+.. _Django coding style: https://docs.djangoproject.com/en/dev/internals/contributing/writing-code/coding-style
