@@ -32,6 +32,12 @@ class UserFactory(factory.django.DjangoModelFactory):
         return user
 
 
+class InactiveUserFactory(UserFactory):
+    first_name = 'Denny'
+    last_name = 'Doherty'
+    is_active = False
+
+
 class TicketFactory(factory.django.DjangoModelFactory):
     FACTORY_FOR = Ticket
     ABSTRACT_FACTORY = True

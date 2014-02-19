@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.test.utils import override_settings
 
+from .factories import InactiveUserFactory
 from .factories import UserFactory
 from mama_cas.forms import LoginForm
 from mama_cas.forms import LoginFormEmail
@@ -20,8 +21,7 @@ class LoginFormTests(TestCase):
         """
         When provided with correct data, the form should validate.
         """
-        form = LoginForm(data={'username': 'ellen',
-                               'password': 'mamas&papas'})
+        form = LoginForm(data={'username': 'ellen', 'password': 'mamas&papas'})
         self.assertTrue(form.is_valid())
 
     def test_login_form_invalid(self):
@@ -29,12 +29,10 @@ class LoginFormTests(TestCase):
         When provided with incorrect username or password the form
         should not validate.
         """
-        form = LoginForm(data={'username': 'denny',
-                               'password': 'mamas&papas'})
+        form = LoginForm(data={'username': 'denny', 'password': 'mamas&papas'})
         self.assertFalse(form.is_valid())
 
-        form = LoginForm(data={'username': 'ellen',
-                               'password': 'journeymen'})
+        form = LoginForm(data={'username': 'ellen', 'password': 'journeymen'})
         self.assertFalse(form.is_valid())
 
     @override_settings(AUTHENTICATION_BACKENDS=('mama_cas.tests.backends.ExceptionBackend',))
@@ -43,8 +41,7 @@ class LoginFormTests(TestCase):
         If an authentication backend raises an exception, the
         exception should be handled and the form should be invalid.
         """
-        form = LoginForm(data={'username': 'ellen',
-                               'password': 'mamas&papas'})
+        form = LoginForm(data={'username': 'ellen', 'password': 'mamas&papas'})
         self.assertFalse(form.is_valid())
 
     def test_login_form_inactive(self):
@@ -52,10 +49,8 @@ class LoginFormTests(TestCase):
         When provided with an inactive user, the form should not
         validate.
         """
-        self.user.is_active = False
-        self.user.save()
-        form = LoginForm(data={'username': 'ellen',
-                               'password': 'mamas&papas'})
+        user = InactiveUserFactory()
+        form = LoginForm(data={'username': 'denny', 'password': 'mamas&papas'})
         self.assertFalse(form.is_valid())
 
     @override_settings(MAMA_CAS_ALLOW_AUTH_WARN=True)
@@ -63,8 +58,7 @@ class LoginFormTests(TestCase):
         """
         The form should contain an additional ``warn`` field.
         """
-        form = LoginForm(data={'username': 'ellen',
-                               'password': 'mamas&papas'})
+        form = LoginForm(data={'username': 'ellen', 'password': 'mamas&papas'})
         self.assertTrue('warn' in form.fields)
 
     def test_login_form_email(self):
