@@ -24,6 +24,14 @@ class LoginFormTests(TestCase):
         form = LoginForm(data={'username': 'ellen', 'password': 'mamas&papas'})
         self.assertTrue(form.is_valid())
 
+    def test_login_form_empty(self):
+        """
+        When no username or password is provided, the form should
+        not validate.
+        """
+        form = LoginForm(data={'username': '', 'password': ''})
+        self.assertFalse(form.is_valid())
+
     def test_login_form_invalid(self):
         """
         When provided with incorrect username or password the form
