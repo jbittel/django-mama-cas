@@ -23,6 +23,7 @@ from mama_cas.exceptions import InvalidTicket
 from mama_cas.exceptions import InvalidService
 from mama_cas.exceptions import InternalError
 from mama_cas.exceptions import BadPgt
+from mama_cas.response import SingleSignOutRequest
 from mama_cas.utils import add_query_params
 from mama_cas.utils import is_scheme_https
 from mama_cas.utils import clean_service_url
@@ -212,6 +213,26 @@ class ServiceTicket(Ticket):
         if self.primary:
             return True
         return False
+
+    def request_sign_out(self):
+        """
+        Send a POST request to the ``ServiceTicket``s service URL to
+        request sign-out. The remote session is identified by the
+        service ticket string that instantiated the session. Clients
+        that do not support single sign-out will notice these spurious
+        requests in their logs.
+        """
+        data = SingleSignOutRequest(context={'ticket': self})
+        headers = {'content-type': data.content_type}
+        try:
+            resp = requests.post(self.service, data=data.render_content(),
+                                 headers=headers)
+            resp.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            logger.warning("Single sign-out request to %s returned %s" %
+                           (self.service, e))
+        else:
+            logger.debug("Single sign-out request sent to %s" % self.service)
 
 
 class ProxyTicket(Ticket):

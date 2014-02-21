@@ -294,6 +294,36 @@ class ServiceTicketTests(TestCase):
         st = ServiceTicketFactory()
         self.assertFalse(st.is_primary())
 
+    def test_request_sign_out(self):
+        """
+        A successful sign-out request to a service should not
+        cause any side-effects.
+        """
+        st = ServiceTicketFactory()
+        with patch('requests.post') as mock:
+            mock.return_value.status_code = 200
+            st.request_sign_out()
+
+    def test_request_sign_out_exception(self):
+        """
+        If a sign-out request to a service raises an exception,
+        it should be handled.
+        """
+        st = ServiceTicketFactory()
+        with patch('requests.post') as mock:
+            mock.side_effect = requests.exceptions.RequestException
+            st.request_sign_out()
+
+    def test_request_sign_out_invalid_status(self):
+        """
+        If a sign-out request to a service returns an invalid
+        status code, the resulting exception should be handled.
+        """
+        st = ServiceTicketFactory()
+        with patch('requests.post') as mock:
+            mock.return_value.status_code = 500
+            st.request_sign_out()
+
 
 class ProxyTicketTests(TestCase):
     """
