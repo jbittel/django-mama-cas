@@ -57,7 +57,7 @@ class LoginFormTests(TestCase):
         When provided with an inactive user, the form should not
         validate.
         """
-        user = InactiveUserFactory()
+        InactiveUserFactory()
         form = LoginForm(data={'username': 'denny', 'password': 'mamas&papas'})
         self.assertFalse(form.is_valid())
 
