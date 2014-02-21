@@ -7,10 +7,7 @@ from django.test import TestCase
 from django.test.utils import override_settings
 from django.utils.timezone import now
 
-from requests.exceptions import ConnectionError
-from requests.exceptions import SSLError
-from requests.exceptions import Timeout
-from requests.exceptions import HTTPError
+import requests
 
 from .factories import ConsumedProxyGrantingTicketFactory
 from .factories import ConsumedServiceTicketFactory
@@ -380,7 +377,7 @@ class ProxyGrantingTicketManager(TestCase):
         prefix = ProxyGrantingTicket.objects.model.IOU_PREFIX
         pgtiou = ProxyGrantingTicket.objects.create_ticket_str(prefix=prefix)
         with patch('requests.get') as mock:
-            mock.side_effect = SSLError
+            mock.side_effect = requests.exceptions.SSLError
             with self.assertRaises(InternalError):
                 ProxyGrantingTicket.objects.validate_callback(self.pgturl,
                                                               pgtid, pgtiou)
@@ -394,7 +391,7 @@ class ProxyGrantingTicketManager(TestCase):
         prefix = ProxyGrantingTicket.objects.model.IOU_PREFIX
         pgtiou = ProxyGrantingTicket.objects.create_ticket_str(prefix=prefix)
         with patch('requests.get') as mock:
-            mock.side_effect = ConnectionError
+            mock.side_effect = requests.exceptions.ConnectionError
             with self.assertRaises(InternalError):
                 ProxyGrantingTicket.objects.validate_callback(self.pgturl,
                                                               pgtid, pgtiou)
@@ -408,7 +405,7 @@ class ProxyGrantingTicketManager(TestCase):
         prefix = ProxyGrantingTicket.objects.model.IOU_PREFIX
         pgtiou = ProxyGrantingTicket.objects.create_ticket_str(prefix=prefix)
         with patch('requests.get') as mock:
-            mock.side_effect = Timeout
+            mock.side_effect = requests.exceptions.Timeout
             with self.assertRaises(InternalError):
                 ProxyGrantingTicket.objects.validate_callback(self.pgturl,
                                                               pgtid, pgtiou)
@@ -422,7 +419,7 @@ class ProxyGrantingTicketManager(TestCase):
         prefix = ProxyGrantingTicket.objects.model.IOU_PREFIX
         pgtiou = ProxyGrantingTicket.objects.create_ticket_str(prefix=prefix)
         with patch('requests.get') as mock:
-            mock.return_value.raise_for_status.side_effect = HTTPError
+            mock.return_value.raise_for_status.side_effect = requests.exceptions.HTTPError
             with self.assertRaises(InternalError):
                 ProxyGrantingTicket.objects.validate_callback(self.pgturl,
                                                               pgtid, pgtiou)
