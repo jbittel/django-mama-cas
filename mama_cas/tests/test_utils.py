@@ -37,12 +37,12 @@ class UtilsTests(TestCase):
     def test_clean_service_url(self):
         """
         When called with a URL, ``clean_service_url()`` should return
-        the ``scheme`` and ``netloc`` components of the original URL.
+        the ``scheme``, ``netloc`` and ``path`` components of the URL.
         """
-        self.assertEqual('http://www.example.com:8080',
-                         clean_service_url('http://www.example.com:8080/test?test3=blue#green'))
-        self.assertEqual('https://www.example.com',
-                         clean_service_url('https://www.example.com/'))
+        url = 'http://www.example.com/test?test3=blue#green'
+        self.assertEqual('http://www.example.com/test', clean_service_url(url))
+        url = 'https://example.com:9443/'
+        self.assertEqual('https://example.com:9443/', clean_service_url(url))
 
     @override_settings(MAMA_CAS_VALID_SERVICES=('http://.*\.example\.com',))
     def test_is_valid_service_url(self):

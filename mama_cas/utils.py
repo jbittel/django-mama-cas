@@ -40,11 +40,11 @@ def is_scheme_https(url):
 
 def clean_service_url(url):
     """
-    Return only the scheme, hostname and (optional) port components
-    of the parameter URL.
+    Return only the scheme, hostname (with optional port) and path
+    components of the parameter URL.
     """
     parts = urlparse(url)
-    return urlunparse((parts.scheme, parts.netloc, '', '', '', ''))
+    return urlunparse((parts.scheme, parts.netloc, parts.path, '', '', ''))
 
 
 def is_valid_service_url(url):

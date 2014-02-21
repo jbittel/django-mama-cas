@@ -61,9 +61,9 @@ class TicketManagerTests(TestCase):
         """
         If a service is provided, it should be cleaned.
         """
-        service = 'http://www.example.com/test'
+        service = 'http://www.example.com/test?test3=blue#green'
         st = ServiceTicket.objects.create_ticket(service=service, user=self.user)
-        self.assertEqual(st.service, 'http://www.example.com')
+        self.assertEqual(st.service, 'http://www.example.com/test')
 
     def test_create_ticket_no_expires(self):
         """
