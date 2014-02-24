@@ -213,18 +213,23 @@ class LogoutUserMixin(object):
     def logout_user(self, request):
         """
         End a single sign-on session for the current user. This process
-        occurs in two steps:
+        occurs in three steps:
 
         1. Consume all valid tickets created for the user.
 
-        2. Call logout() to end the session and purge all session data.
+        2. (Optional) Send single sign-out requests to services.
+
+        3. Call logout() to end the session and purge all session data.
         """
         if request.user.is_authenticated():
             ServiceTicket.objects.consume_tickets(request.user)
             ProxyTicket.objects.consume_tickets(request.user)
             ProxyGrantingTicket.objects.consume_tickets(request.user)
 
+            if getattr(settings, 'MAMA_CAS_ENABLE_SINGLE_SIGN_OUT', False):
+                ServiceTicket.objects.request_sign_out(request.user)
+
             logger.info("Single sign-on session ended for %s" % request.user)
             logout(request)
-            messages.success(request,
-                             _("You have been successfully logged out"))
+            msg = _("You have been successfully logged out")
+            messages.success(request, msg)
