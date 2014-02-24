@@ -189,6 +189,17 @@ class Ticket(models.Model):
         return self.expires <= now()
 
 
+class ServiceTicketManager(TicketManager):
+    def request_sign_out(self, user):
+        """
+        Send a single sign-out request to each service accessed by a
+        specified user. This is called at logout when single sign-out
+        is enabled.
+        """
+        for ticket in self.filter(user=user, consumed__gte=user.last_login):
+            ticket.request_sign_out()
+
+
 class ServiceTicket(Ticket):
     """
     (3.1) A ``ServiceTicket`` is used by the client as a credential to
@@ -199,6 +210,8 @@ class ServiceTicket(Ticket):
 
     service = models.CharField(_('service'), max_length=255)
     primary = models.BooleanField(_('primary'), default=False)
+
+    objects = ServiceTicketManager()
 
     class Meta:
         verbose_name = _('service ticket')
