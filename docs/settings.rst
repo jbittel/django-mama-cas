@@ -116,8 +116,16 @@ required and have sane defaults, but can be used to customize the behavior.
 
    :default: ``False``
 
-   If set, allows the user to control transparency of the single sign-
-   on process. When enabled, an additional checkbox will be displayed
-   on the login form.
+   If set, allows the user to control transparency of the single sign-on
+   process. When enabled, an additional checkbox will be displayed on the
+   login form.
+
+.. attribute:: MAMA_CAS_ENABLE_SINGLE_SIGN_OUT
+
+   :default: ``False``
+
+   If set, causes single sign-out requests to be sent to all active services
+   when a user logs out. It is up to each service to handle these requests
+   and terminate the session appropriately.
 
 .. _phpCAS: https://wiki.jasig.org/display/CASC/phpCAS
