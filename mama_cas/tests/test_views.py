@@ -15,6 +15,7 @@ from .factories import UserFactory
 from .factories import ProxyGrantingTicketFactory
 from .factories import ProxyTicketFactory
 from .factories import ServiceTicketFactory
+from .factories import ConsumedServiceTicketFactory
 from mama_cas.forms import LoginForm
 from mama_cas.models import ServiceTicket
 
@@ -264,6 +265,21 @@ class LogoutViewTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response['Location'], 'http://www.example.com')
         self.assertFalse('_auth_user_id' in self.client.session)
+
+    @override_settings(MAMA_CAS_ENABLE_SINGLE_SIGN_OUT=True)
+    def test_logout_single_sign_out(self):
+        """
+        When called with a logged in user and MAMA_CAS_ENABLE_SINGLE_SIGN_OUT
+        is set to ``True``, a ``GET`` request to the view should issue
+        a POST request for each service accessed by the user.
+        """
+        ConsumedServiceTicketFactory()
+        ConsumedServiceTicketFactory()
+        self.client.post(reverse('cas_login'), self.user_info)
+        query_str = '?url=http://www.example.com'
+        with patch('requests.post') as mock:
+            self.client.get(reverse('cas_logout') + query_str)
+            self.assertEqual(mock.call_count, 2)
 
 
 @override_settings(MAMA_CAS_VALID_SERVICES=('.*\.example\.com',))

@@ -266,6 +266,28 @@ class TicketTests(TestCase):
         self.assertFalse(st.is_expired())
 
 
+@override_settings(MAMA_CAS_ENABLE_SINGLE_SIGN_OUT=True)
+class ServiceTicketManagerTests(TestCase):
+    """
+    Test the ``ServiceTicketManager`` model manager.
+    """
+    def setUp(self):
+        self.user = UserFactory()
+
+    def test_request_sign_out(self):
+        """
+        Calling the ``request_sign_out()`` manager method should
+        issue a POST request for each consumed ticket for the
+        provided user.
+        """
+        ConsumedServiceTicketFactory()
+        ConsumedServiceTicketFactory()
+        with patch('requests.post') as mock:
+            mock.return_value.status_code = 200
+            ServiceTicket.objects.request_sign_out(self.user)
+            self.assertEqual(mock.call_count, 2)
+
+
 class ServiceTicketTests(TestCase):
     """
     Test the ``ServiceTicket`` model.

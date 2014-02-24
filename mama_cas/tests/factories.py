@@ -61,7 +61,7 @@ class ExpiredServiceTicketFactory(ServiceTicketFactory):
 
 
 class ConsumedServiceTicketFactory(ServiceTicketFactory):
-    consumed = now()
+    consumed = now() + timedelta(seconds=30)
 
 
 class ProxyGrantingTicketFactory(TicketFactory):
