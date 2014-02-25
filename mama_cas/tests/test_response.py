@@ -1,12 +1,5 @@
 from __future__ import unicode_literals
 
-import re
-
-try:
-    import xml.etree.cElementTree as etree
-except ImportError:  # pragma: no cover
-    import xml.etree.ElementTree as etree
-
 from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase
 from django.test.utils import override_settings
@@ -14,22 +7,10 @@ from django.test.utils import override_settings
 from .factories import ProxyGrantingTicketFactory
 from .factories import ProxyTicketFactory
 from .factories import ServiceTicketFactory
+from .utils import parse
 from mama_cas.exceptions import InvalidTicket
 from mama_cas.response import ValidationResponse
 from mama_cas.response import ProxyResponse
-from mama_cas.response import SingleSignOutRequest
-
-
-def parse(s):
-    """
-    Parse an XML tree from the given string, removing all
-    of the included namespace strings.
-    """
-    ns = re.compile(r'^{.*?}')
-    et = etree.fromstring(s)
-    for elem in et.getiterator():
-        elem.tag = ns.sub('', elem.tag)
-    return et
 
 
 class ValidationResponseTests(TestCase):
@@ -224,24 +205,3 @@ class ProxyResponseTests(TestCase):
         self.assertIsNotNone(failure)
         self.assertEqual(failure.get('code'), 'INVALID_TICKET')
         self.assertEqual(failure.text, 'Testing Error')
-
-
-class SingleSignOutRequests(TestCase):
-    """
-    """
-    def setUp(self):
-        self.st = ServiceTicketFactory()
-
-    def test_sso_request_content_type(self):
-        """
-        """
-        req = SingleSignOutRequest(context={})
-        self.assertEqual(req.content_type, 'text/xml')
-
-    def test_sso_request(self):
-        """
-        """
-        content = SingleSignOutRequest(context={'ticket': self.st}).render_content()
-        session_index = parse(content).find('./SessionIndex')
-        self.assertIsNotNone(session_index)
-        self.assertEqual(session_index.text, self.st.ticket)

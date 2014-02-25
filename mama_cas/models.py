@@ -23,7 +23,7 @@ from mama_cas.exceptions import InvalidTicket
 from mama_cas.exceptions import InvalidService
 from mama_cas.exceptions import InternalError
 from mama_cas.exceptions import BadPgt
-from mama_cas.response import SingleSignOutRequest
+from mama_cas.request import SingleSignOutRequest
 from mama_cas.utils import add_query_params
 from mama_cas.utils import is_scheme_https
 from mama_cas.utils import clean_service_url

@@ -1,7 +1,8 @@
 from django.conf import settings
 
 
-__all__ = ['user_model', 'SiteProfileNotAvailable']
+__all__ = ['user_model', 'SiteProfileNotAvailable', 'etree',
+           'register_namespace']
 
 
 # Django >= 1.5 uses AUTH_USER_MODEL to specify the currently active
@@ -23,3 +24,31 @@ try:
 except ImportError:  # pragma: no cover
     class SiteProfileNotAvailable(Exception):
         pass
+
+
+# Prefer cElementTree for performance, but fall back to the Python
+# implementation in case C extentions are not available.
+try:
+    import xml.etree.cElementTree as etree
+except ImportError:  # pragma: no cover
+    import xml.etree.ElementTree as etree
+
+
+# Provide access to the register_namespace() function. This function
+# is not available in Python 2.6, and must be handled differently
+# based on ElementTree or cElementTree being in use.
+#
+# This is not needed when support for Python 2.6 is dropped
+try:
+    register_namespace = etree.register_namespace
+except AttributeError:  # pragma: no cover
+    # ElementTree 1.2 (Python 2.6) does not have register_namespace()
+    def register_namespace(prefix, uri):
+        try:
+            etree._namespace_map[uri] = prefix
+        except AttributeError:
+            # cElementTree 1.0.6 (Python 2.6) does not have
+            # register_namespace() or _namespace_map, but
+            # uses ElementTree for serialization
+            import xml.etree.ElementTree as ET
+            ET._namespace_map[uri] = prefix
