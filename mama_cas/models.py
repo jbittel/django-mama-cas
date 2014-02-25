@@ -235,11 +235,10 @@ class ServiceTicket(Ticket):
         that do not support single sign-out will notice these spurious
         requests in their logs.
         """
-        data = SingleSignOutRequest(context={'ticket': self})
-        headers = {'content-type': data.content_type}
+        request = SingleSignOutRequest(context={'ticket': self})
         try:
-            resp = requests.post(self.service, data=data.render_content(),
-                                 headers=headers)
+            resp = requests.post(self.service, data=request.render_content(),
+                                 headers=request.headers())
             resp.raise_for_status()
         except requests.exceptions.RequestException as e:
             logger.warning("Single sign-out request to %s returned %s" %

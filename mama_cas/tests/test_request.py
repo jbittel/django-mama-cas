@@ -16,11 +16,12 @@ class SingleSignOutRequestTests(TestCase):
 
     def test_sso_request_content_type(self):
         """
-        A ``SingleSignOutRequest`` should contain the appropriate
-        content type.
+        A ``SingleSignOutRequest`` should return headers containing
+        the appropriate content type.
         """
-        req = SingleSignOutRequest(context={})
-        self.assertEqual(req.content_type, 'text/xml')
+        headers = SingleSignOutRequest(context={}).headers()
+        self.assertIn('content-type', headers)
+        self.assertEqual(headers['content-type'], 'text/xml')
 
     def test_sso_request(self):
         """

@@ -25,6 +25,9 @@ class CasRequestBase(object):
         """
         return etree.QName(self.prefixes[prefix], tag)
 
+    def headers(self):
+        return {'content-type': self.content_type}
+
 
 class SingleSignOutRequest(CasRequestBase):
     """
