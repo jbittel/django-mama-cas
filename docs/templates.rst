@@ -14,17 +14,17 @@ them or replace them entirely.
 
 **mama_cas/login.html**
 
-   This template displays the authentication form whenever ``LoginView``.
+   This template displays the authentication form whenever ``LoginView``
    requires user credentials. It also provides authentication success or
    failure information. When the user logs out, by default they are redirected
-   to this template, with a logout success message.
+   to this template with a logout success message.
 
 **mama_cas/warn.html**
 
    This template is used by ``LoginView`` when ``MAMA_CAS_ALLOW_AUTH_WARN``
    is enabled and the user has elected to be notified when authentication
-   occurs. It displays options allowing the user to continue the
-   authentication process or cancel and log out.
+   occurs. It provides options for the user to continue the authentication
+   process or cancel and log out.
 
 Modifying
 ---------
@@ -39,14 +39,15 @@ should look something like this::
        'django.template.loaders.app_directories.Loader',
    )
 
-The top-level stock templates are wrappers to make modifications simple. For
-example, the stock template ``mama_cas/login.html`` has a corresponding
-``mama_cas/__login.html``. This makes it simple to extend the stock templates
-without circular template inheritance issues. To add a header above the login
-form with additional styling, create a ``login.html`` file that extends
-``mama_cas/__login.html``::
+The base level stock templates are wrappers to simplify extending the stock
+templates without circular template inheritance issues. The base template
+``mama_cas/login.html`` has a corresponding ``mama_cas/__login.html`` and
+``mama_cas/warn.html`` has a corresponding ``mama_cas/__warn.html``. Using
+this structure, to add a header above the login form with additional styling
+create a file named ``mama_cas/login.html`` in one of the ``TEMPLATE_DIRS``
+that extends ``mama_cas/__login.html``::
 
-   {% extends "mama_cas/_login.html" %}
+   {% extends "mama_cas/__login.html" %}
 
    {% block styles %}
        {{ block.super }}
