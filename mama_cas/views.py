@@ -4,7 +4,6 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login
 from django.http import HttpResponse
-from django.utils.http import urlquote_plus
 from django.utils.translation import ugettext as _
 from django.views.generic import FormView
 from django.views.generic import TemplateView
@@ -134,18 +133,13 @@ class LoginView(NeverCacheMixin, LogoutUserMixin, FormView):
         if form.cleaned_data.get('warn'):
             self.request.session['warn'] = True
 
-        service = form.cleaned_data.get('service')
+        service = self.request.GET.get('service')
         if service:
             st = ServiceTicket.objects.create_ticket(service=service,
                                                      user=self.request.user,
                                                      primary=True)
             return redirect(service, params={'ticket': st.ticket})
         return redirect('cas_login')
-
-    def get_initial(self):
-        service = self.request.GET.get('service')
-        if service:
-            return {'service': urlquote_plus(service)}
 
 
 class WarnView(NeverCacheMixin, LoginRequiredMixin, TemplateView):

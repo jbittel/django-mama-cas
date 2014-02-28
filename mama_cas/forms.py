@@ -3,7 +3,6 @@ import logging
 from django import forms
 from django.conf import settings
 from django.contrib.auth import authenticate
-from django.utils.http import urlunquote_plus
 from django.utils.translation import ugettext_lazy as _
 
 
@@ -20,7 +19,6 @@ class LoginForm(forms.Form):
     password = forms.CharField(label=_("Password"), widget=forms.PasswordInput,
                                error_messages={'required':
                                                _("Please enter your password")})
-    service = forms.CharField(widget=forms.HiddenInput, required=False)
 
     def __init__(self, *args, **kwargs):
         super(LoginForm, self).__init__(*args, **kwargs)
@@ -29,13 +27,6 @@ class LoginForm(forms.Form):
                     widget=forms.CheckboxInput(),
                     label=_("Warn before automatic login to other services"),
                     required=False)
-
-    def clean_service(self):
-        """
-        Remove any HTML percent encoding in the service URL.
-        """
-        service = self.cleaned_data.get('service')
-        return urlunquote_plus(service)
 
     def clean(self):
         """

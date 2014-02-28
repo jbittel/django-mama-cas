@@ -26,10 +26,6 @@ Authentication Forms
       The password of the client requesting authentication. This field is
       required.
 
-   ``service``
-      A hidden, optional field that contains the service the client is
-      requesting access to, if present.
-
    ``warn``
       A checkbox for configuring transparency of the single sign-on
       process. If checked, the user will be notified before being

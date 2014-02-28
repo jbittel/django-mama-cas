@@ -86,9 +86,8 @@ class LoginViewTests(TestCase):
         user, create a ``ServiceTicket`` and redirect to the supplied
         service URL with the ticket included.
         """
-        params = self.user_info.copy()
-        params.update({'service': self.service_url})
-        response = self.client.post(reverse('cas_login'), params)
+        url = reverse('cas_login') + "?service=%s" % self.service_url
+        response = self.client.post(url, self.user_info)
         self.assertEqual(self.client.session['_auth_user_id'], self.user.pk)
         self.assertEqual(ServiceTicket.objects.count(), 1)
         st = ServiceTicket.objects.latest('id')
