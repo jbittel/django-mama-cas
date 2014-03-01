@@ -34,15 +34,17 @@ Authentication Forms
 
    The form's ``clean()`` method attempts authentication against the
    configured authentication backends and verifies the user account is
-   active. If authentication fails, a ``FormValidation`` error is raised
+   active. If authentication fails, a ``FormValidation`` exception is raised
    with an appropriate error message.
 
-The following form classes inherit from ``LoginForm``, providing
-additional or alternate behavior during the login process.
+Additional Forms
+----------------
+
+The following form classes inherit from ``LoginForm``, providing additional
+or alternate behavior during the login process.
 
 .. class:: LoginFormEmail
 
-   A subclass of :class:`LoginForm` which adds no additional fields but
-   performs additional cleanup on the ``username`` field. If an email address
-   is provided for the username, it extracts only the username portion of the
-   string.
+   A subclass of :class:`LoginForm` which performs additional cleanup on the
+   ``username`` field. If an email address is provided for the username, only
+   the username portion of the string is used for authentication.
