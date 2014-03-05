@@ -52,6 +52,16 @@ class LoginFormTests(TestCase):
         form = LoginForm(data={'username': 'ellen', 'password': 'mamas&papas'})
         self.assertFalse(form.is_valid())
 
+    @override_settings(AUTHENTICATION_BACKENDS=('mama_cas.tests.backends.CaseInsensitiveBackend',))
+    def test_login_case_insensitive(self):
+        """
+        If a case-insensitive authentication backend is in use,
+        authentication should proceed as expected when the case differs.
+        """
+        UserFactory(first_name='John', last_name='Phillips')
+        form = LoginForm(data={'username': 'John', 'password': 'mamas&papas'})
+        self.assertTrue(form.is_valid())
+
     def test_login_form_inactive(self):
         """
         When provided with an inactive user, the form should not
