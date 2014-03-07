@@ -106,7 +106,7 @@ class ValidationResponse(CasResponseBase):
         </cas:attributes>
         """
         element = etree.Element(self.ns('attributes'))
-        for name, value in attributes:
+        for name, value in attributes.items():
             attr = etree.SubElement(element, self.ns(name))
             attr.text = value
         return [element]
@@ -120,7 +120,7 @@ class ValidationResponse(CasResponseBase):
         <cas:email>ellen@example.com</cas:email>
         """
         elements = []
-        for name, value in attributes:
+        for name, value in attributes.items():
             element = etree.Element(self.ns(name))
             element.text = value
             elements.append(element)
@@ -135,7 +135,7 @@ class ValidationResponse(CasResponseBase):
         <cas:attribute name='email' value='ellen@example.com' />
         """
         elements = []
-        for name, value in attributes:
+        for name, value in attributes.items():
             element = etree.Element(self.ns('attribute'))
             element.set('name', name)
             element.set('value', value)

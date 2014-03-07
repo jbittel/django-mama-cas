@@ -89,7 +89,7 @@ class ValidationResponseTests(TestCase):
         """
         attrs = {'givenName': 'Ellen', 'sn': 'Cohen', 'email': 'ellen@example.com'}
         resp = ValidationResponse(context={'ticket': self.st, 'error': None,
-                                           'attributes': attrs.items()},
+                                           'attributes': attrs},
                                   content_type='text/xml')
         attributes = parse(resp.content).find('./authenticationSuccess/attributes')
         self.assertIsNotNone(attributes)
@@ -111,7 +111,7 @@ class ValidationResponseTests(TestCase):
         """
         attrs = {'givenName': 'Ellen', 'sn': 'Cohen', 'email': 'ellen@example.com'}
         resp = ValidationResponse(context={'ticket': self.st, 'error': None,
-                                           'attributes': attrs.items()},
+                                           'attributes': attrs},
                                   content_type='text/xml')
         success = parse(resp.content).find('./authenticationSuccess')
         self.assertIsNotNone(success)
@@ -137,7 +137,7 @@ class ValidationResponseTests(TestCase):
         """
         attrs = {'givenName': 'Ellen', 'sn': 'Cohen', 'email': 'ellen@example.com'}
         resp = ValidationResponse(context={'ticket': self.st, 'error': None,
-                                           'attributes': attrs.items()},
+                                           'attributes': attrs},
                                   content_type='text/xml')
         success = parse(resp.content).find('./authenticationSuccess')
         self.assertIsNotNone(success)
@@ -160,7 +160,7 @@ class ValidationResponseTests(TestCase):
         attrs = {'givenName': 'Ellen', 'sn': 'Cohen', 'email': 'ellen@example.com'}
         with self.assertRaises(ImproperlyConfigured):
             ValidationResponse(context={'ticket': self.st, 'error': None,
-                                        'attributes': attrs.items()},
+                                        'attributes': attrs},
                                content_type='text/xml')
 
 

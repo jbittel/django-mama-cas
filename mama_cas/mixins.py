@@ -166,12 +166,12 @@ class CustomAttributesMixin(object):
         profile object. The attributes are defined with two settings:
 
         ``MAMA_CAS_USER_ATTRIBUTES``
-            A list of name and ``User`` attribute pairs. The name can
+            A dict of name and ``User`` attribute values. The name can
             be any meaningful string, while the attribute must
             correspond with an attribute on the ``User`` object.
 
         ``MAMA_CAS_PROFILE_ATTRIBUTES``
-            A list of name and user profile attribute pairs. The name
+            A dict of name and user profile attribute values. The name
             can be any meaningful string, while the attribute must
             correspond with an attribute on the user profile object.
 
@@ -181,12 +181,12 @@ class CustomAttributesMixin(object):
         if not ticket:
             return None
         user = ticket.user
-        attributes = []
+        attributes = {}
 
         user_attr_list = getattr(settings, 'MAMA_CAS_USER_ATTRIBUTES', {})
         for name, attr in user_attr_list.items():
             try:
-                attributes.append((name, getattr(user, attr)))
+                attributes[name] = getattr(user, attr)
             except AttributeError:
                 logger.error("User has no attribute named '%s'" % attr)
 
@@ -199,7 +199,7 @@ class CustomAttributesMixin(object):
                                         'MAMA_CAS_PROFILE_ATTRIBUTES', {})
             for name, attr in profile_attr_list.items():
                 try:
-                    attributes.append((name, getattr(profile, attr)))
+                    attributes[name] = getattr(profile, attr)
                 except AttributeError:
                     logger.error("Profile has no attribute named '%s'" % attr)
 
