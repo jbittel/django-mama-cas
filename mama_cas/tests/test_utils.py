@@ -1,4 +1,3 @@
-from django.core.urlresolvers import NoReverseMatch
 from django.test import TestCase
 from django.test.utils import override_settings
 
@@ -87,4 +86,5 @@ class UtilsTests(TestCase):
         A non-URL that does not match a view name should raise the
         appropriate exception.
         """
-        self.assertRaises(NoReverseMatch, redirect, 'example')
+        r = redirect('http')
+        self.assertEqual('/login', r['Location'])

@@ -76,7 +76,7 @@ def redirect(to, *args, **kwargs):
         to = urlresolvers.reverse(to, args=args, kwargs=kwargs)
     except urlresolvers.NoReverseMatch:
         if '/' not in to and '.' not in to:
-            raise
+            to = urlresolvers.reverse('cas_login')
 
     if params:
         to = add_query_params(to, params)
