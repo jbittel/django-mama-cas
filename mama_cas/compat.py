@@ -1,7 +1,7 @@
 from django.conf import settings
 
 
-__all__ = ['user_model', 'SiteProfileNotAvailable', 'etree',
+__all__ = ['user_model', 'get_username', 'SiteProfileNotAvailable', 'etree',
            'register_namespace']
 
 
@@ -11,6 +11,18 @@ __all__ = ['user_model', 'SiteProfileNotAvailable', 'etree',
 #
 # This is not needed when support for Django 1.4 is dropped.
 user_model = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
+
+
+# As custom user models can change the username field, Django >= 1.5
+# uses get_username() to access the username field. Previous versions
+# of Django do not have this method and access username directly.
+#
+# This is not needed when support for Django 1.4 is dropped.
+def get_username(user):
+    try:
+        return user.get_username()
+    except AttributeError:
+        return user.username
 
 
 # The SiteProfileNotAvailable exception is raised from get_profile()

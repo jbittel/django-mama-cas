@@ -9,6 +9,7 @@ from django.views.generic import FormView
 from django.views.generic import TemplateView
 from django.views.generic import View
 
+from .compat import get_username
 from mama_cas.forms import LoginForm
 from mama_cas.mixins import CasResponseMixin
 from mama_cas.mixins import CustomAttributesMixin
@@ -205,7 +206,7 @@ class ValidateView(NeverCacheMixin, ValidateTicketMixin, View):
     def get(self, request, *args, **kwargs):
         st, pgt, error = self.validate_service_ticket(request)
         if st:
-            content = "yes\n%s\n" % st.user.username
+            content = "yes\n%s\n" % get_username(st.user)
         else:
             content = "no\n\n"
         return HttpResponse(content=content, content_type='text/plain')

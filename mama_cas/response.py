@@ -3,6 +3,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpResponse
 
 from .compat import etree
+from .compat import get_username
 from .compat import register_namespace
 
 
@@ -65,7 +66,7 @@ class ValidationResponse(CasResponseBase):
         if ticket:
             auth_success = etree.SubElement(service_response, self.ns('authenticationSuccess'))
             user = etree.SubElement(auth_success, self.ns('user'))
-            user.text = ticket.user.username
+            user.text = get_username(ticket.user)
             if attributes:
                 for element in self.get_attribute_elements(attributes):
                     auth_success.append(element)
