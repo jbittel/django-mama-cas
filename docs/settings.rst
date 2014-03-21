@@ -128,4 +128,16 @@ required and have sane defaults, but can be used to customize the behavior.
    when a user logs out. It is up to each service to handle these requests
    and terminate the session appropriately.
 
+.. attribute:: MAMA_CAS_ATTRIBUTES_CALLBACK
+
+   :default: ``None``
+
+   A string representation of a callable that returns a dictionary of name
+   and attribute values to be returned along with a service or proxy
+   validation success. The callable is provided a single argument of the
+   ``User`` for which validation is occurring. For example::
+
+      def custom_attributes(user):
+          return {'givenName': user.first_name, 'email': user.email}
+
 .. _phpCAS: https://wiki.jasig.org/display/CASC/phpCAS

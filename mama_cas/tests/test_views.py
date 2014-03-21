@@ -486,6 +486,17 @@ class ServiceValidateViewTests(TestCase):
         response = self.client.get(reverse('cas_service_validate') + query_str)
         self.assertContains(response, 'INVALID_SERVICE')
 
+    @override_settings(MAMA_CAS_ATTRIBUTES_CALLBACK='mama_cas.tests.callback.test_callback')
+    def test_service_validate_view_attributes_callback(self):
+        """
+        When a custom callback is defined in the settings file, a service
+        validation success should include the attributes that callback
+        returns.
+        """
+        query_str = "?service=%s&ticket=%s" % (self.service_url, self.st.ticket)
+        response = self.client.get(reverse('cas_service_validate') + query_str)
+        self.assertContains(response, '<cas:username>ellen</cas:username>')
+
 
 @override_settings(MAMA_CAS_VALID_SERVICES=('.*\.example\.com',))
 @override_settings(MAMA_CAS_USER_ATTRIBUTES={'givenName': 'first_name',

@@ -1,14 +1,15 @@
 import logging
 
 from django.conf import settings
-from django.views.decorators.cache import never_cache
-from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
-from django.core.exceptions import ObjectDoesNotExist
-from django.contrib.auth import logout
 from django.contrib import messages
-from django.utils.translation import ugettext_lazy as _
+from django.contrib.auth import logout
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ObjectDoesNotExist
+from django.core.urlresolvers import get_callable
 from django.core.urlresolvers import reverse_lazy
+from django.utils.decorators import method_decorator
+from django.utils.translation import ugettext_lazy as _
+from django.views.decorators.cache import never_cache
 
 from mama_cas.compat import SiteProfileNotAvailable
 from mama_cas.models import ServiceTicket
@@ -162,8 +163,9 @@ class CustomAttributesMixin(object):
     """
     def get_custom_attributes(self, ticket):
         """
-        Build a list of user attributes from the ``User`` and/or user
-        profile object. The attributes are defined with two settings:
+        Build a list of user attributes from the ``User`` object, the
+        user profile object or a custom callback callable. Attributes
+        are specified with one or more settings:
 
         ``MAMA_CAS_USER_ATTRIBUTES``
             A dict of name and ``User`` attribute values. The name can
@@ -175,8 +177,12 @@ class CustomAttributesMixin(object):
             can be any meaningful string, while the attribute must
             correspond with an attribute on the user profile object.
 
-        One or both of the settings variables may be used, with all
-        items returned as a single list. Ordering is not guaranteed.
+        ``MAMA_CAS_ATTRIBUTES_CALLBACK``
+            A string representation of a custom callable that returns
+            a dict containing attributes. The callable is provided a
+            single argument of the ``User``.
+
+        All attributes are returned as a single dictionary.
         """
         if not ticket:
             return None
@@ -202,6 +208,11 @@ class CustomAttributesMixin(object):
                     attributes[name] = getattr(profile, attr)
                 except AttributeError:
                     logger.error("Profile has no attribute named '%s'" % attr)
+
+        callback_str = getattr(settings, 'MAMA_CAS_ATTRIBUTES_CALLBACK', None)
+        if callback_str is not None:
+            callback = get_callable(callback_str)
+            attributes.update(callback(user))
 
         return attributes
 
