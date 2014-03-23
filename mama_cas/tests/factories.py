@@ -1,10 +1,10 @@
 from datetime import timedelta
 
+from django.contrib.auth.models import User
 from django.utils.timezone import now
 
 import factory
 
-from mama_cas.compat import user_model
 from mama_cas.models import ProxyGrantingTicket
 from mama_cas.models import ProxyTicket
 from mama_cas.models import ServiceTicket
@@ -12,7 +12,7 @@ from mama_cas.models import Ticket
 
 
 class UserFactory(factory.django.DjangoModelFactory):
-    FACTORY_FOR = user_model
+    FACTORY_FOR = User
     FACTORY_DJANGO_GET_OR_CREATE = ('username',)
 
     first_name = 'Ellen'
