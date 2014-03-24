@@ -6,10 +6,11 @@ Installation
 Prerequisites
 -------------
 
-The primary prerequisite of django-mama-cas is `Django`_ itself. For
-django-mama-cas |version|, Django 1.4 or later is required. Earlier versions
-of Django may work, but are not tested or supported. See the `Django
-downloads`_ page for information on downloading and installing Django.
+The primary prerequisite of django-mama-cas is `Django`_ itself. Generally
+speaking, django-mama-cas supports all supported release versions of Django,
+including LTS releases. Other versions of Django may work, but are not tested
+or supported. See the `Django downloads`_ page for information on downloading
+and installing Django.
 
 If you're installing django-mama-cas manually, such as from the `GitHub`_
 repository, you'll need to install the Python `requests`_ library. Install
