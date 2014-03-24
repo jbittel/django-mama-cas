@@ -21,7 +21,7 @@ user_model = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 def get_username(user):
     try:
         return user.get_username()
-    except AttributeError:
+    except AttributeError:  # pragma: no cover
         return user.username
 
 
