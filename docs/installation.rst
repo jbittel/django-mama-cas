@@ -78,9 +78,9 @@ URIs (e.g. ``login/``, ``logout/``, ``validate/``, etc.). They are located in
    )
 
 This makes the CAS server available at the top level of your project's
-URL (e.g. ``http://example.com/login``). If you prefer to access it with a
-path component, add that to the regular expression. For example, to make the
-CAS server available as ``http://example.com/cas/login``, use this instead::
+URL (e.g. ``http://example.com/login``). To make the server available in a
+subdirectory, add the path to the regular expression. For example, to access
+the server at ``http://example.com/cas/login``::
 
    urlpatterns = patterns('',
        # ...existing urls...
@@ -91,7 +91,7 @@ Sessions
 ~~~~~~~~
 
 django-mama-cas relies on standard Django sessions to govern single sign-on
-sessions. There are two Django session settings that will likely need to be
+sessions. There are two Django session settings that typically ought to be
 changed from their defaults:
 
    `SESSION_COOKIE_AGE`_
