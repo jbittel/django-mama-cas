@@ -6,17 +6,14 @@ Installation
 Prerequisites
 -------------
 
-The primary prerequisite of django-mama-cas is `Django`_ itself. Generally
-speaking, django-mama-cas supports all supported release versions of Django,
-including LTS releases. Other versions of Django may work, but are not tested
-or supported. See the `Django downloads`_ page for information on downloading
-and installing Django.
+The primary prerequisite of MamaCAS is `Django`_ itself. Generally speaking,
+MamaCAS supports all supported release versions of Django, including LTS
+releases. Other versions of Django may work, but are not tested or supported.
+See the `Django downloads`_ page for information on downloading and installing
+Django.
 
-If you're installing django-mama-cas manually, such as from the `GitHub`_
-repository, you'll need to install the Python `requests`_ library. Install
-it with::
-
-   pip install requests
+If you're installing MamaCAS manually, such as from the `GitHub`_ repository,
+you'll need to install the Python `requests`_ library.
 
 Installing
 ----------
@@ -42,8 +39,8 @@ Or, download the `tarball`_::
 Configuring
 -----------
 
-First, add django-mama-cas to the ``INSTALLED_APPS`` setting within your
-project's ``settings.py`` (or equivalent) file::
+First, add MamaCAS to the ``INSTALLED_APPS`` setting within your project's
+``settings.py`` (or equivalent) file::
 
    INSTALLED_APPS = (
        # ...existing apps...
@@ -55,8 +52,8 @@ Once added, run ``manage.py syncdb`` to create the required database tables.
 URL paths
 ~~~~~~~~~
 
-django-mama-cas includes a Django URLconf that provides the required CAS
-URIs (e.g. ``login/``, ``logout/``, ``validate/``, etc.). They are located in
+MamaCAS includes a Django URLconf that provides the required CAS URIs (e.g.
+``login/``, ``logout/``, ``validate/``, etc.). They are located in
 ``mama_cas.urls`` and can be included directly in your project's root
 ``URLconf`` with the following::
 
@@ -78,9 +75,9 @@ the server at ``http://example.com/cas/login``::
 Sessions
 ~~~~~~~~
 
-django-mama-cas relies on standard Django sessions to govern single sign-on
-sessions. There are two Django session settings that typically ought to be
-changed from their defaults:
+MamaCAS relies on standard Django sessions to govern single sign-on sessions.
+There are two Django session settings that typically ought to be changed from
+their defaults:
 
    `SESSION_COOKIE_AGE`_
       It is recommended this be set shorter than the default of two weeks.
@@ -100,8 +97,8 @@ Authenticating
 --------------
 
 At least one `authentication backend`_ must be `installed and configured`_,
-depending on your authoritative authentication source. django-mama-cas does
-not perform authentication itself, but relies on the active authentication
+depending on your authoritative authentication source. MamaCAS does not
+perform authentication itself, but relies on the active authentication
 backends for that task. The process of configuring authentication backends
 will change depending on the individual backend.
 

@@ -3,14 +3,14 @@
 Templates
 =========
 
-django-mama-cas contains templates implementing standard username and password
+MamaCAS contains templates implementing standard username and password
 authentication. Depending on your needs, you can use them as-is, modify
 them or replace them entirely.
 
 .. note::
 
    Changes made directly to the included template files will be lost when
-   django-mama-cas is updated.
+   MamaCAS is updated.
 
 **mama_cas/login.html**
 

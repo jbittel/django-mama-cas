@@ -5,10 +5,10 @@
 Forms
 =====
 
-django-mama-cas includes a form class implementing standard username and
-password authentication. In most cases, this will be the form of
-authentication required. Trust authentication can be used with CAS, but the
-requirements will be highly implementation dependent.
+MamaCAS includes a form class implementing standard username and password
+authentication. In most cases, this will be the form of authentication
+required. Trust authentication can be used with CAS, but the requirements
+will be highly implementation dependent.
 
 Authentication Forms
 --------------------

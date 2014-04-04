@@ -5,9 +5,9 @@ Settings
 
 .. currentmodule:: django.conf.settings
 
-django-mama-cas may be configured using these settings. None are required and
-have sane defaults, but can customize behavior and improve security. Where
-noted, some of these settings alter stock CAS behavior.
+MamaCAS may be configured using these settings. None are required and have
+sane defaults, but can customize behavior and improve security. Where noted,
+some of these settings alter stock CAS behavior.
 
 .. attribute:: MAMA_CAS_ALLOW_AUTH_WARN
 

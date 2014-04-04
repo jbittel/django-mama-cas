@@ -1,9 +1,9 @@
-django-mama-cas
-===============
+MamaCAS
+=======
 
-django-mama-cas is a Django `Central Authentication Service (CAS)`_ single
-sign-on server. It implements the CAS 1.0 and 2.0 protocols, as well as some
-commonly used extensions to the specification.
+MamaCAS is a Django `Central Authentication Service (CAS)`_ single sign-on
+server. It implements the CAS 1.0 and 2.0 protocols, as well as some commonly
+used extensions to the specification.
 
 CAS is a single sign-on protocol that allows a user to access multiple
 applications after providing their credentials a single time. It utilizes
@@ -20,7 +20,7 @@ Quickstart
 
 Install with `pip`_::
 
-   pip install django-mama-cas
+   $ pip install django-mama-cas
 
 Add to ``INSTALLED_APPS``::
 
@@ -35,7 +35,7 @@ Upgrade
 
 Upgrade with `pip`_::
 
-   pip install django-mama-cas --upgrade
+   $ pip install django-mama-cas --upgrade
 
 Before upgrading, see the `changelog`_ for any backward incompatible
 changes or other important upgrade notes.
@@ -52,7 +52,7 @@ any necessary documentation changes.
 Development dependencies can be installed from ``requirements.txt``. Execute
 the test suite with::
 
-   py.test mama_cas/tests/ --cov=mama_cas --cov-report=html
+   $ py.test mama_cas/tests/ --cov=mama_cas --cov-report=html
 
 .. _Central Authentication Service (CAS): http://www.jasig.org/cas
 .. _github.com/jbittel/django-mama-cas: https://github.com/jbittel/django-mama-cas

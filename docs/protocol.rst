@@ -33,22 +33,22 @@ data within the response.
 Protocol Deviations
 -------------------
 
-In some areas django-mama-cas deviates from the official CAS specification to
+In some areas MamaCAS deviates from the official CAS specification to
 take advantage of built-in Django functionality. These changes do not alter
 the contract between the client, service and CAS server.
 
 **Login ticket (3.5)**
    This ticket string created for the login form is passed along with the
-   username and password to prevent the replaying of credentials.
-   django-mama-cas does not implement login tickets and instead relies on the
-   built-in CSRF protection for the login form.
+   username and password to prevent the replaying of credentials. MamaCAS
+   does not implement login tickets and instead relies on the built-in CSRF
+   protection for the login form.
 
 **Ticket-granting ticket (3.6)**
    This ticket string is stored on the server and keys to a ticket-granting
    cookie provided by the client to identify an existing single sign-on
-   session. django-mama-cas does not implement ticket-granting tickets, but
-   instead uses Django sessions to determine if a single sign-on session has
-   been established.
+   session. MamaCAS does not implement ticket-granting tickets, but instead
+   uses Django sessions to determine if a single sign-on session has been
+   established.
 
 **User attributes**
    User attributes can be included in a CAS 2.0 service or proxy validation

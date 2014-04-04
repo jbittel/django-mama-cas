@@ -3,7 +3,7 @@
 Changelog
 =========
 
-These are the notable changes for each django-mama-cas release. Backwards
+These are the notable changes for each MamaCAS release. Backwards
 incompatible changes or other upgrade issues are also described here. For
 additional detail, read the complete `commit history`_. From version 0.4.0
 and following, version numbers follow the `semantic versioning`_ scheme.
