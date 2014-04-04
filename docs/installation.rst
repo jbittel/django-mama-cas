@@ -21,35 +21,23 @@ it with::
 Installing
 ----------
 
-There are several different ways to install django-mama-cas, depending on your
-preferences and needs. In all cases, it is recommended to run the installation
-within a `virtualenv`_ for isolation from other system packages.
+Installing the latest release is easiest with `pip`_::
 
-Via pip
-~~~~~~~
+   $ pip install django-mama-cas
 
-The easiest way to install it is with `pip`_::
+To manually install the latest release, download it from `PyPI`_ and install
+with::
 
-   pip install django-mama-cas
+   $ python setup.py install
 
-Via a downloaded package
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-If you cannot access pip or prefer to install the package manually, download
-it from `PyPI`_. Extract the downloaded archive and install it with::
-
-   python setup.py install
-
-Via GitHub
-~~~~~~~~~~
-
-To stay current with the latest development, clone the active development
+If you need the latest development code, clone the active development
 repository on `GitHub`_::
 
-   git clone git://github.com/jbittel/django-mama-cas.git
+   $ git clone git://github.com/jbittel/django-mama-cas.git
 
-If you don't want a full git repository, download the latest code from GitHub
-as a `tarball`_.
+Or, download the `tarball`_::
+
+   $ curl -OL https://github.com/jbittel/django-mama-cas/tarball/master
 
 Configuring
 -----------
@@ -125,7 +113,6 @@ will change depending on the individual backend.
 .. _Django: http://www.djangoproject.com/
 .. _Django downloads: https://www.djangoproject.com/download/
 .. _requests: http://python-requests.org/
-.. _virtualenv: http://www.virtualenv.org/
 .. _pip: http://www.pip-installer.org/
 .. _PyPI: https://pypi.python.org/pypi/django-mama-cas/
 .. _GitHub: https://github.com/jbittel/django-mama-cas
