@@ -69,25 +69,6 @@ some of these settings alter stock CAS behavior.
       The default setting of ``False`` conforms to the CAS protocol
       specification.
 
-.. attribute:: MAMA_CAS_TICKET_EXPIRE
-
-   :default: ``90``
-
-   Controls the length of time, in seconds, between when a service or proxy
-   ticket is generated and when it expires. If the ticket is not validated
-   before this time has elapsed, it will become invalid. This does **not**
-   affect proxy-granting ticket expiration or the duration of a user's single
-   sign-on session.
-
-.. attribute:: MAMA_CAS_TICKET_RAND_LEN
-
-   :default: ``32``
-
-   Sets the number of random characters created as part of the ticket string.
-   It should be long enough that the ticket string cannot be brute forced
-   within a reasonable amount of time. Longer values are more secure, but
-   could cause compatibility problems with some clients.
-
 .. attribute:: MAMA_CAS_PROFILE_ATTRIBUTES
 
    :default: ``{}``
@@ -107,6 +88,25 @@ some of these settings alter stock CAS behavior.
       This setting is intended for use with Django 1.4. In Django 1.5 and
       later, the built-in mechanisms for accessing user profile data have
       been deprecated.
+
+.. attribute:: MAMA_CAS_TICKET_EXPIRE
+
+   :default: ``90``
+
+   Controls the length of time, in seconds, between when a service or proxy
+   ticket is generated and when it expires. If the ticket is not validated
+   before this time has elapsed, it will become invalid. This does **not**
+   affect proxy-granting ticket expiration or the duration of a user's single
+   sign-on session.
+
+.. attribute:: MAMA_CAS_TICKET_RAND_LEN
+
+   :default: ``32``
+
+   Sets the number of random characters created as part of the ticket string.
+   It should be long enough that the ticket string cannot be brute forced
+   within a reasonable amount of time. Longer values are more secure, but
+   could cause compatibility problems with some clients.
 
 .. attribute:: MAMA_CAS_USER_ATTRIBUTES
 
