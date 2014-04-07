@@ -34,8 +34,9 @@ Protocol Deviations
 -------------------
 
 In some areas MamaCAS deviates from the official CAS specification to
-take advantage of built-in Django functionality. These changes do not alter
-the contract between the client, service and CAS server.
+take advantage of built-in Django behavior or offer additional functionality.
+These changes do not alter the contract between the client, service and CAS
+server.
 
 **Login ticket (3.5)**
    This ticket string created for the login form is passed along with the
@@ -52,8 +53,10 @@ the contract between the client, service and CAS server.
 
 **User attributes**
    User attributes can be included in a CAS 2.0 service or proxy validation
-   success. This is not part of the official CAS specification, but is widely
-   used in practice.
+   success using the ``MAMA_CAS_ATTRIBUTES_CALLBACK``,
+   ``MAMA_CAS_PROFILE_ATTRIBUTES`` or ``MAMA_CAS_USER_ATTRIBUTES`` settings.
+   The inclusion of these attributes is not part of the official CAS
+   specification, but is widely used in practice.
 
 **Follow logout URL (2.3.2)**
    Setting ``MAMA_CAS_FOLLOW_LOGOUT_URL`` to ``True`` alters the server's
