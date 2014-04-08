@@ -6,12 +6,12 @@ Management Commands
 MamaCAS ships with custom management commands to aid in some common tasks.
 You can see which management commands are available by running::
 
-    manage.py
+    $ manage.py
 
 The commands specific to MamaCAS will show up underneath the ``[mama_cas]``
 heading. To run a given command::
 
-    manage.py <command name>
+    $ manage.py <command name>
 
 Commands
 --------
