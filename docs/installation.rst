@@ -89,17 +89,16 @@ their defaults:
       Note that some browsers can be configured to retain cookies across
       browser restarts, even for cookies set to be removed on browser close.
 
-For information on how sessions work within Django, read the `session
-documentation`_. These settings should be configured to fit your environment
-and security requirements.
+For more information on how sessions work within Django, read the `session
+documentation`_.
 
 Authenticating
 --------------
 
-At least one `authentication backend`_ must be `installed and configured`_,
-depending on your authoritative authentication source. MamaCAS does not
+One or more `authentication backends`_ must be `installed and configured`_
+based on your authoritative authentication sources. MamaCAS does not
 perform authentication itself, but relies on the active authentication
-backends for that task. The process of configuring authentication backends
+backends. The process of installing and configuring authentication backends
 will change depending on the individual backend.
 
 .. seealso::
@@ -117,7 +116,7 @@ will change depending on the individual backend.
 .. _SESSION_COOKIE_AGE: https://docs.djangoproject.com/en/dev/ref/settings/#std:setting-SESSION_COOKIE_AGE
 .. _SESSION_EXPIRE_AT_BROWSER_CLOSE: https://docs.djangoproject.com/en/dev/ref/settings/#std:setting-SESSION_EXPIRE_AT_BROWSER_CLOSE
 .. _session documentation: https://docs.djangoproject.com/en/dev/topics/http/sessions/
-.. _authentication backend: http://pypi.python.org/pypi?:action=browse&c=475&c=523
+.. _authentication backends: http://pypi.python.org/pypi?:action=browse&c=475&c=523
 .. _installed and configured: https://docs.djangoproject.com/en/dev/topics/auth/customizing/#specifying-authentication-backends
 .. _user authentication documentation: https://docs.djangoproject.com/en/dev/topics/auth/
 .. _Authentication packages: http://www.djangopackages.com/grids/g/authentication/
