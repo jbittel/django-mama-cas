@@ -46,8 +46,9 @@ Contributing
 Contributions are welcome! The preferred process for changes is by submitting
 GitHub pull requests. New code should follow both `PEP8`_ and the `Django
 coding style`_, generally respecting the style of the surrounding code. When
-appropriate, pull requests should include added or updated tests, as well as
-any necessary documentation changes.
+appropriate, pull requests should add or update tests, along with any
+necessary documentation changes. With any substantial contribution, feel
+free to add yourself as a contributor in the AUTHORS file.
 
 Development dependencies can be installed from ``requirements.txt``. Execute
 the test suite with::

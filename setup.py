@@ -16,7 +16,7 @@ packages = [
 ]
 
 package_data = {
-    '': ['LICENSE', 'README.rst'],
+    '': ['AUTHORS', 'LICENSE', 'README.rst'],
     'mama_cas': ['templates/mama_cas/*.html']
 }
 
