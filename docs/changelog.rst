@@ -3,10 +3,16 @@
 Changelog
 =========
 
-These are the notable changes for each MamaCAS release. Backwards
-incompatible changes or other upgrade issues are also described here. For
-additional detail, read the complete `commit history`_. From version 0.4.0
-and following, version numbers follow the `semantic versioning`_ scheme.
+Listed are the high-level, notable changes for each MamaCAS release.
+Backwards incompatible changes or other upgrade issues are also described
+here. For additional detail, read the complete `commit history`_. From
+version 0.4.0 and following, version numbers follow the `semantic
+versioning`_ scheme.
+
+**django-mama-cas 0.8.0** ``[2014-05-09]``
+   * Add single sign-out functionality
+   * Add callback for returning custom user attributes
+   * Fix support for custom user models with no ``username`` field
 
 **django-mama-cas 0.7.1** ``[2014-01-28]``
    * Fix Python 2.6 compatibility
