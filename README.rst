@@ -30,6 +30,8 @@ Add to the URLconf::
 
    urlpatterns += patterns('', (r'', include('mama_cas.urls')))
 
+See the full `installation instructions`_ for further details.
+
 Upgrade
 -------
 
@@ -59,6 +61,7 @@ the test suite with::
 .. _github.com/jbittel/django-mama-cas: https://github.com/jbittel/django-mama-cas
 .. _django-mama-cas.readthedocs.org: http://django-mama-cas.readthedocs.org/
 .. _pip: http://www.pip-installer.org/
+.. _installation instructions: http://django-mama-cas.readthedocs.org/en/latest/installation.html
 .. _changelog: http://django-mama-cas.readthedocs.org/en/latest/changelog.html
 .. _PEP8: http://www.python.org/dev/peps/pep-0008
 .. _Django coding style: https://docs.djangoproject.com/en/dev/internals/contributing/writing-code/coding-style
