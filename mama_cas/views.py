@@ -9,7 +9,7 @@ from django.views.generic import FormView
 from django.views.generic import TemplateView
 from django.views.generic import View
 
-from .compat import get_username
+from mama_cas.compat import get_username
 from mama_cas.forms import LoginForm
 from mama_cas.mixins import CasResponseMixin
 from mama_cas.mixins import CustomAttributesMixin
