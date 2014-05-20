@@ -72,7 +72,7 @@ class ValidationResponse(CasResponseBase):
                     auth_success.append(element)
             if pgt:
                 proxy_granting_ticket = etree.SubElement(auth_success, self.ns('proxyGrantingTicket'))
-                proxy_granting_ticket.text = pgt.ticket
+                proxy_granting_ticket.text = pgt.iou
             if proxies:
                 proxy_list = etree.SubElement(auth_success, self.ns('proxies'))
                 for p in proxies:

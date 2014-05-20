@@ -64,7 +64,7 @@ class ValidationResponseTests(TestCase):
                                   content_type='text/xml')
         pgt = parse(resp.content).find('./authenticationSuccess/proxyGrantingTicket')
         self.assertIsNotNone(pgt)
-        self.assertEqual(pgt.text, self.pgt.ticket)
+        self.assertEqual(pgt.text, self.pgt.iou)
 
     def test_validation_response_proxies(self):
         """
