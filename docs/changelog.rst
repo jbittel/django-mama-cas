@@ -9,6 +9,9 @@ here. For additional detail, read the complete `commit history`_. From
 version 0.4.0 and following, version numbers follow the `semantic
 versioning`_ scheme.
 
+**django-mama-cas 0.8.1** ``[2014-05-20]``
+   * Fix validation response not returning PGTIOU
+
 **django-mama-cas 0.8.0** ``[2014-05-09]``
    * Add single sign-out functionality
    * Add callback for returning custom user attributes
