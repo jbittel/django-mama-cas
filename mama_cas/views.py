@@ -3,6 +3,7 @@ import logging
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login
+from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
 from django.utils.translation import ugettext as _
 from django.views.generic import FormView
@@ -58,6 +59,9 @@ class LoginView(NeverCacheMixin, LogoutUserMixin, FormView):
         service = request.GET.get('service')
         renew = bool(request.GET.get('renew'))
         gateway = bool(request.GET.get('gateway'))
+
+        if service and not is_valid_service_url(service):
+            raise PermissionDenied()
 
         if renew:
             logger.debug("Renew request received by credential requestor")
