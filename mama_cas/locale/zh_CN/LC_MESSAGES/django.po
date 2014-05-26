@@ -1,0 +1,150 @@
+# Simplified Chinese translation.
+# This file is distributed under the same license as the PACKAGE package.
+#
+# Translators:
+# Ming Chen <mockey.chen@gmail.com>, 2014.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: django-mama-cas\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-05-26 08:57-0700\n"
+"PO-Revision-Date: 2014-05-26 10:57-0700\n"
+"Last-Translator: Ming Chen\n"
+"Language-Team: Personal\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: forms.py:16
+msgid "Username"
+msgstr "用户名"
+
+#: forms.py:18
+msgid "Please enter your username"
+msgstr "请输入你的用户名"
+
+#: forms.py:19
+msgid "Password"
+msgstr "密码"
+
+#: forms.py:21
+msgid "Please enter your password"
+msgstr "请输入你的密码"
+
+#: forms.py:28
+msgid "Warn before automatic login to other services"
+msgstr "在自动登录其它服务前警告我"
+
+#: forms.py:45
+msgid "Internal error while authenticating user"
+msgstr "认证时服务器发生内部错误"
+
+#: forms.py:53
+msgid "This user account is disabled"
+msgstr "该用户不允许登录"
+
+#: forms.py:57
+msgid "The username or password is not correct"
+msgstr "用户名或密码不正确"
+
+#: mixins.py:245
+msgid "You have been successfully logged out"
+msgstr "你已经成功退出登录"
+
+#: models.py:149
+msgid "ticket"
+msgstr "ticket"
+
+#: models.py:150
+msgid "user"
+msgstr "用户"
+
+#: models.py:151
+msgid "expires"
+msgstr "过期时间"
+
+#: models.py:152
+msgid "consumed"
+msgstr "使用时间"
+
+#: models.py:211 models.py:259
+msgid "service"
+msgstr "服务"
+
+#: models.py:212
+msgid "primary"
+msgstr "主要的"
+
+#: models.py:217
+msgid "service ticket"
+msgstr "service ticket"
+
+#: models.py:218
+msgid "service tickets"
+msgstr "service tickets"
+
+#: models.py:262
+msgid "granted by proxy-granting ticket"
+msgstr "由proxy-granting ticket授权"
+
+#: models.py:265
+msgid "proxy ticket"
+msgstr "proxy ticket"
+
+#: models.py:266
+msgid "proxy tickets"
+msgstr "proxy tickets"
+
+#: models.py:381
+msgid "iou"
+msgstr "oiu"
+
+#: models.py:384
+msgid "granted by service ticket"
+msgstr "由service ticket授权"
+
+#: models.py:387
+msgid "granted by proxy ticket"
+msgstr "由proxy ticket授权"
+
+#: models.py:392
+msgid "proxy-granting ticket"
+msgstr ""
+
+#: models.py:393
+msgid "proxy-granting tickets"
+msgstr ""
+
+#: views.py:92
+#, python-format
+msgid "You are logged in as %s"
+msgstr "你已使用 %s 的身份登录"
+
+#: views.py:161
+#, python-format
+msgid "Do you want to access %s as %s?"
+msgstr "你想访问%s（当前登录为 %s）？"
+
+#: views.py:191
+#, python-format
+msgid "The application provided this link to follow: %s"
+msgstr "接下来的重定向服务为：%s"
+
+#: templates/mama_cas/__base.html:11 templates/mama_cas/__base.html.py:58
+msgid "Central Authentication Service"
+msgstr "单点登录服务"
+
+#: templates/mama_cas/__login.html:23
+msgid "Login"
+msgstr "登录"
+
+#: templates/mama_cas/__warn.html:8
+msgid "Yes, continue"
+msgstr "是，继续"
+
+#: templates/mama_cas/__warn.html:10
+msgid "No, log me out"
+msgstr "否，退出登录"
