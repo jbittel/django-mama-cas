@@ -17,7 +17,7 @@ packages = [
 
 package_data = {
     '': ['AUTHORS', 'LICENSE', 'README.rst'],
-    'mama_cas': ['templates/mama_cas/*.html']
+    'mama_cas': ['templates/mama_cas/*.html', 'locale/*']
 }
 
 with open('README.rst') as f:

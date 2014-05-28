@@ -4,4 +4,5 @@ include MANIFEST.in
 include README.rst
 recursive-include docs *
 recursive-include mama_cas/templates *.html
+recursive-include mama_cas/locale *
 prune docs/_build
