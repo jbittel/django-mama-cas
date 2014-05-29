@@ -1,24 +1,10 @@
 #!/usr/bin/env python
 
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+from setuptools import find_packages
+from setuptools import setup
 
 from mama_cas import __version__ as version
 
-
-packages = [
-    'mama_cas',
-    'mama_cas.management',
-    'mama_cas.management.commands',
-    'mama_cas.tests',
-]
-
-package_data = {
-    '': ['AUTHORS', 'LICENSE', 'README.rst'],
-    'mama_cas': ['templates/mama_cas/*.html', 'locale/*']
-}
 
 with open('README.rst') as f:
     readme = f.read()
@@ -32,10 +18,9 @@ setup(
     author_email='jason.bittel@gmail.com',
     url='https://github.com/jbittel/django-mama-cas',
     download_url='https://github.com/jbittel/django-mama-cas/downloads',
-    package_dir={'mama_cas': 'mama_cas'},
-    packages=packages,
-    package_data=package_data,
     license='BSD',
+    packages=find_packages(),
+    include_package_data=True,
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
