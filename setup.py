@@ -17,7 +17,7 @@ setup(
     author='Jason Bittel',
     author_email='jason.bittel@gmail.com',
     url='https://github.com/jbittel/django-mama-cas',
-    download_url='https://github.com/jbittel/django-mama-cas/downloads',
+    download_url='https://pypi.python.org/pypi/django-mama-cas/',
     license='BSD',
     packages=find_packages(),
     include_package_data=True,
