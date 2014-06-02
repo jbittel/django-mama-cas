@@ -79,6 +79,16 @@ class LoginViewTests(TestCase):
         self.assertTrue(response['Location'].startswith(self.service_url))
         self.assertTrue(st.ticket in response['Location'])
 
+    @override_settings(MAMA_CAS_VALID_SERVICES=('http://.*\.example\.org',))
+    def test_login_view_invalid_service(self):
+        """
+        When called with an invalid service URL, the view should
+        return a 403 Forbidden response.
+        """
+        query_str = "?service=%s&gateway=true" % quote(self.service_url, '')
+        response = self.client.get(reverse('cas_login') + query_str)
+        self.assertEqual(response.status_code, 403)
+
     def test_login_view_login_post(self):
         """
         When called with a valid username, password and service, a
