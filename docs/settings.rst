@@ -133,8 +133,8 @@ some of these settings alter stock CAS behavior.
    are configured, any service URL is allowed. For example::
 
       MAMA_CAS_VALID_SERVICES = (
-          'https?://www\.example\.edu/secure/.*',
-          'https://.*\.example\.com/.*',
+          '^https?://www\.example\.edu/secure',
+          '^https://[^\.]+\.example\.com',
       )
 
    The ``url`` parameter is also checked against this list of services at
