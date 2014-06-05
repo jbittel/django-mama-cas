@@ -128,7 +128,7 @@ msgstr "你已使用 %s 的身份登录"
 msgid "Do you want to access %s as %s?"
 msgstr "你想访问%s（当前登录为 %s）？"
 
-#: views.py:191
+#: views.py:194
 #, python-format
 msgid "The application provided this link to follow: %s"
 msgstr "接下来的重定向服务为：%s"

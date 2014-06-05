@@ -256,17 +256,30 @@ class LogoutViewTests(TestCase):
         view should log the user out and display the correct template.
         """
         response = self.client.post(reverse('cas_login'), self.user_info)
-        query_str = '?url=http://www.example.com'
-        response = self.client.get(reverse('cas_logout') + query_str)
+        response = self.client.get(reverse('cas_logout'))
         self.assertRedirects(response, reverse('cas_login'))
+        self.assertFalse('_auth_user_id' in self.client.session)
+
+    @override_settings(MAMA_CAS_FOLLOW_LOGOUT_URL=True)
+    def test_logout_view_follow_service(self):
+        """
+        When called with a logged in user and MAMA_CAS_FOLLOW_LOGOUT_URL
+        is set to ``True``, a ``GET`` request containing ``service``
+        should log the user out and redirect to the supplied URL.
+        """
+        response = self.client.post(reverse('cas_login'), self.user_info)
+        query_str = '?service=http://www.example.com'
+        response = self.client.get(reverse('cas_logout') + query_str)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['Location'], 'http://www.example.com')
         self.assertFalse('_auth_user_id' in self.client.session)
 
     @override_settings(MAMA_CAS_FOLLOW_LOGOUT_URL=True)
     def test_logout_view_follow_url(self):
         """
         When called with a logged in user and MAMA_CAS_FOLLOW_LOGOUT_URL
-        is set to ``True``, a ``GET`` request to the view should log the
-        user out and redirect to the supplied URL.
+        is set to ``True``, a ``GET`` request containing ``url`` should
+        log the user out and redirect to the supplied URL.
         """
         response = self.client.post(reverse('cas_login'), self.user_info)
         query_str = '?url=http://www.example.com'
@@ -285,9 +298,8 @@ class LogoutViewTests(TestCase):
         ConsumedServiceTicketFactory()
         ConsumedServiceTicketFactory()
         self.client.post(reverse('cas_login'), self.user_info)
-        query_str = '?url=http://www.example.com'
         with patch('requests.post') as mock:
-            self.client.get(reverse('cas_logout') + query_str)
+            self.client.get(reverse('cas_logout'))
             self.assertEqual(mock.call_count, 2)
 
 

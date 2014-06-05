@@ -168,20 +168,27 @@ class LogoutView(NeverCacheMixin, LogoutUserMixin, View):
     """
     (2.3) End a client's single sign-on session.
 
-    When this view is accessed, an existing single sign-on session is
-    ended, requiring a new single sign-on session to be established
-    for future authentication attempts.
+    Accessing this view ends an existing single sign-on session,
+    requiring a new single sign-on session to be established for
+    future authentication attempts.
 
-    If ``url`` is specified, by default it will be displayed to the
-    user as a recommended link to follow. This behavior can be altered
-    by setting ``MAMA_CAS_FOLLOW_LOGOUT_URL`` to ``True``, which will
-    redirect the client to the specified URL.
+    [CAS 3.0] If ``service`` is specified and
+    ``MAMA_CAS_FOLLOW_LOGOUT_URL`` is ``True``, the client will be
+    redirected to the specified service URL.
+
+    [CAS 1.0, CAS 2.0] If ``url`` is specified, by default it will be
+    displayed to the user as a recommended link to follow. This
+    behavior can be altered by setting ``MAMA_CAS_FOLLOW_LOGOUT_URL``
+    to ``True``, which redirects the client to the specified URL.
     """
     def get(self, request, *args, **kwargs):
         logger.debug("Logout request received for %s" % request.user)
         self.logout_user(request)
+        service = request.GET.get('service')
         url = request.GET.get('url')
-        if url and is_valid_service_url(url):
+        if service and getattr(settings, 'MAMA_CAS_FOLLOW_LOGOUT_URL', False):
+            return redirect(service)
+        elif url and is_valid_service_url(url):
             if getattr(settings, 'MAMA_CAS_FOLLOW_LOGOUT_URL', False):
                 return redirect(url)
             msg = _("The application provided this link to follow: %s") % url
