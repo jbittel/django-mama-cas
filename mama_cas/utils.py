@@ -8,6 +8,7 @@ except ImportError:  # pragma: no cover
     from urlparse import parse_qsl, urlparse, urlunparse
 
 from django.conf import settings
+from django.core.exceptions import PermissionDenied
 from django.core import urlresolvers
 from django.http import HttpResponseRedirect
 
@@ -77,6 +78,8 @@ def redirect(to, *args, **kwargs):
     except urlresolvers.NoReverseMatch:
         if '/' not in to and '.' not in to:
             to = urlresolvers.reverse('cas_login')
+        elif not is_valid_service_url(to):
+            raise PermissionDenied()
 
     if params:
         to = add_query_params(to, params)
