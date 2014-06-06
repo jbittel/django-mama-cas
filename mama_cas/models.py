@@ -18,11 +18,11 @@ from django.utils.translation import ugettext_lazy as _
 import requests
 
 from mama_cas.compat import user_model
-from mama_cas.exceptions import InvalidRequest
-from mama_cas.exceptions import InvalidTicket
-from mama_cas.exceptions import InvalidService
-from mama_cas.exceptions import InternalError
 from mama_cas.exceptions import BadPgt
+from mama_cas.exceptions import InvalidProxyCallback
+from mama_cas.exceptions import InvalidRequest
+from mama_cas.exceptions import InvalidService
+from mama_cas.exceptions import InvalidTicket
 from mama_cas.request import SingleSignOutRequest
 from mama_cas.utils import add_query_params
 from mama_cas.utils import is_scheme_https
@@ -284,7 +284,7 @@ class ProxyGrantingTicketManager(TicketManager):
         try:
             if validate:
                 self.validate_callback(pgturl, pgtid, pgtiou)
-        except InternalError as e:
+        except InvalidProxyCallback as e:
             # pgtUrl validation failed, so nothing has been created
             logger.warning("%s %s" % (e.code, e))
             return None
@@ -309,7 +309,7 @@ class ProxyGrantingTicketManager(TicketManager):
         """
         # Ensure the scheme is HTTPS before proceeding
         if not is_scheme_https(url):
-            raise InternalError("Proxy callback %s is not HTTPS" % url)
+            raise InvalidProxyCallback("Proxy callback %s is not HTTPS" % url)
 
         # Connect to proxy callback URL, checking the SSL certificate
         url_params = add_query_params(url, {'pgtId': pgtid, 'pgtIou': pgtiou})
@@ -318,19 +318,20 @@ class ProxyGrantingTicketManager(TicketManager):
             r = requests.get(url_params, verify=verify, timeout=3.0)
         except requests.exceptions.SSLError:
             msg = "SSL cert validation failed for proxy callback %s" % url
-            raise InternalError(msg)
+            raise InvalidProxyCallback(msg)
         except requests.exceptions.ConnectionError:
             msg = "Error connecting to proxy callback %s" % url
-            raise InternalError(msg)
+            raise InvalidProxyCallback(msg)
         except requests.exceptions.Timeout:
             msg = "Timeout connecting to proxy callback %s" % url
-            raise InternalError(msg)
+            raise InvalidProxyCallback(msg)
 
         # Check the returned HTTP status code
         try:
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:
-            raise InternalError("Proxy callback %s returned %s" % (url, e))
+            msg = "Proxy callback %s returned %s" % (url, e)
+            raise InvalidProxyCallback(msg)
 
     def validate_ticket(self, ticket, service):
         """

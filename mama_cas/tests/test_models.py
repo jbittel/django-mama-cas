@@ -22,7 +22,7 @@ from mama_cas.models import ProxyGrantingTicket
 from mama_cas.models import ProxyTicket
 from mama_cas.models import ServiceTicket
 from mama_cas.exceptions import BadPgt
-from mama_cas.exceptions import InternalError
+from mama_cas.exceptions import InvalidProxyCallback
 from mama_cas.exceptions import InvalidRequest
 from mama_cas.exceptions import InvalidService
 from mama_cas.exceptions import InvalidTicket
@@ -406,8 +406,8 @@ class ProxyGrantingTicketManager(TestCase):
             try:
                 ProxyGrantingTicket.objects.validate_callback(self.pgturl,
                                                               pgtid, pgtiou)
-            except InternalError:
-                self.fail("InternalError raised validating proxy callback URL")
+            except InvalidProxyCallback:
+                self.fail("Exception raised validating proxy callback URL")
 
     def test_validate_callback_invalid_pgturl(self):
         """
@@ -416,63 +416,63 @@ class ProxyGrantingTicketManager(TestCase):
         pgtid = ProxyGrantingTicket.objects.create_ticket_str()
         prefix = ProxyGrantingTicket.objects.model.IOU_PREFIX
         pgtiou = ProxyGrantingTicket.objects.create_ticket_str(prefix=prefix)
-        with self.assertRaises(InternalError):
+        with self.assertRaises(InvalidProxyCallback):
             ProxyGrantingTicket.objects.validate_callback(self.pgturl,
                                                           pgtid, pgtiou)
 
     def test_validate_callback_ssl_error(self):
         """
         If the validation request encounters an SSL error, an
-        InternalError should be raised.
+        InvalidProxyCallback should be raised.
         """
         pgtid = ProxyGrantingTicket.objects.create_ticket_str()
         prefix = ProxyGrantingTicket.objects.model.IOU_PREFIX
         pgtiou = ProxyGrantingTicket.objects.create_ticket_str(prefix=prefix)
         with patch('requests.get') as mock:
             mock.side_effect = requests.exceptions.SSLError
-            with self.assertRaises(InternalError):
+            with self.assertRaises(InvalidProxyCallback):
                 ProxyGrantingTicket.objects.validate_callback(self.pgturl,
                                                               pgtid, pgtiou)
 
     def test_validate_callback_connection_error(self):
         """
         If the validation request encounters a connection error, an
-        InternalError should be raised.
+        InvalidProxyCallback should be raised.
         """
         pgtid = ProxyGrantingTicket.objects.create_ticket_str()
         prefix = ProxyGrantingTicket.objects.model.IOU_PREFIX
         pgtiou = ProxyGrantingTicket.objects.create_ticket_str(prefix=prefix)
         with patch('requests.get') as mock:
             mock.side_effect = requests.exceptions.ConnectionError
-            with self.assertRaises(InternalError):
+            with self.assertRaises(InvalidProxyCallback):
                 ProxyGrantingTicket.objects.validate_callback(self.pgturl,
                                                               pgtid, pgtiou)
 
     def test_validate_callback_timeout(self):
         """
-        If the validation request times out, an InternalError should
-        be raised.
+        If the validation request times out, an InvalidProxyCallback
+        should be raised.
         """
         pgtid = ProxyGrantingTicket.objects.create_ticket_str()
         prefix = ProxyGrantingTicket.objects.model.IOU_PREFIX
         pgtiou = ProxyGrantingTicket.objects.create_ticket_str(prefix=prefix)
         with patch('requests.get') as mock:
             mock.side_effect = requests.exceptions.Timeout
-            with self.assertRaises(InternalError):
+            with self.assertRaises(InvalidProxyCallback):
                 ProxyGrantingTicket.objects.validate_callback(self.pgturl,
                                                               pgtid, pgtiou)
 
     def test_validate_callback_invalid_status(self):
         """
         If the validation request returns an invalid status code, an
-        InternalError should be raised.
+        InvalidProxyCallback should be raised.
         """
         pgtid = ProxyGrantingTicket.objects.create_ticket_str()
         prefix = ProxyGrantingTicket.objects.model.IOU_PREFIX
         pgtiou = ProxyGrantingTicket.objects.create_ticket_str(prefix=prefix)
         with patch('requests.get') as mock:
             mock.return_value.raise_for_status.side_effect = requests.exceptions.HTTPError
-            with self.assertRaises(InternalError):
+            with self.assertRaises(InvalidProxyCallback):
                 ProxyGrantingTicket.objects.validate_callback(self.pgturl,
                                                               pgtid, pgtiou)
 
