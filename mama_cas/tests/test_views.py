@@ -108,13 +108,12 @@ class LoginViewTests(TestCase):
     def test_login_view_renew(self):
         """
         When called with a logged in user, a ``GET`` request to the
-        view with the ``renew`` parameter set should log the user out
-        and redirect them to the login page.
+        view with the ``renew`` parameter should display the login page.
         """
         response = self.client.post(reverse('cas_login'), self.user_info)
-        response = self.client.get(reverse('cas_login') + '?renew=true')
-        self.assertNotIn('_auth_user_id', self.client.session)
-        self.assertRedirects(response, reverse('cas_login'))
+        query_str = "?renew=true&service=%s" % quote(self.service_url, '')
+        response = self.client.get(reverse('cas_login') + query_str)
+        self.assertTemplateUsed(response, 'mama_cas/login.html')
 
     def test_login_view_gateway(self):
         """

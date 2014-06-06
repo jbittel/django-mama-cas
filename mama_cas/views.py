@@ -61,8 +61,6 @@ class LoginView(NeverCacheMixin, LogoutUserMixin, FormView):
 
         if renew:
             logger.debug("Renew request received by credential requestor")
-            self.logout_user(request)
-            return redirect('cas_login', params={'service': service})
         elif gateway and service:
             logger.debug("Gateway request received by credential requestor")
             if request.user.is_authenticated():
