@@ -13,6 +13,21 @@ class InvalidRequest(ValidationError):
     code = 'INVALID_REQUEST'
 
 
+class InvalidTicketSpec(ValidationError):
+    """Failure to meet the requirements of validation specification."""
+    code = 'INVALID_TICKET_SPEC'
+
+
+class UnauthorizedServiceProxy(ValidationError):
+    """The service is not authorized to perform proxy authentication."""
+    code = 'UNAUTHORIZED_SERVICE_PROXY'
+
+
+class InvalidProxyCallback(ValidationError):
+    """The proxy callback specified is invalid."""
+    code = 'INVALID_PROXY_CALLBACK'
+
+
 class InvalidTicket(ValidationError):
     """
     The ticket provided was not valid, or the ticket did not come
