@@ -1,5 +1,3 @@
-from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpResponse
 
 from .compat import etree
@@ -53,8 +51,6 @@ class ValidationResponse(CasResponseBase):
         </cas:authenticationFailure>
     </cas:serviceResponse>
     """
-    attribute_formats = ['jasig', 'rubycas', 'namevalue']
-
     def render_content(self, context):
         ticket = context.get('ticket')
         error = context.get('error')
@@ -68,8 +64,10 @@ class ValidationResponse(CasResponseBase):
             user = etree.SubElement(auth_success, self.ns('user'))
             user.text = get_username(ticket.user)
             if attributes:
-                for element in self.get_attribute_elements(attributes):
-                    auth_success.append(element)
+                attribute_set = etree.SubElement(auth_success, self.ns('attributes'))
+                for name, value in attributes.items():
+                    attr = etree.SubElement(attribute_set, self.ns(name))
+                    attr.text = value
             if pgt:
                 proxy_granting_ticket = etree.SubElement(auth_success, self.ns('proxyGrantingTicket'))
                 proxy_granting_ticket.text = pgt.iou
@@ -84,64 +82,6 @@ class ValidationResponse(CasResponseBase):
             auth_failure.text = str(error)
 
         return etree.tostring(service_response, encoding='UTF-8')
-
-    def get_attribute_elements(self, attributes):
-        """
-        Call the appropriate method to retrieve a list of custom CAS
-        attributes in the currently configured format.
-        """
-        attr_format = getattr(settings, 'MAMA_CAS_ATTRIBUTE_FORMAT', 'jasig')
-        if attr_format.lower() not in self.attribute_formats:
-            msg = 'MAMA_CAS_ATTRIBUTE_FORMAT must be set to one of: %s'
-            raise ImproperlyConfigured(msg % ', '.join(self.attribute_formats))
-        return getattr(self, 'get_%s_elements' % attr_format.lower())(attributes)
-
-    def get_jasig_elements(self, attributes):
-        """
-        Returns a list of custom CAS attributes in the 'jasig' format:
-
-        <cas:attributes>
-            <cas:givenName>Ellen</cas:givenName>
-            <cas:sn>Cohen</cas:sn>
-            <cas:email>ellen@example.com</cas:email>
-        </cas:attributes>
-        """
-        element = etree.Element(self.ns('attributes'))
-        for name, value in attributes.items():
-            attr = etree.SubElement(element, self.ns(name))
-            attr.text = value
-        return [element]
-
-    def get_rubycas_elements(self, attributes):
-        """
-        Returns a list of custom CAS attributes in the 'rubycas' format:
-
-        <cas:givenName>Ellen</cas:givenName>
-        <cas:sn>Cohen</cas:sn>
-        <cas:email>ellen@example.com</cas:email>
-        """
-        elements = []
-        for name, value in attributes.items():
-            element = etree.Element(self.ns(name))
-            element.text = value
-            elements.append(element)
-        return elements
-
-    def get_namevalue_elements(self, attributes):
-        """
-        Returns a list of custom CAS attributes in the 'namevalue' format:
-
-        <cas:attribute name='givenName' value='Ellen' />
-        <cas:attribute name='sn' value='Cohen' />
-        <cas:attribute name='email' value='ellen@example.com' />
-        """
-        elements = []
-        for name, value in attributes.items():
-            element = etree.Element(self.ns('attribute'))
-            element.set('name', name)
-            element.set('value', value)
-            elements.append(element)
-        return elements
 
 
 class ProxyResponse(CasResponseBase):

@@ -51,13 +51,6 @@ server.
    uses Django sessions to determine if a single sign-on session has been
    established.
 
-**User attributes**
-   User attributes can be included in a CAS 2.0 service or proxy validation
-   success using the ``MAMA_CAS_ATTRIBUTES_CALLBACK``,
-   ``MAMA_CAS_PROFILE_ATTRIBUTES`` or ``MAMA_CAS_USER_ATTRIBUTES`` settings.
-   The inclusion of these attributes is not part of the official CAS
-   specification, but is widely used in practice.
-
 **Follow logout URL (2.3.2)**
    Setting ``MAMA_CAS_FOLLOW_LOGOUT_URL`` to ``True`` alters the server's
    behavior at logout from the CAS specification. Depending on the services

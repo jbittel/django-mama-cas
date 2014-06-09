@@ -1,8 +1,6 @@
 from __future__ import unicode_literals
 
-from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase
-from django.test.utils import override_settings
 
 from .factories import ProxyGrantingTicketFactory
 from .factories import ProxyTicketFactory
@@ -81,11 +79,10 @@ class ValidationResponseTests(TestCase):
         self.assertEqual(proxies[0].text, proxy_list[0])
         self.assertEqual(proxies[1].text, proxy_list[1])
 
-    @override_settings(MAMA_CAS_ATTRIBUTE_FORMAT='jasig')
-    def test_validation_response_jasig_attributes(self):
+    def test_validation_response_attributes(self):
         """
         When given custom user attributes, a ``ValidationResponse``
-        should include the attributes in the configured format.
+        should include the attributes in the response.
         """
         attrs = {'givenName': 'Ellen', 'sn': 'Cohen', 'email': 'ellen@example.com'}
         resp = ValidationResponse(context={'ticket': self.st, 'error': None,
@@ -102,66 +99,6 @@ class ValidationResponseTests(TestCase):
             # dict is empty to see if all attributes were matched.
             del attrs[child.tag]
         self.assertEqual(len(attrs), 0)
-
-    @override_settings(MAMA_CAS_ATTRIBUTE_FORMAT='rubycas')
-    def test_validation_response_rubycas_attributes(self):
-        """
-        When given custom user attributes, a ``ValidationResponse``
-        should include the attributes in the configured format.
-        """
-        attrs = {'givenName': 'Ellen', 'sn': 'Cohen', 'email': 'ellen@example.com'}
-        resp = ValidationResponse(context={'ticket': self.st, 'error': None,
-                                           'attributes': attrs},
-                                  content_type='text/xml')
-        success = parse(resp.content).find('./authenticationSuccess')
-        self.assertIsNotNone(success)
-        # The authenticationSuccess tag should include a child for
-        # each attribute, plus the user element
-        self.assertEqual(len(success), len(attrs) + 1)
-        for child in success:
-            if child.tag == 'user':
-                continue
-            self.assertTrue(child.tag in attrs)
-            self.assertEqual(child.text, attrs[child.tag])
-            # Ordering is not guaranteed, so remove attributes from
-            # the dict as they are validated. When done, check if the
-            # dict is empty to see if all attributes were matched.
-            del attrs[child.tag]
-        self.assertEqual(len(attrs), 0)
-
-    @override_settings(MAMA_CAS_ATTRIBUTE_FORMAT='namevalue')
-    def test_validation_response_namevalue_attributes(self):
-        """
-        When given custom user attributes, a ``ValidationResponse``
-        should include the attributes in the configured format.
-        """
-        attrs = {'givenName': 'Ellen', 'sn': 'Cohen', 'email': 'ellen@example.com'}
-        resp = ValidationResponse(context={'ticket': self.st, 'error': None,
-                                           'attributes': attrs},
-                                  content_type='text/xml')
-        success = parse(resp.content).find('./authenticationSuccess')
-        self.assertIsNotNone(success)
-        self.assertEqual(len(success.findall('attribute')), len(attrs))
-        for elem in success.findall('attribute'):
-            self.assertTrue(elem.get('name') in attrs)
-            self.assertEqual(elem.get('value'), attrs[elem.get('name')])
-            # Ordering is not guaranteed, so remove attributes from
-            # the dict as they are validated. When done, check if the
-            # dict is empty to see if all attributes were matched.
-            del attrs[elem.get('name')]
-        self.assertEqual(len(attrs), 0)
-
-    @override_settings(MAMA_CAS_ATTRIBUTE_FORMAT='invalid')
-    def test_validation_response_invalid_attribute_format(self):
-        """
-        Configuring an invalid attribute format should raise an
-        ``ImproperlyConfigured`` exception.
-        """
-        attrs = {'givenName': 'Ellen', 'sn': 'Cohen', 'email': 'ellen@example.com'}
-        with self.assertRaises(ImproperlyConfigured):
-            ValidationResponse(context={'ticket': self.st, 'error': None,
-                                        'attributes': attrs},
-                               content_type='text/xml')
 
 
 class ProxyResponseTests(TestCase):

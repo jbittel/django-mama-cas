@@ -17,19 +17,6 @@ some of these settings alter stock CAS behavior.
    process. When enabled, an additional checkbox will be displayed on the
    login form.
 
-.. attribute:: MAMA_CAS_ATTRIBUTE_FORMAT
-
-   :default: ``jasig``
-
-   Sets the attribute format used when including user attributes with a
-   service or proxy validation success. These attributes are not part of the
-   official CAS 2.0 specification, and three different attribute formats have
-   emerged. This setting must be set to one of the following: ``jasig``,
-   ``rubycas`` or ``namevalue``.
-
-   Official clients such as `phpCAS`_ can handle attributes returned in any
-   of these formats, but other clients may be more particular.
-
 .. attribute:: MAMA_CAS_ATTRIBUTES_CALLBACK
 
    :default: ``None``
