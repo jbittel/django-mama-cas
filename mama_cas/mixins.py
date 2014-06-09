@@ -60,19 +60,13 @@ class ValidateTicketMixin(object):
     """
     View mixin providing ticket validation methods.
     """
-    def validate_service_ticket(self, request):
+    def validate_service_ticket(self, service, ticket, pgturl, renew):
         """
         Validate a service ticket string. Return a triplet containing
         a ``ServiceTicket`` and an optional ``ProxyGrantingTicket``,
         or a ``ValidationError`` subclass if ticket validation failed.
         """
-        service = request.GET.get('service')
-        ticket = request.GET.get('ticket')
-        renew = bool(request.GET.get('renew'))
-        pgturl = request.GET.get('pgtUrl')
-
         logger.debug("Service validation request received for %s" % ticket)
-
         # Check for proxy tickets passed to /serviceValidate
         if ticket and ticket.startswith(ProxyTicket.TICKET_PREFIX):
             e = InvalidTicket('Proxy tickets cannot be validated'
@@ -97,17 +91,13 @@ class ValidateTicketMixin(object):
                 pgt = None
             return st, pgt, None
 
-    def validate_proxy_ticket(self, request):
+    def validate_proxy_ticket(self, service, ticket, pgturl):
         """
         Validate a proxy ticket string. Return a 4-tuple containing a
         ``ProxyTicket``, an optional ``ProxyGrantingTicket`` and a list
         of proxies through which authentication proceeded, or a
         ``ValidationError`` subclass if ticket validation failed.
         """
-        service = request.GET.get('service')
-        ticket = request.GET.get('ticket')
-        pgturl = request.GET.get('pgtUrl')
-
         logger.debug("Proxy validation request received for %s" % ticket)
         try:
             pt = ProxyTicket.objects.validate_ticket(ticket, service)
@@ -133,15 +123,12 @@ class ValidateTicketMixin(object):
                 pgt = None
             return pt, pgt, proxies, None
 
-    def validate_proxy_granting_ticket(self, request):
+    def validate_proxy_granting_ticket(self, pgt, target_service):
         """
         Validate a proxy granting ticket string. Return an ordered
         pair containing a ``ProxyTicket``, or a ``ValidationError``
         subclass if ticket validation failed.
         """
-        pgt = request.GET.get('pgt')
-        target_service = request.GET.get('targetService')
-
         logger.debug("Proxy ticket request received for %s using %s" %
                      (target_service, pgt))
         try:
@@ -232,6 +219,7 @@ class LogoutUserMixin(object):
 
         3. Call logout() to end the session and purge all session data.
         """
+        logger.debug("Logout request received for %s" % request.user)
         if request.user.is_authenticated():
             ServiceTicket.objects.consume_tickets(request.user)
             ProxyTicket.objects.consume_tickets(request.user)

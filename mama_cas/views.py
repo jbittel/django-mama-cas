@@ -180,10 +180,9 @@ class LogoutView(NeverCacheMixin, LogoutUserMixin, View):
     to ``True``, which redirects the client to the specified URL.
     """
     def get(self, request, *args, **kwargs):
-        logger.debug("Logout request received for %s" % request.user)
-        self.logout_user(request)
         service = request.GET.get('service')
         url = request.GET.get('url')
+        self.logout_user(request)
         if service and getattr(settings, 'MAMA_CAS_FOLLOW_LOGOUT_URL', False):
             return redirect(service)
         elif url and is_valid_service_url(url):
@@ -209,7 +208,12 @@ class ValidateView(NeverCacheMixin, ValidateTicketMixin, View):
     primary credentials, not from an existing single sign-on session.
     """
     def get(self, request, *args, **kwargs):
-        st, pgt, error = self.validate_service_ticket(request)
+        service = request.GET.get('service')
+        ticket = request.GET.get('ticket')
+        renew = bool(request.GET.get('renew'))
+
+        st, pgt, error = self.validate_service_ticket(service, ticket,
+                                                      None, renew)
         if st:
             content = "yes\n%s\n" % get_username(st.user)
         else:
@@ -239,7 +243,13 @@ class ServiceValidateView(NeverCacheMixin, ValidateTicketMixin,
     response_class = ValidationResponse
 
     def get_context_data(self, **kwargs):
-        st, pgt, error = self.validate_service_ticket(self.request)
+        service = self.request.GET.get('service')
+        ticket = self.request.GET.get('ticket')
+        pgturl = self.request.GET.get('pgtUrl')
+        renew = bool(self.request.GET.get('renew'))
+
+        st, pgt, error = self.validate_service_ticket(service, ticket,
+                                                      pgturl, renew)
         attributes = self.get_custom_attributes(st)
         return {'ticket': st, 'pgt': pgt, 'error': error,
                 'attributes': attributes}
@@ -268,13 +278,19 @@ class ProxyValidateView(NeverCacheMixin, ValidateTicketMixin,
     response_class = ValidationResponse
 
     def get_context_data(self, **kwargs):
+        service = self.request.GET.get('service')
         ticket = self.request.GET.get('ticket')
+        pgturl = self.request.GET.get('pgtUrl')
+        renew = bool(self.request.GET.get('renew'))
+
         if not ticket or ticket.startswith(ProxyTicket.TICKET_PREFIX):
             # If no ticket parameter is present, attempt to validate it
             # anyway so the appropriate error is raised
-            t, pgt, proxies, error = self.validate_proxy_ticket(self.request)
+            t, pgt, proxies, error = self.validate_proxy_ticket(service,
+                                                                ticket, pgturl)
         else:
-            t, pgt, error = self.validate_service_ticket(self.request)
+            t, pgt, error = self.validate_service_ticket(service, ticket,
+                                                         pgturl, renew)
             proxies = None
         attributes = self.get_custom_attributes(t)
         return {'ticket': t, 'pgt': pgt, 'proxies': proxies,
@@ -295,5 +311,8 @@ class ProxyView(NeverCacheMixin, ValidateTicketMixin, CasResponseMixin, View):
     response_class = ProxyResponse
 
     def get_context_data(self, **kwargs):
-        pt, error = self.validate_proxy_granting_ticket(self.request)
+        pgt = self.request.GET.get('pgt')
+        target_service = self.request.GET.get('targetService')
+
+        pt, error = self.validate_proxy_granting_ticket(pgt, target_service)
         return {'ticket': pt, 'error': error}
