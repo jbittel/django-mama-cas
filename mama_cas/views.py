@@ -25,6 +25,7 @@ from mama_cas.utils import add_query_params
 from mama_cas.utils import clean_service_url
 from mama_cas.utils import is_valid_service_url
 from mama_cas.utils import redirect
+from mama_cas.utils import to_bool
 
 
 logger = logging.getLogger(__name__)
@@ -56,8 +57,8 @@ class LoginView(NeverCacheMixin, LogoutUserMixin, FormView):
            the specified service.
         """
         service = request.GET.get('service')
-        renew = bool(request.GET.get('renew'))
-        gateway = bool(request.GET.get('gateway'))
+        renew = to_bool(request.GET.get('renew'))
+        gateway = to_bool(request.GET.get('gateway'))
 
         if renew:
             logger.debug("Renew request received by credential requestor")
@@ -210,7 +211,7 @@ class ValidateView(NeverCacheMixin, ValidateTicketMixin, View):
     def get(self, request, *args, **kwargs):
         service = request.GET.get('service')
         ticket = request.GET.get('ticket')
-        renew = bool(request.GET.get('renew'))
+        renew = to_bool(request.GET.get('renew'))
 
         st, pgt, error = self.validate_service_ticket(service, ticket,
                                                       None, renew)
@@ -246,7 +247,7 @@ class ServiceValidateView(NeverCacheMixin, ValidateTicketMixin,
         service = self.request.GET.get('service')
         ticket = self.request.GET.get('ticket')
         pgturl = self.request.GET.get('pgtUrl')
-        renew = bool(self.request.GET.get('renew'))
+        renew = to_bool(self.request.GET.get('renew'))
 
         st, pgt, error = self.validate_service_ticket(service, ticket,
                                                       pgturl, renew)
@@ -281,7 +282,7 @@ class ProxyValidateView(NeverCacheMixin, ValidateTicketMixin,
         service = self.request.GET.get('service')
         ticket = self.request.GET.get('ticket')
         pgturl = self.request.GET.get('pgtUrl')
-        renew = bool(self.request.GET.get('renew'))
+        renew = to_bool(self.request.GET.get('renew'))
 
         if not ticket or ticket.startswith(ProxyTicket.TICKET_PREFIX):
             # If no ticket parameter is present, attempt to validate it

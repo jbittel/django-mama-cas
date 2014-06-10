@@ -6,6 +6,7 @@ from mama_cas.utils import is_scheme_https
 from mama_cas.utils import clean_service_url
 from mama_cas.utils import is_valid_service_url
 from mama_cas.utils import redirect
+from mama_cas.utils import to_bool
 
 
 class UtilsTests(TestCase):
@@ -88,3 +89,14 @@ class UtilsTests(TestCase):
         """
         r = redirect('http')
         self.assertEqual('/login', r['Location'])
+
+    def test_to_bool(self):
+        """
+        Any string value should evaluate as ``True``. Empty strings
+        or strings of whitespace should evaluate as ``False``.
+        """
+        self.assertTrue(to_bool('true'))
+        self.assertTrue(to_bool('1'))
+        self.assertFalse(to_bool(None))
+        self.assertFalse(to_bool(''))
+        self.assertFalse(to_bool('   '))
