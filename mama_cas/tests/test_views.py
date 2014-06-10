@@ -287,6 +287,19 @@ class LogoutViewTests(TestCase):
         self.assertEqual(response['Location'], 'http://www.example.com')
         self.assertFalse('_auth_user_id' in self.client.session)
 
+    def test_logout_view_display_url(self):
+        """
+        A request containing ``url`` should log the user out and
+        display the supplied URL.
+        """
+        response = self.client.post(reverse('cas_login'), self.user_info)
+        query_str = '?url=http://www.example.com'
+        response = self.client.get(reverse('cas_logout') + query_str, follow=True)
+        self.assertRedirects(response, reverse('cas_login'))
+        messages = list(response.context['messages'])
+        self.assertEqual(messages[1].tags, 'success')
+        self.assertTrue('http://www.example.com' in messages[1].message)
+
     @override_settings(MAMA_CAS_ENABLE_SINGLE_SIGN_OUT=True)
     def test_logout_single_sign_out(self):
         """
