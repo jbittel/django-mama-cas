@@ -3,12 +3,13 @@ from __future__ import unicode_literals
 from mock import patch
 
 try:
-    from urllib.parse import quote
+    from urllib.parse import quote, urlencode
 except ImportError:  # pragma: no cover
-    from urllib import quote
+    from urllib import quote, urlencode
 
 from django.core.urlresolvers import reverse
 from django.test import TestCase
+from django.test.client import RequestFactory
 from django.test.utils import override_settings
 
 from .factories import UserFactory
@@ -17,13 +18,20 @@ from .factories import ProxyTicketFactory
 from .factories import ServiceTicketFactory
 from .factories import ConsumedServiceTicketFactory
 from mama_cas.forms import LoginForm
+from mama_cas.models import ProxyTicket
 from mama_cas.models import ServiceTicket
+from mama_cas.views import ProxyView
+from mama_cas.views import ProxyValidateView
+from mama_cas.views import ServiceValidateView
+from mama_cas.views import ValidateView
+
+
+def _url(name, **kwargs):
+    """Build a URL given a view name and kwarg query parameters."""
+    return reverse(name) + '?' + urlencode(kwargs)
 
 
 class LoginViewTests(TestCase):
-    """
-    Test the ``LoginView`` view.
-    """
     user_info = {'username': 'ellen',
                  'password': 'mamas&papas'}
     warn_info = {'username': 'ellen',
@@ -79,7 +87,7 @@ class LoginViewTests(TestCase):
         self.assertTrue(response['Location'].startswith(self.service_url))
         self.assertTrue(st.ticket in response['Location'])
 
-    @override_settings(MAMA_CAS_VALID_SERVICES=('http://.*\.example\.org',))
+    @override_settings(MAMA_CAS_VALID_SERVICES=('http://[^\.]+\.example\.org',))
     def test_login_view_invalid_service(self):
         """
         When called with an invalid service URL, the view should
@@ -184,9 +192,6 @@ class LoginViewTests(TestCase):
 
 @override_settings(MAMA_CAS_ALLOW_AUTH_WARN=True)
 class WarnViewTests(TestCase):
-    """
-    Test the ``WarnView`` view.
-    """
     user_info = {'username': 'ellen',
                  'password': 'mamas&papas'}
     url = 'http://www.example.com'
@@ -218,12 +223,9 @@ class WarnViewTests(TestCase):
         self.assertRedirects(response, reverse('cas_login'))
 
 
-@override_settings(MAMA_CAS_VALID_SERVICES=('.*\.example\.com',))
+@override_settings(MAMA_CAS_VALID_SERVICES=('[^\.]+\.example\.com',))
 @override_settings(MAMA_CAS_FOLLOW_LOGOUT_URL=False)
 class LogoutViewTests(TestCase):
-    """
-    Test the ``LogoutView`` view.
-    """
     user_info = {'username': 'ellen',
                  'password': 'mamas&papas',
                  'email': 'ellen@example.com'}
@@ -315,455 +317,350 @@ class LogoutViewTests(TestCase):
             self.assertEqual(mock.call_count, 2)
 
 
-@override_settings(MAMA_CAS_VALID_SERVICES=('.*\.example\.com',))
 class ValidateViewTests(TestCase):
-    """
-    Test the ``ValidateView`` view.
-    """
-    service_url = 'http://www.example.com/'
+    url = 'http://www.example.com/'
+    url2 = 'http://www.example.org/'
 
     def setUp(self):
         self.st = ServiceTicketFactory()
+        self.rf = RequestFactory()
 
     def test_validate_view(self):
         """
-        When called with no parameters, a ``GET`` request to the view
-        should return a validation failure.
+        When called with no parameters, a validation failure should
+        be returned.
         """
-        response = self.client.get(reverse('cas_validate'))
+        request = self.rf.get(reverse('cas_validate'))
+        response = ValidateView.as_view()(request)
         self.assertContains(response, "no\n\n")
         self.assertEqual(response.get('Content-Type'), 'text/plain')
-        self.assertTrue('Cache-Control' in response)
-        self.assertEqual(response['Cache-Control'], 'max-age=0')
 
-    def test_validate_view_post(self):
-        """
-        A ``POST`` request to the view should return an error that the
-        method is not allowed.
-        """
-        response = self.client.post(reverse('cas_validate'))
-        self.assertEqual(response.status_code, 405)
-
+    @override_settings(MAMA_CAS_VALID_SERVICES=('[^\.]+\.example\.com',))
     def test_validate_view_invalid_service(self):
         """
-        When called with an invalid service identifier, a ``GET``
-        request to the view should return a validation failure.
+        When called with an invalid service identifier, a validation
+        failure should be returned.
         """
-        query_str = "?service=%s&ticket=%s" % ('http://www.example.org/',
-                                               self.st.ticket)
-        response = self.client.get(reverse('cas_validate') + query_str)
+        request = self.rf.get(_url('cas_validate', service=self.url2, ticket=self.st.ticket))
+        response = ValidateView.as_view()(request)
         self.assertContains(response, "no\n\n")
         self.assertEqual(response.get('Content-Type'), 'text/plain')
 
     def test_validate_view_invalid_ticket(self):
         """
-        When called with an invalid ticket identifier, a ``GET``
-        request to the view should return a validation failure.
+        When the provided ticket cannot be found, a validation failure
+        should be returned.
         """
-        query_str = "?service=%s&ticket=%s" % (self.service_url,
-                    'ST-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
-        response = self.client.get(reverse('cas_validate') + query_str)
+        st_str = ServiceTicket.objects.create_ticket_str()
+        request = self.rf.get(_url('cas_validate', service=self.url, ticket=st_str))
+        response = ValidateView.as_view()(request)
         self.assertContains(response, "no\n\n")
         self.assertEqual(response.get('Content-Type'), 'text/plain')
 
     def test_validate_view_success(self):
         """
-        When called with correct parameters, a ``GET`` request to the
-        view should return a validation success and the service ticket
-        should be consumed and invalid for future validation attempts.
+        When called with valid parameters, a validation success should
+        be returned. The provided ticket should then be consumed.
         """
-        query_str = "?service=%s&ticket=%s" % (self.service_url,
-                                               self.st.ticket)
-        response = self.client.get(reverse('cas_validate') + query_str)
+        request = self.rf.get(_url('cas_validate', service=self.url, ticket=self.st.ticket))
+        response = ValidateView.as_view()(request)
         self.assertContains(response, "yes\nellen\n")
         self.assertEqual(response.get('Content-Type'), 'text/plain')
 
-        # This should not validate as the ticket was consumed in the
-        # preceeding request
-        response = self.client.get(reverse('cas_validate') + query_str)
-        self.assertContains(response, "no\n\n")
-        self.assertEqual(response.get('Content-Type'), 'text/plain')
+        st = ServiceTicket.objects.get(ticket=self.st.ticket)
+        self.assertTrue(st.is_consumed())
 
 
-@override_settings(MAMA_CAS_VALID_SERVICES=('.*\.example\.com',))
-@override_settings(MAMA_CAS_USER_ATTRIBUTES={'givenName': 'first_name',
-                                             'sn': 'last_name',
-                                             'email': 'email',
-                                             'test': 'invalid'})
 class ServiceValidateViewTests(TestCase):
-    """
-    Test the ``ServiceValidateView`` view.
-    """
-    service_url = 'http://www.example.com/'
-    pgt_url = 'https://www.example.com/'
+    url = 'http://www.example.com/'
+    url2 = 'https://www.example.org/'
 
     def setUp(self):
         self.st = ServiceTicketFactory()
+        self.rf = RequestFactory()
 
     def test_service_validate_view(self):
         """
-        When called with no parameters, a ``GET`` request to the view
-        should return a validation failure.
+        When called with no parameters, a validation failure should
+        be returned.
         """
-        response = self.client.get(reverse('cas_service_validate'))
+        request = self.rf.get(reverse('cas_service_validate'))
+        response = ServiceValidateView.as_view()(request)
         self.assertContains(response, 'INVALID_REQUEST')
-
-    def test_service_validate_view_post(self):
-        """
-        A ``POST`` request to the view should return an error that the
-        method is not allowed.
-        """
-        response = self.client.post(reverse('cas_service_validate'))
-        self.assertEqual(response.status_code, 405)
 
     def test_service_validate_view_invalid_service(self):
         """
-        When called with an invalid service identifier, a ``GET``
-        request to the view should return a validation failure.
+        When called with an invalid service identifier, a validation
+        failure should be returned.
         """
-        query_str = "?service=%s&ticket=%s" % ('http://www.example.org/',
-                                               self.st.ticket)
-        response = self.client.get(reverse('cas_service_validate') + query_str)
+        request = self.rf.get(_url('cas_service_validate', service=self.url2, ticket=self.st.ticket))
+        response = ServiceValidateView.as_view()(request)
         self.assertContains(response, 'INVALID_SERVICE')
 
     def test_service_validate_view_invalid_ticket(self):
         """
-        When called with an invalid ticket identifier, a ``GET``
-        request to the view should return a validation failure.
+        When the provided ticket cannot be found, a validation failure
+        should be returned.
         """
-        query_str = "?service=%s&ticket=%s" % (self.service_url,
-                    'ST-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
-        response = self.client.get(reverse('cas_service_validate') + query_str)
+        st_str = ServiceTicket.objects.create_ticket_str()
+        request = self.rf.get(_url('cas_service_validate', service=self.url, ticket=st_str))
+        response = ServiceValidateView.as_view()(request)
         self.assertContains(response, 'INVALID_TICKET')
 
     def test_service_validate_view_proxy_ticket(self):
         """
-        When passed a proxy ticket, the error should explain that
-        validation failed because a proxy ticket was provided.
+        When a proxy ticket is provided, the validation failure should
+        indicate that it was because a proxy ticket was provided.
         """
-        query_str = "?service=%s&ticket=%s" % (self.service_url,
-                    'PT-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
-        response = self.client.get(reverse('cas_service_validate') + query_str)
+        pt_str = ProxyTicket.objects.create_ticket_str()
+        request = self.rf.get(_url('cas_service_validate', service=self.url, ticket=pt_str))
+        response = ServiceValidateView.as_view()(request)
         self.assertContains(response, 'INVALID_TICKET')
         self.assertContains(response, 'Proxy tickets cannot be validated'
                                       ' with /serviceValidate')
 
     def test_service_validate_view_success(self):
         """
-        When called with correct parameters, a ``GET`` request to the
-        view should return a validation success and the
-        ``ServiceTicket`` should be consumed and invalid for future
-        validation attempts.
+        When called with valid parameters, a validation success should
+        be returned. The provided ticket should then be consumed.
         """
-        query_str = "?service=%s&ticket=%s" % (self.service_url,
-                                               self.st.ticket)
-        response = self.client.get(reverse('cas_service_validate') + query_str)
-        self.assertContains(response, 'ellen')
-        self.assertEqual(response.status_code, 200)
+        request = self.rf.get(_url('cas_service_validate', service=self.url, ticket=self.st.ticket))
+        response = ServiceValidateView.as_view()(request)
+        self.assertContains(response, 'authenticationSuccess')
         self.assertEqual(response.get('Content-Type'), 'text/xml')
 
-        # This should not validate as the ticket was consumed in the
-        # preceeding request
-        response = self.client.get(reverse('cas_service_validate') + query_str)
-        self.assertContains(response, 'INVALID_TICKET')
+        st = ServiceTicket.objects.get(ticket=self.st.ticket)
+        self.assertTrue(st.is_consumed())
 
     def test_service_validate_view_pgturl(self):
         """
-        When called with correct parameters and a ``pgtUrl`` parameter,
-        a ``GET`` request to the view should return a validation
-        success and also attempt to create a ``ProxyGrantingTicket``.
+        When called with valid parameters and a ``pgtUrl``, the
+        validation success should include a ``ProxyGrantingTicket``.
         """
-        query_str = "?service=%s&ticket=%s&pgtUrl=%s" % (self.service_url,
-                                                         self.st.ticket,
-                                                         self.pgt_url)
-        url = reverse('cas_service_validate') + query_str
+        request = self.rf.get(_url('cas_service_validate', service=self.url, ticket=self.st.ticket, pgtUrl=self.url2))
         with patch('requests.get') as mock:
             mock.return_value.status_code = 200
-            response = self.client.get(url)
-        self.assertContains(response, 'ellen')
+            response = ServiceValidateView.as_view()(request)
+        self.assertContains(response, 'authenticationSuccess')
         self.assertContains(response, 'proxyGrantingTicket')
 
     def test_service_validate_view_pgturl_http(self):
         """
-        When called with correct parameters and an invalid HTTP
-        ``pgtUrl`` parameter, a ``GET`` request to the view should
-        return a validation success with no ``ProxyGrantingTicket``.
+        When called with valid parameters and an invalid ``pgtUrl``,
+        the validation success should have no ``ProxyGrantingTicket``.
         """
-        query_str = "?service=%s&ticket=%s&pgtUrl=%s" % (self.service_url,
-                                                         self.st.ticket,
-                                                         'http://www.example.com/')
-        response = self.client.get(reverse('cas_service_validate') + query_str)
-        self.assertContains(response, 'ellen')
+        request = self.rf.get(_url('cas_service_validate', service=self.url, ticket=self.st.ticket, pgtUrl=self.url))
+        response = ServiceValidateView.as_view()(request)
+        self.assertContains(response, 'authenticationSuccess')
         self.assertNotContains(response, 'proxyGrantingTicket')
 
-    @override_settings(MAMA_CAS_ATTRIBUTE_FORMAT='jasig')
-    def test_service_validate_view_user_attributes(self):
-        """
-        When ``MAMA_CAS_USER_ATTRIBUTES`` is defined in the settings
-        file, a service validation success should include the list of
-        configured user attributes.
-        """
-        query_str = "?service=%s&ticket=%s" % (self.service_url,
-                                               self.st.ticket)
-        response = self.client.get(reverse('cas_service_validate') + query_str)
-        self.assertContains(response, 'attributes')
-
+    @override_settings(MAMA_CAS_VALID_SERVICES=('[^\.]+\.example\.net',))
     def test_service_validate_view_invalid_service_url(self):
         """
-        When ``MAMA_CAS_VALID_SERVICES`` is defined in the settings
-        file, a service string should be checked against the list of
-        valid services. If it does not match, a service authentication
-        failure should be returned.
+        When ``MAMA_CAS_VALID_SERVICES`` is defined, a validation
+        failure should be returned if the service URL does not match.
         """
-        query_str = "?service=%s&ticket=%s" % ('http://www.example.org/',
-                                               self.st.ticket)
-        response = self.client.get(reverse('cas_service_validate') + query_str)
+        request = self.rf.get(_url('cas_service_validate', service=self.url, ticket=self.st.ticket))
+        response = ServiceValidateView.as_view()(request)
         self.assertContains(response, 'INVALID_SERVICE')
+
+    @override_settings(MAMA_CAS_USER_ATTRIBUTES={'email': 'email'})
+    def test_service_validate_view_user_attributes(self):
+        """
+        When ``MAMA_CAS_USER_ATTRIBUTES`` is defined, the validation
+        success should include the custom attribute block.
+        """
+        request = self.rf.get(_url('cas_service_validate', service=self.url, ticket=self.st.ticket))
+        response = ServiceValidateView.as_view()(request)
+        self.assertContains(response, 'attributes')
 
     @override_settings(MAMA_CAS_ATTRIBUTES_CALLBACK='mama_cas.tests.callback.test_callback')
     def test_service_validate_view_attributes_callback(self):
         """
-        When a custom callback is defined in the settings file, a service
-        validation success should include the attributes that callback
-        returns.
+        When a custom callback is defined, a validation success should
+        include the returned attributes.
         """
-        query_str = "?service=%s&ticket=%s" % (self.service_url, self.st.ticket)
-        response = self.client.get(reverse('cas_service_validate') + query_str)
+        request = self.rf.get(_url('cas_service_validate', service=self.url, ticket=self.st.ticket))
+        response = ServiceValidateView.as_view()(request)
+        self.assertContains(response, 'attributes')
         self.assertContains(response, '<cas:username>ellen</cas:username>')
 
 
-@override_settings(MAMA_CAS_VALID_SERVICES=('.*\.example\.com',))
-@override_settings(MAMA_CAS_USER_ATTRIBUTES={'givenName': 'first_name',
-                                             'sn': 'last_name',
-                                             'email': 'email',
-                                             'test': 'invalid'})
 class ProxyValidateViewTests(TestCase):
-    """
-    Test the ``ProxyValidateView`` view.
-    """
-    service_url = 'http://www.example.com/'
-    invalid_service = 'http://www.example.org/'
-    pgt_url = 'https://www.example.com/'
+    url = 'http://www.example.com/'
+    url2 = 'https://www.example.com/'
 
     def setUp(self):
         self.st = ServiceTicketFactory()
         self.pgt = ProxyGrantingTicketFactory()
         self.pt = ProxyTicketFactory()
+        self.rf = RequestFactory()
 
     def test_proxy_validate_view(self):
         """
-        When called with no parameters, a ``GET`` request to the view
-        should return a validation failure.
+        When called with no parameters, a validation failure should
+        be returned.
         """
-        response = self.client.get(reverse('cas_proxy_validate'))
+        request = self.rf.get(reverse('cas_proxy_validate'))
+        response = ProxyValidateView.as_view()(request)
         self.assertContains(response, 'INVALID_REQUEST')
-
-    def test_proxy_validate_view_post(self):
-        """
-        A ``POST`` request to the view should return an error that the
-        method is not allowed.
-        """
-        response = self.client.post(reverse('cas_proxy_validate'))
-        self.assertEqual(response.status_code, 405)
 
     def test_proxy_validate_view_invalid_service(self):
         """
-        When called with an invalid service identifier, a ``GET``
-        request to the view should return a validation failure.
+        When called with an invalid service identifier, a validation
+        failure should be returned.
         """
-        query_str = "?service=%s&ticket=%s" % (self.invalid_service,
-                                               self.pt.ticket)
-        response = self.client.get(reverse('cas_proxy_validate') + query_str)
+        request = self.rf.get(_url('cas_proxy_validate', service=self.url2, ticket=self.pt.ticket))
+        response = ProxyValidateView.as_view()(request)
         self.assertContains(response, 'INVALID_SERVICE')
 
     def test_proxy_validate_view_invalid_ticket(self):
         """
-        When called with an invalid ticket identifier, a ``GET``
-        request to the view should return a validation failure.
+        When the provided ticket cannot be found, a validation
+        failure should be returned.
         """
-        query_str = "?service=%s&ticket=%s" % (self.service_url,
-                    'PT-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
-        response = self.client.get(reverse('cas_proxy_validate') + query_str)
+        pt_str = ProxyTicket.objects.create_ticket_str()
+        request = self.rf.get(_url('cas_proxy_validate', service=self.url, ticket=pt_str))
+        response = ProxyValidateView.as_view()(request)
         self.assertContains(response, 'INVALID_TICKET')
 
     def test_proxy_validate_view_st_success(self):
         """
-        When called with a valid ``ServiceTicket``, a ``GET`` request
-        to the view should return a validation success and the
-        ``ServiceTicket`` should be consumed and invalid for future
-        validation attempts.
+        When called with a valid ``ServiceTicket``, a validation
+        success should be returned. The provided ticket should be
+        consumed.
         """
-        query_str = "?service=%s&ticket=%s" % (self.service_url,
-                                               self.st.ticket)
-        response = self.client.get(reverse('cas_proxy_validate') + query_str)
-        self.assertContains(response, 'ellen')
-        self.assertEqual(response.status_code, 200)
+        request = self.rf.get(_url('cas_proxy_validate', service=self.url, ticket=self.st.ticket))
+        response = ProxyValidateView.as_view()(request)
+        self.assertContains(response, 'authenticationSuccess')
         self.assertEqual(response.get('Content-Type'), 'text/xml')
 
-        # This should not validate as the ticket was consumed in the
-        # preceeding request
-        response = self.client.get(reverse('cas_proxy_validate') + query_str)
-        self.assertContains(response, 'INVALID_TICKET')
+        st = ServiceTicket.objects.get(ticket=self.st.ticket)
+        self.assertTrue(st.is_consumed())
 
     def test_proxy_validate_view_pt_success(self):
         """
-        When called with a valid ``ProxyTicket``, a ``GET`` request to
-        the view should return a validation success and the
-        ``ProxyTicket`` should be consumed and invalid for future
-        validation attempts.
+        When called with a valid ``ProxyTicket``, a validation success
+        should be returned. The provided ticket should be consumed.
         """
-        query_str = "?service=%s&ticket=%s" % (self.pt.service, self.pt.ticket)
-        response = self.client.get(reverse('cas_proxy_validate') + query_str)
-        self.assertContains(response, 'ellen')
-        self.assertContains(response, 'http://www.example.com')
-        self.assertEqual(response.status_code, 200)
+        request = self.rf.get(_url('cas_proxy_validate', service=self.url, ticket=self.pt.ticket))
+        response = ProxyValidateView.as_view()(request)
+        self.assertContains(response, 'authenticationSuccess')
         self.assertEqual(response.get('Content-Type'), 'text/xml')
 
-        # This second validation request attempt should fail as the
-        # ticket was consumed in the preceeding request
-        response = self.client.get(reverse('cas_proxy_validate') + query_str)
-        self.assertContains(response, 'INVALID_TICKET')
-        self.assertNotContains(response, 'http://www.example.com')
+        pt = ProxyTicket.objects.get(ticket=self.pt.ticket)
+        self.assertTrue(pt.is_consumed())
 
     def test_proxy_validate_view_proxies(self):
         """
-        When a successful ``ProxyTicket`` validation occurs, the
-        response should include a ``proxies`` block containing all of
-        the proxies involved. When authentication has proceeded through
-        multiple proxies, they must be listed in reverse order of being
-        accessed.
+        A validation success should include a ``proxies`` block
+        containing all the proxies involved.
         """
         pgt2 = ProxyGrantingTicketFactory(granted_by_pt=self.pt,
                                           granted_by_st=None)
         pt2 = ProxyTicketFactory(service='http://ww2.example.com',
                                  granted_by_pgt=pgt2)
-        query_str = "?service=%s&ticket=%s" % (pt2.service, pt2.ticket)
-        response = self.client.get(reverse('cas_proxy_validate') + query_str)
-        self.assertContains(response, 'ellen')
+        request = self.rf.get(_url('cas_proxy_validate', service=pt2.service, ticket=pt2.ticket))
+        response = ProxyValidateView.as_view()(request)
+        self.assertContains(response, 'authenticationSuccess')
         self.assertContains(response, 'http://ww2.example.com')
         self.assertContains(response, 'http://www.example.com')
 
     def test_proxy_validate_view_pgturl(self):
         """
-        When called with correct parameters and a ``pgtUrl`` parameter,
-        a ``GET`` request to the view should return a validation
-        success and also attempt to create a ``ProxyGrantingTicket``.
+        When called with valid parameters and a ``pgtUrl``, a
+        validation success should include a ``ProxyGrantingTicket``.
         """
-        query_str = "?service=%s&ticket=%s&pgtUrl=%s" % (self.service_url,
-                                                         self.pt.ticket,
-                                                         self.pgt_url)
-        url = reverse('cas_proxy_validate') + query_str
+        request = self.rf.get(_url('cas_proxy_validate', service=self.url, ticket=self.pt.ticket, pgtUrl=self.url2))
         with patch('requests.get') as mock:
             mock.return_value.status_code = 200
-            response = self.client.get(url)
-        self.assertContains(response, 'ellen')
+            response = ProxyValidateView.as_view()(request)
+        self.assertContains(response, 'authenticationSuccess')
         self.assertContains(response, 'proxyGrantingTicket')
 
     def test_proxy_validate_view_pgturl_http(self):
         """
-        When called with correct parameters and an invalid HTTP
-        ``pgtUrl`` parameter, a ``GET`` request to the view should
-        return a validation success with no ``ProxyGrantingTicket``.
+        When called with valid parameters and an invalid ``pgtUrl``,
+        the validation success should have no ``ProxyGrantingTicket``.
         """
-        query_str = "?service=%s&ticket=%s&pgtUrl=%s" % (self.service_url,
-                                                         self.pt.ticket,
-                                                         'http://www.example.com/')
-        response = self.client.get(reverse('cas_proxy_validate') + query_str)
-        self.assertContains(response, 'ellen')
+        request = self.rf.get(_url('cas_proxy_validate', service=self.url, ticket=self.pt.ticket, pgtUrl=self.url))
+        response = ProxyValidateView.as_view()(request)
+        self.assertContains(response, 'authenticationSuccess')
         self.assertNotContains(response, 'proxyGrantingTicket')
 
-    @override_settings(MAMA_CAS_ATTRIBUTE_FORMAT='jasig')
+    @override_settings(MAMA_CAS_USER_ATTRIBUTES={'email': 'email'})
     def test_proxy_validate_view_user_attributes(self):
         """
-        When ``MAMA_CAS_USER_ATTRIBUTES`` is defined in the settings
-        file, a proxy validation success should include the list of
-        configured user attributes.
+        When ``MAMA_CAS_USER_ATTRIBUTES`` is defined, the validation
+        success should include the custom attribute block.
         """
-        query_str = "?service=%s&ticket=%s" % (self.service_url,
-                                               self.st.ticket)
-        response = self.client.get(reverse('cas_proxy_validate') + query_str)
+        request = self.rf.get(_url('cas_proxy_validate', service=self.url, ticket=self.pt.ticket))
+        response = ProxyValidateView.as_view()(request)
         self.assertContains(response, 'attributes')
 
+    @override_settings(MAMA_CAS_VALID_SERVICES=('^[^\.]+\.example\.net',))
     def test_proxy_validate_view_invalid_service_url(self):
         """
-        When ``MAMA_CAS_VALID_SERVICES`` is defined in the settings
-        file, a service string should be checked against the list of
-        valid services. If it does not match, a proxy authentication
-        failure should be returned.
+        When ``MAMA_CAS_VALID_SERVICES`` is defined, a validation
+        failure should be returned if the service URL does not match.
         """
-        query_str = "?service=%s&ticket=%s" % (self.invalid_service,
-                                               self.pt.ticket)
-        response = self.client.get(reverse('cas_proxy_validate') + query_str)
+        request = self.rf.get(_url('cas_proxy_validate', service=self.url, ticket=self.pt.ticket))
+        response = ProxyValidateView.as_view()(request)
         self.assertContains(response, 'INVALID_SERVICE')
 
 
 class ProxyViewTests(TestCase):
-    """
-    Test the ``ProxyView`` view.
-    """
-    service_url = 'http://www.example.com/'
-    invalid_service = 'http://www.example.org/'
+    url = 'http://www.example.com/'
+    url2 = 'http://www.example.org/'
 
     def setUp(self):
         self.st = ServiceTicketFactory()
         self.pgt = ProxyGrantingTicketFactory()
+        self.rf = RequestFactory()
 
     def test_proxy_view(self):
         """
-        When called with no parameters, a ``GET`` request to the view
-        should return a validation failure.
+        When called with no parameters, a validation failure should be
+        returned.
         """
-        response = self.client.get(reverse('cas_proxy'))
+        request = self.rf.get(reverse('cas_proxy'))
+        response = ProxyView.as_view()(request)
         self.assertContains(response, 'INVALID_REQUEST')
-
-    def test_proxy_view_post(self):
-        """
-        A ``POST`` request to the view should return an error that the
-        method is not allowed.
-        """
-        response = self.client.post(reverse('cas_proxy'))
-        self.assertEqual(response.status_code, 405)
 
     def test_proxy_view_no_service(self):
         """
-        When called with no service identifier, a ``GET`` request to
-        the view should return a validation failure.
+        When called with no service identifier, a validation failure
+        should be returned.
         """
-        query_str = "?pgt=%s" % (self.pgt.ticket)
-        response = self.client.get(reverse('cas_proxy') + query_str)
+        request = self.rf.get(_url('cas_proxy', pgt=self.pgt.ticket))
+        response = ProxyView.as_view()(request)
         self.assertContains(response, 'INVALID_REQUEST')
 
     def test_proxy_view_invalid_ticket(self):
         """
-        When called with an invalid ticket identifier, a ``GET``
-        request to the view should return a validation failure.
+        When the provided ticket cannot be found, a validation failure
+        should be returned.
         """
-        query_str = "?targetService=%s&pgt=%s" % (self.service_url,
-                    'PGT-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
-        response = self.client.get(reverse('cas_proxy') + query_str)
+        pgt_str = ProxyTicket.objects.create_ticket_str()
+        request = self.rf.get(_url('cas_proxy', targetService=self.url, pgt=pgt_str))
+        response = ProxyView.as_view()(request)
         self.assertContains(response, 'BAD_PGT')
 
     def test_proxy_view_success(self):
         """
-        When called with correct parameters, a ``GET`` request to the
-        view should return a validation success with an included
-        ``ProxyTicket``.
+        When called with valid parameters, a validation success
+        should be returned.
         """
-        query_str = "?targetService=%s&pgt=%s" % (self.service_url,
-                                                  self.pgt.ticket)
-        response = self.client.get(reverse('cas_proxy') + query_str)
+        request = self.rf.get(_url('cas_proxy', targetService=self.url, pgt=self.pgt.ticket))
+        response = ProxyView.as_view()(request)
         self.assertContains(response, 'proxyTicket')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.get('Content-Type'), 'text/xml')
 
-    @override_settings(MAMA_CAS_VALID_SERVICES=('.*\.example\.com',))
+    @override_settings(MAMA_CAS_VALID_SERVICES=('[^\.]+\.example\.com',))
     def test_proxy_view_invalid_service_url(self):
         """
-        When ``MAMA_CAS_VALID_SERVICES`` is defined, a service string
-        should be checked against the list of valid services. If it does
-        not match, a proxy authentication failure should be returned.
+        When called with an invalid service identifier, a proxy
+        authentication failure should be returned.
         """
-        query_str = "?targetService=%s&pgt=%s" % (self.invalid_service,
-                                                  self.pgt.ticket)
-        response = self.client.get(reverse('cas_proxy') + query_str)
+        request = self.rf.get(_url('cas_proxy', targetService=self.url2, pgt=self.pgt.ticket))
+        response = ProxyView.as_view()(request)
         self.assertContains(response, 'INVALID_SERVICE')
