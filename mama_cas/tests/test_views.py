@@ -26,11 +26,6 @@ from mama_cas.views import ServiceValidateView
 from mama_cas.views import ValidateView
 
 
-def _url(name, **kwargs):
-    """Build a URL given a view name and kwarg query parameters."""
-    return reverse(name) + '?' + urlencode(kwargs)
-
-
 class LoginViewTests(TestCase):
     user_info = {'username': 'ellen',
                  'password': 'mamas&papas'}
@@ -341,7 +336,7 @@ class ValidateViewTests(TestCase):
         When called with an invalid service identifier, a validation
         failure should be returned.
         """
-        request = self.rf.get(_url('cas_validate', service=self.url2, ticket=self.st.ticket))
+        request = self.rf.get(reverse('cas_validate'), {'service': self.url2, 'ticket': self.st.ticket})
         response = ValidateView.as_view()(request)
         self.assertContains(response, "no\n\n")
         self.assertEqual(response.get('Content-Type'), 'text/plain')
@@ -352,7 +347,7 @@ class ValidateViewTests(TestCase):
         should be returned.
         """
         st_str = ServiceTicket.objects.create_ticket_str()
-        request = self.rf.get(_url('cas_validate', service=self.url, ticket=st_str))
+        request = self.rf.get(reverse('cas_validate'), {'service': self.url, 'ticket': st_str})
         response = ValidateView.as_view()(request)
         self.assertContains(response, "no\n\n")
         self.assertEqual(response.get('Content-Type'), 'text/plain')
@@ -362,7 +357,7 @@ class ValidateViewTests(TestCase):
         When called with valid parameters, a validation success should
         be returned. The provided ticket should then be consumed.
         """
-        request = self.rf.get(_url('cas_validate', service=self.url, ticket=self.st.ticket))
+        request = self.rf.get(reverse('cas_validate'), {'service': self.url, 'ticket': self.st.ticket})
         response = ValidateView.as_view()(request)
         self.assertContains(response, "yes\nellen\n")
         self.assertEqual(response.get('Content-Type'), 'text/plain')
@@ -393,7 +388,7 @@ class ServiceValidateViewTests(TestCase):
         When called with an invalid service identifier, a validation
         failure should be returned.
         """
-        request = self.rf.get(_url('cas_service_validate', service=self.url2, ticket=self.st.ticket))
+        request = self.rf.get(reverse('cas_service_validate'), {'service': self.url2, 'ticket': self.st.ticket})
         response = ServiceValidateView.as_view()(request)
         self.assertContains(response, 'INVALID_SERVICE')
 
@@ -403,7 +398,7 @@ class ServiceValidateViewTests(TestCase):
         should be returned.
         """
         st_str = ServiceTicket.objects.create_ticket_str()
-        request = self.rf.get(_url('cas_service_validate', service=self.url, ticket=st_str))
+        request = self.rf.get(reverse('cas_service_validate'), {'service': self.url, 'ticket': st_str})
         response = ServiceValidateView.as_view()(request)
         self.assertContains(response, 'INVALID_TICKET')
 
@@ -413,7 +408,7 @@ class ServiceValidateViewTests(TestCase):
         indicate that it was because a proxy ticket was provided.
         """
         pt_str = ProxyTicket.objects.create_ticket_str()
-        request = self.rf.get(_url('cas_service_validate', service=self.url, ticket=pt_str))
+        request = self.rf.get(reverse('cas_service_validate'), {'service': self.url, 'ticket': pt_str})
         response = ServiceValidateView.as_view()(request)
         self.assertContains(response, 'INVALID_TICKET')
         self.assertContains(response, 'Proxy tickets cannot be validated'
@@ -424,7 +419,7 @@ class ServiceValidateViewTests(TestCase):
         When called with valid parameters, a validation success should
         be returned. The provided ticket should then be consumed.
         """
-        request = self.rf.get(_url('cas_service_validate', service=self.url, ticket=self.st.ticket))
+        request = self.rf.get(reverse('cas_service_validate'), {'service': self.url, 'ticket': self.st.ticket})
         response = ServiceValidateView.as_view()(request)
         self.assertContains(response, 'authenticationSuccess')
         self.assertEqual(response.get('Content-Type'), 'text/xml')
@@ -437,7 +432,7 @@ class ServiceValidateViewTests(TestCase):
         When called with valid parameters and a ``pgtUrl``, the
         validation success should include a ``ProxyGrantingTicket``.
         """
-        request = self.rf.get(_url('cas_service_validate', service=self.url, ticket=self.st.ticket, pgtUrl=self.url2))
+        request = self.rf.get(reverse('cas_service_validate'), {'service': self.url, 'ticket': self.st.ticket, 'pgtUrl': self.url2})
         with patch('requests.get') as mock:
             mock.return_value.status_code = 200
             response = ServiceValidateView.as_view()(request)
@@ -449,7 +444,7 @@ class ServiceValidateViewTests(TestCase):
         When called with valid parameters and an invalid ``pgtUrl``,
         the validation success should have no ``ProxyGrantingTicket``.
         """
-        request = self.rf.get(_url('cas_service_validate', service=self.url, ticket=self.st.ticket, pgtUrl=self.url))
+        request = self.rf.get(reverse('cas_service_validate'), {'service': self.url, 'ticket': self.st.ticket, 'pgtUrl': self.url})
         response = ServiceValidateView.as_view()(request)
         self.assertContains(response, 'authenticationSuccess')
         self.assertNotContains(response, 'proxyGrantingTicket')
@@ -460,7 +455,7 @@ class ServiceValidateViewTests(TestCase):
         When ``MAMA_CAS_VALID_SERVICES`` is defined, a validation
         failure should be returned if the service URL does not match.
         """
-        request = self.rf.get(_url('cas_service_validate', service=self.url, ticket=self.st.ticket))
+        request = self.rf.get(reverse('cas_service_validate'), {'service': self.url, 'ticket': self.st.ticket})
         response = ServiceValidateView.as_view()(request)
         self.assertContains(response, 'INVALID_SERVICE')
 
@@ -470,7 +465,7 @@ class ServiceValidateViewTests(TestCase):
         When ``MAMA_CAS_USER_ATTRIBUTES`` is defined, the validation
         success should include the custom attribute block.
         """
-        request = self.rf.get(_url('cas_service_validate', service=self.url, ticket=self.st.ticket))
+        request = self.rf.get(reverse('cas_service_validate'), {'service': self.url, 'ticket': self.st.ticket})
         response = ServiceValidateView.as_view()(request)
         self.assertContains(response, 'attributes')
 
@@ -480,7 +475,7 @@ class ServiceValidateViewTests(TestCase):
         When a custom callback is defined, a validation success should
         include the returned attributes.
         """
-        request = self.rf.get(_url('cas_service_validate', service=self.url, ticket=self.st.ticket))
+        request = self.rf.get(reverse('cas_service_validate'), {'service': self.url, 'ticket': self.st.ticket})
         response = ServiceValidateView.as_view()(request)
         self.assertContains(response, 'attributes')
         self.assertContains(response, '<cas:username>ellen</cas:username>')
@@ -510,7 +505,7 @@ class ProxyValidateViewTests(TestCase):
         When called with an invalid service identifier, a validation
         failure should be returned.
         """
-        request = self.rf.get(_url('cas_proxy_validate', service=self.url2, ticket=self.pt.ticket))
+        request = self.rf.get(reverse('cas_proxy_validate'), {'service': self.url2, 'ticket': self.pt.ticket})
         response = ProxyValidateView.as_view()(request)
         self.assertContains(response, 'INVALID_SERVICE')
 
@@ -520,7 +515,7 @@ class ProxyValidateViewTests(TestCase):
         failure should be returned.
         """
         pt_str = ProxyTicket.objects.create_ticket_str()
-        request = self.rf.get(_url('cas_proxy_validate', service=self.url, ticket=pt_str))
+        request = self.rf.get(reverse('cas_proxy_validate'), {'service': self.url, 'ticket': pt_str})
         response = ProxyValidateView.as_view()(request)
         self.assertContains(response, 'INVALID_TICKET')
 
@@ -530,7 +525,7 @@ class ProxyValidateViewTests(TestCase):
         success should be returned. The provided ticket should be
         consumed.
         """
-        request = self.rf.get(_url('cas_proxy_validate', service=self.url, ticket=self.st.ticket))
+        request = self.rf.get(reverse('cas_proxy_validate'), {'service': self.url, 'ticket': self.st.ticket})
         response = ProxyValidateView.as_view()(request)
         self.assertContains(response, 'authenticationSuccess')
         self.assertEqual(response.get('Content-Type'), 'text/xml')
@@ -543,7 +538,7 @@ class ProxyValidateViewTests(TestCase):
         When called with a valid ``ProxyTicket``, a validation success
         should be returned. The provided ticket should be consumed.
         """
-        request = self.rf.get(_url('cas_proxy_validate', service=self.url, ticket=self.pt.ticket))
+        request = self.rf.get(reverse('cas_proxy_validate'), {'service': self.url, 'ticket': self.pt.ticket})
         response = ProxyValidateView.as_view()(request)
         self.assertContains(response, 'authenticationSuccess')
         self.assertEqual(response.get('Content-Type'), 'text/xml')
@@ -560,7 +555,7 @@ class ProxyValidateViewTests(TestCase):
                                           granted_by_st=None)
         pt2 = ProxyTicketFactory(service='http://ww2.example.com',
                                  granted_by_pgt=pgt2)
-        request = self.rf.get(_url('cas_proxy_validate', service=pt2.service, ticket=pt2.ticket))
+        request = self.rf.get(reverse('cas_proxy_validate'), {'service': pt2.service, 'ticket': pt2.ticket})
         response = ProxyValidateView.as_view()(request)
         self.assertContains(response, 'authenticationSuccess')
         self.assertContains(response, 'http://ww2.example.com')
@@ -571,7 +566,7 @@ class ProxyValidateViewTests(TestCase):
         When called with valid parameters and a ``pgtUrl``, a
         validation success should include a ``ProxyGrantingTicket``.
         """
-        request = self.rf.get(_url('cas_proxy_validate', service=self.url, ticket=self.pt.ticket, pgtUrl=self.url2))
+        request = self.rf.get(reverse('cas_proxy_validate'), {'service': self.url, 'ticket': self.pt.ticket, 'pgtUrl': self.url2})
         with patch('requests.get') as mock:
             mock.return_value.status_code = 200
             response = ProxyValidateView.as_view()(request)
@@ -583,7 +578,7 @@ class ProxyValidateViewTests(TestCase):
         When called with valid parameters and an invalid ``pgtUrl``,
         the validation success should have no ``ProxyGrantingTicket``.
         """
-        request = self.rf.get(_url('cas_proxy_validate', service=self.url, ticket=self.pt.ticket, pgtUrl=self.url))
+        request = self.rf.get(reverse('cas_proxy_validate'), {'service': self.url, 'ticket': self.pt.ticket, 'pgtUrl': self.url})
         response = ProxyValidateView.as_view()(request)
         self.assertContains(response, 'authenticationSuccess')
         self.assertNotContains(response, 'proxyGrantingTicket')
@@ -594,7 +589,7 @@ class ProxyValidateViewTests(TestCase):
         When ``MAMA_CAS_USER_ATTRIBUTES`` is defined, the validation
         success should include the custom attribute block.
         """
-        request = self.rf.get(_url('cas_proxy_validate', service=self.url, ticket=self.pt.ticket))
+        request = self.rf.get(reverse('cas_proxy_validate'), {'service': self.url, 'ticket': self.pt.ticket})
         response = ProxyValidateView.as_view()(request)
         self.assertContains(response, 'attributes')
 
@@ -604,7 +599,7 @@ class ProxyValidateViewTests(TestCase):
         When ``MAMA_CAS_VALID_SERVICES`` is defined, a validation
         failure should be returned if the service URL does not match.
         """
-        request = self.rf.get(_url('cas_proxy_validate', service=self.url, ticket=self.pt.ticket))
+        request = self.rf.get(reverse('cas_proxy_validate'), {'service': self.url, 'ticket': self.pt.ticket})
         response = ProxyValidateView.as_view()(request)
         self.assertContains(response, 'INVALID_SERVICE')
 
@@ -632,7 +627,7 @@ class ProxyViewTests(TestCase):
         When called with no service identifier, a validation failure
         should be returned.
         """
-        request = self.rf.get(_url('cas_proxy', pgt=self.pgt.ticket))
+        request = self.rf.get(reverse('cas_proxy'), {'pgt': self.pgt.ticket})
         response = ProxyView.as_view()(request)
         self.assertContains(response, 'INVALID_REQUEST')
 
@@ -642,7 +637,7 @@ class ProxyViewTests(TestCase):
         should be returned.
         """
         pgt_str = ProxyTicket.objects.create_ticket_str()
-        request = self.rf.get(_url('cas_proxy', targetService=self.url, pgt=pgt_str))
+        request = self.rf.get(reverse('cas_proxy'), {'targetService': self.url, 'pgt': pgt_str})
         response = ProxyView.as_view()(request)
         self.assertContains(response, 'BAD_PGT')
 
@@ -651,7 +646,7 @@ class ProxyViewTests(TestCase):
         When called with valid parameters, a validation success
         should be returned.
         """
-        request = self.rf.get(_url('cas_proxy', targetService=self.url, pgt=self.pgt.ticket))
+        request = self.rf.get(reverse('cas_proxy'), {'targetService': self.url, 'pgt': self.pgt.ticket})
         response = ProxyView.as_view()(request)
         self.assertContains(response, 'proxyTicket')
 
@@ -661,6 +656,6 @@ class ProxyViewTests(TestCase):
         When called with an invalid service identifier, a proxy
         authentication failure should be returned.
         """
-        request = self.rf.get(_url('cas_proxy', targetService=self.url2, pgt=self.pgt.ticket))
+        request = self.rf.get(reverse('cas_proxy'), {'targetService': self.url2, 'pgt': self.pgt.ticket})
         response = ProxyView.as_view()(request)
         self.assertContains(response, 'INVALID_SERVICE')
