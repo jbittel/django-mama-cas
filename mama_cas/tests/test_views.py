@@ -2,11 +2,6 @@ from __future__ import unicode_literals
 
 from mock import patch
 
-try:
-    from urllib.parse import quote, urlencode
-except ImportError:  # pragma: no cover
-    from urllib import quote, urlencode
-
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.test.client import RequestFactory
@@ -74,8 +69,7 @@ class LoginViewTests(TestCase):
         with the ticket included.
         """
         response = self.client.post(reverse('cas_login'), self.user_info)
-        query_str = "?service=%s" % quote(self.service_url, '')
-        response = self.client.get(reverse('cas_login') + query_str)
+        response = self.client.get(reverse('cas_login'), {'service': self.service_url})
         self.assertEqual(ServiceTicket.objects.count(), 1)
         st = ServiceTicket.objects.latest('id')
         self.assertEqual(response.status_code, 302)
@@ -88,8 +82,7 @@ class LoginViewTests(TestCase):
         When called with an invalid service URL, the view should
         return a 403 Forbidden response.
         """
-        query_str = "?service=%s&gateway=true" % quote(self.service_url, '')
-        response = self.client.get(reverse('cas_login') + query_str)
+        response = self.client.get(reverse('cas_login'), {'service': self.service_url, 'gateway': 'true'})
         self.assertEqual(response.status_code, 403)
 
     def test_login_view_login_post(self):
@@ -114,8 +107,7 @@ class LoginViewTests(TestCase):
         view with the ``renew`` parameter should display the login page.
         """
         response = self.client.post(reverse('cas_login'), self.user_info)
-        query_str = "?renew=true&service=%s" % quote(self.service_url, '')
-        response = self.client.get(reverse('cas_login') + query_str)
+        response = self.client.get(reverse('cas_login'), {'service': self.service_url, 'renew': 'true'})
         self.assertTemplateUsed(response, 'mama_cas/login.html')
 
     def test_login_view_gateway(self):
@@ -124,8 +116,7 @@ class LoginViewTests(TestCase):
         view with the ``gateway`` and ``service`` parameters set
         should simply redirect the user to the supplied service URL.
         """
-        query_str = "?gateway=true&service=%s" % quote(self.service_url, '')
-        response = self.client.get(reverse('cas_login') + query_str)
+        response = self.client.get(reverse('cas_login'), {'service': self.service_url, 'gateway': 'true'})
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response['Location'], self.service_url)
 
@@ -137,8 +128,7 @@ class LoginViewTests(TestCase):
         service URL with the ticket included.
         """
         response = self.client.post(reverse('cas_login'), self.user_info)
-        query_str = "?gateway=true&service=%s" % quote(self.service_url, '')
-        response = self.client.get(reverse('cas_login') + query_str)
+        response = self.client.get(reverse('cas_login'), {'service': self.service_url, 'gateway': 'true'})
         self.assertEqual(ServiceTicket.objects.count(), 1)
         st = ServiceTicket.objects.latest('id')
         self.assertEqual(response.status_code, 302)
@@ -162,11 +152,9 @@ class LoginViewTests(TestCase):
         with the appropriate parameters.
         """
         self.client.post(reverse('cas_login'), self.warn_info)
-        quote_url = quote(self.service_url, '')
-        query_str = "?service=%s" % quote_url
-        response = self.client.get(reverse('cas_login') + query_str)
+        response = self.client.get(reverse('cas_login'), {'service': self.service_url})
         self.assertTrue(reverse('cas_warn') in response['Location'])
-        self.assertTrue("service=%s" % quote_url in response['Location'])
+        self.assertTrue("service=" in response['Location'])
         self.assertTrue('ticket=ST-' in response['Location'])
 
     @override_settings(MAMA_CAS_ALLOW_AUTH_WARN=True)
@@ -177,11 +165,9 @@ class LoginViewTests(TestCase):
         redirect to the warn view with the appropriate parameters.
         """
         self.client.post(reverse('cas_login'), self.warn_info)
-        quote_url = quote(self.service_url, '')
-        query_str = "?gateway=true&service=%s" % quote_url
-        response = self.client.get(reverse('cas_login') + query_str)
+        response = self.client.get(reverse('cas_login'), {'service': self.service_url, 'gateway': 'true'})
         self.assertTrue(reverse('cas_warn') in response['Location'])
-        self.assertTrue("service=%s" % quote_url in response['Location'])
+        self.assertTrue("service=" in response['Location'])
         self.assertTrue('ticket=ST-' in response['Location'])
 
 
@@ -203,8 +189,7 @@ class WarnViewTests(TestCase):
         self.client.login(username=self.user_info['username'],
                           password=self.user_info['password'])
         st = ServiceTicketFactory()
-        query_str = "?service=%s&ticket=%s" % (quote(self.url, ''), st.ticket)
-        response = self.client.get(reverse('cas_warn') + query_str)
+        response = self.client.get(reverse('cas_warn'), {'service': self.url, 'ticket': st.ticket})
         self.assertContains(response, self.url, count=3)
         self.assertContains(response, st.ticket)
         self.assertTemplateUsed(response, 'mama_cas/warn.html')
@@ -224,6 +209,7 @@ class LogoutViewTests(TestCase):
     user_info = {'username': 'ellen',
                  'password': 'mamas&papas',
                  'email': 'ellen@example.com'}
+    url = 'http://www.example.com'
 
     def setUp(self):
         self.user = UserFactory()
@@ -264,10 +250,9 @@ class LogoutViewTests(TestCase):
         should log the user out and redirect to the supplied URL.
         """
         response = self.client.post(reverse('cas_login'), self.user_info)
-        query_str = '?service=http://www.example.com'
-        response = self.client.get(reverse('cas_logout') + query_str)
+        response = self.client.get(reverse('cas_logout'), {'service': self.url})
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response['Location'], 'http://www.example.com')
+        self.assertEqual(response['Location'], self.url)
         self.assertFalse('_auth_user_id' in self.client.session)
 
     @override_settings(MAMA_CAS_FOLLOW_LOGOUT_URL=True)
@@ -278,10 +263,9 @@ class LogoutViewTests(TestCase):
         log the user out and redirect to the supplied URL.
         """
         response = self.client.post(reverse('cas_login'), self.user_info)
-        query_str = '?url=http://www.example.com'
-        response = self.client.get(reverse('cas_logout') + query_str)
+        response = self.client.get(reverse('cas_logout'), {'url': self.url})
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response['Location'], 'http://www.example.com')
+        self.assertEqual(response['Location'], self.url)
         self.assertFalse('_auth_user_id' in self.client.session)
 
     def test_logout_view_display_url(self):
@@ -290,12 +274,11 @@ class LogoutViewTests(TestCase):
         display the supplied URL.
         """
         response = self.client.post(reverse('cas_login'), self.user_info)
-        query_str = '?url=http://www.example.com'
-        response = self.client.get(reverse('cas_logout') + query_str, follow=True)
+        response = self.client.get(reverse('cas_logout'), {'url': self.url}, follow=True)
         self.assertRedirects(response, reverse('cas_login'))
         messages = list(response.context['messages'])
         self.assertEqual(messages[1].tags, 'success')
-        self.assertTrue('http://www.example.com' in messages[1].message)
+        self.assertTrue(self.url in messages[1].message)
 
     @override_settings(MAMA_CAS_ENABLE_SINGLE_SIGN_OUT=True)
     def test_logout_single_sign_out(self):
