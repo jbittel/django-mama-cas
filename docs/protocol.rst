@@ -50,9 +50,3 @@ server.
    session. MamaCAS does not implement ticket-granting tickets, but instead
    uses Django sessions to determine if a single sign-on session has been
    established.
-
-**Follow logout URL (2.3.2)**
-   Setting ``MAMA_CAS_FOLLOW_LOGOUT_URL`` to ``True`` alters the server's
-   behavior at logout from the CAS specification. Depending on the services
-   configured for CAS usage, this change may provide a more expected logout
-   behavior.

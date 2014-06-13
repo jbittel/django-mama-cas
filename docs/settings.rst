@@ -41,20 +41,16 @@ some of these settings alter stock CAS behavior.
 
    :default: ``False``
 
-   Controls the client redirection behavior when the ``url`` parameter is
-   specified at logout. When this setting is ``False``, the client will be
-   redirected to the login page with the specified URL displayed as a
-   recommended link to follow. When this setting is ``True``, the client
-   will be redirected to the specified URL.
+   Controls the client redirection behavior at logout when the ``url``
+   (CAS 2.0) or ``service`` (CAS 3.0) parameter is provided. When this
+   setting is ``True`` and one of these parameters is present, the
+   client will be redirected to the specified URL. When this setting
+   is ``False``, the client will be redirected to the login page. When
+   ``url`` is present, the login page will then display the provided
+   URL as a recommended link to follow.
 
-   If the ``url`` parameter is not specified or if it is not a valid service
-   URL, the client will be redirected to the login page with no URL
-   displayed, irrespective of this setting.
-
-   .. note::
-
-      The default setting of ``False`` conforms to the CAS protocol
-      specification.
+   If neither parameter is specified or is not a valid service URL, the
+   client will be redirected to the login page.
 
 .. attribute:: MAMA_CAS_PROFILE_ATTRIBUTES
 
