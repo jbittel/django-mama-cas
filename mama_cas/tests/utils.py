@@ -1,5 +1,12 @@
 import re
 
+try:
+    from urllib.parse import urlencode
+except ImportError:  # pragma: no cover
+    from urllib import urlencode
+
+from django.core.urlresolvers import reverse
+
 from mama_cas.compat import etree
 
 
@@ -13,3 +20,8 @@ def parse(s):
     for elem in et.getiterator():
         elem.tag = ns.sub('', elem.tag)
     return et
+
+
+def build_url(name, **kwargs):
+    """Build a URL given a view name and kwarg query parameters."""
+    return reverse(name) + '?' + urlencode(kwargs)

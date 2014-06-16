@@ -12,13 +12,16 @@ from .factories import ProxyGrantingTicketFactory
 from .factories import ProxyTicketFactory
 from .factories import ServiceTicketFactory
 from .factories import ConsumedServiceTicketFactory
+from .utils import build_url
 from mama_cas.forms import LoginForm
 from mama_cas.models import ProxyTicket
 from mama_cas.models import ServiceTicket
+from mama_cas.request import SamlValidateRequest
 from mama_cas.views import ProxyView
 from mama_cas.views import ProxyValidateView
 from mama_cas.views import ServiceValidateView
 from mama_cas.views import ValidateView
+from mama_cas.views import SamlValidateView
 
 
 class LoginViewTests(TestCase):
@@ -642,3 +645,59 @@ class ProxyViewTests(TestCase):
         request = self.rf.get(reverse('cas_proxy'), {'targetService': self.url2, 'pgt': self.pgt.ticket})
         response = ProxyView.as_view()(request)
         self.assertContains(response, 'INVALID_SERVICE')
+
+
+class SamlValidateViewTests(TestCase):
+    url = 'http://www.example.com/'
+    url2 = 'https://www.example.org/'
+
+    def setUp(self):
+        self.st = ServiceTicketFactory()
+        self.rf = RequestFactory()
+
+    def test_saml_validate_view(self):
+        """
+        When called with no parameters, a validation failure should be
+        returned.
+        """
+        request = self.rf.post(reverse('cas_saml_validate'))
+        response = SamlValidateView.as_view()(request)
+        self.assertContains(response, 'INVALID_REQUEST')
+
+    def test_saml_validate_view_invalid_service(self):
+        """
+        When called with an invalid service identifier, a validation
+        failure should be returned.
+        """
+        saml = SamlValidateRequest(context={'ticket': self.st})
+        request = self.rf.post(build_url('cas_saml_validate', target=self.url2),
+                               saml.render_content(), content_type='text/xml')
+        response = SamlValidateView.as_view()(request)
+        self.assertContains(response, 'INVALID_SERVICE')
+
+    def test_saml_validate_view_invalid_ticket(self):
+        """
+        When the provided ticket cannot be found, a validation failure
+        should be returned.
+        """
+        temp_st = ServiceTicketFactory()
+        saml = SamlValidateRequest(context={'ticket': temp_st})
+        temp_st.delete()
+        request = self.rf.post(build_url('cas_saml_validate', target=self.url),
+                               saml.render_content(), content_type='text/xml')
+        response = SamlValidateView.as_view()(request)
+        self.assertContains(response, 'INVALID_TICKET')
+
+    def test_saml_validate_view_success(self):
+        """
+        When called with valid parameters, a validation success should
+        be returned. The provided ticket should then be consumed.
+        """
+        saml = SamlValidateRequest(context={'ticket': self.st})
+        request = self.rf.post(build_url('cas_saml_validate', target=self.url),
+                               saml.render_content(), content_type='text/xml')
+        response = SamlValidateView.as_view()(request)
+        self.assertContains(response, 'authenticationSuccess')
+
+        st = ServiceTicket.objects.get(ticket=self.st.ticket)
+        self.assertTrue(st.is_consumed())
