@@ -28,10 +28,13 @@ class CasRequestBase(object):
     def headers(self):
         return {'content-type': self.content_type}
 
+    def instant(self):
+        return datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+
 
 class SingleSignOutRequest(CasRequestBase):
     """
-    [CAS 3.1] Render a SAML single sign-off request, to be sent to a
+    [CAS 3.0] Render a SAML single sign-off request, to be sent to a
     service URL during a logout event.
 
     An example request:
@@ -47,15 +50,57 @@ class SingleSignOutRequest(CasRequestBase):
                 'saml': 'urn:oasis:names:tc:SAML:2.0:assertion'}
 
     def render_content(self):
-        instant = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         ticket = self.context.get('ticket')
 
         logout_request = etree.Element(self.ns('samlp', 'LogoutRequest'))
         logout_request.set('ID', get_random_string(length=32))
         logout_request.set('Version', '2.0')
-        logout_request.set('IssueInstant', instant)
+        logout_request.set('IssueInstant', self.instant())
         etree.SubElement(logout_request, self.ns('saml', 'NameID'))
         session_index = etree.SubElement(logout_request, self.ns('samlp', 'SessionIndex'))
         session_index.text = ticket.ticket
 
         return etree.tostring(logout_request, encoding='UTF-8')
+
+
+class SamlValidateRequest(CasRequestBase):
+    """
+    [CAS 3.0] Render a /samlValidate endpoint request, to be used for
+    testing purposes. This is not used for server operation.
+
+    An example request:
+
+    <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+        <SOAP-ENV:Header/>
+        <SOAP-ENV:Body>
+            <samlp:Request xmlns:samlp="urn:oasis:names:tc:SAML:1.0:protocol"
+            MajorVersion="1" MinorVersion="1" RequestID="_192.168.16.51.1024506224022"
+            IssueInstant="2002-06-19T17:03:44.022Z">
+                <samlp:AssertionArtifact>
+                    ST-1-u4hrm3td92cLxpCvrjylcas.example.com
+                </samlp:AssertionArtifact>
+            </samlp:Request>
+        </SOAP-ENV:Body>
+    </SOAP-ENV:Envelope>
+    """
+    prefixes = {'SOAP-ENV': 'http://schemas.xmlsoap.org/soap/envelope/',
+                'samlp': 'urn:oasis:names:tc:SAML:1.0:protocol'}
+
+    def render_content(self):
+        envelope = etree.Element(self.ns('SOAP-ENV', 'Envelope'))
+        etree.SubElement(envelope, self.ns('SOAP-ENV', 'Header'))
+        body = etree.SubElement(envelope, self.ns('SOAP-ENV', 'Body'))
+        body.append(self.get_request())
+        return etree.tostring(envelope, encoding='UTF-8')
+
+    def get_request(self):
+        ticket = self.context.get('ticket')
+
+        request = etree.Element(self.ns('samlp', 'Request'))
+        request.set('MajorVersion', '1')
+        request.set('MinorVersion', '1')
+        request.set('RequestID', get_random_string(length=32))
+        request.set('IssueInstant', self.instant())
+        artifact = etree.SubElement(request, self.ns('samlp', 'AssertionArtifact'))
+        artifact.text = ticket.ticket
+        return request
