@@ -9,6 +9,8 @@ from django.views.generic import FormView
 from django.views.generic import TemplateView
 from django.views.generic import View
 
+import defusedxml.ElementTree as etree
+
 from mama_cas.compat import get_username
 from mama_cas.forms import LoginForm
 from mama_cas.mixins import CasResponseMixin
@@ -317,3 +319,34 @@ class ProxyView(NeverCacheMixin, ValidateTicketMixin, CasResponseMixin, View):
 
         pt, error = self.validate_proxy_granting_ticket(pgt, target_service)
         return {'ticket': pt, 'error': error}
+
+
+class SamlValidateView(NeverCacheMixin, ValidateTicketMixin,
+                       CustomAttributesMixin, View):
+    """
+    (4.2) Check the validity of a service ticket provided by a
+    SAML 1.1 request document provided by a HTTP POST. [CAS 3.0]
+    """
+    response_class = ValidationResponse
+    content_type = 'text/xml'
+
+    def post(self, request, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
+        return self.render_to_response(context)
+
+    def render_to_response(self, context):
+        return self.response_class(context, content_type=self.content_type)
+
+    def get_context_data(self, **kwargs):
+        target = self.request.GET.get('target')
+
+        try:
+            root = etree.parse(self.request, forbid_dtd=True).getroot()
+            ticket = root.find('.//{urn:oasis:names:tc:SAML:1.0:protocol}AssertionArtifact').text
+        except (etree.ParseError, ValueError, AttributeError):
+            ticket = None
+
+        st, pgt, error = self.validate_service_ticket(target, ticket, None, None)
+        attributes = self.get_custom_attributes(st)
+        return {'ticket': st, 'pgt': pgt, 'error': error,
+                'attributes': attributes}
