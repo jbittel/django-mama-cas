@@ -1,4 +1,7 @@
+import datetime
+
 from django.http import HttpResponse
+from django.utils.crypto import get_random_string
 
 from .compat import etree
 from .compat import get_username
@@ -120,3 +123,140 @@ class ProxyResponse(CasResponseBase):
             proxy_failure.text = str(error)
 
         return etree.tostring(service_response, encoding='UTF-8')
+
+
+class SamlValidationResponse(CasResponseBase):
+    """
+    (4.2.5) Render a SAML 1.1 response for a service ticket validation
+    success or failure.
+    """
+    prefix = 'SOAP-ENV'
+    uri = 'http://schemas.xmlsoap.org/soap/envelope/'
+    namespace = 'http://www.ja-sig.org/products/cas/'
+    authn_method_password = 'urn:oasis:names:tc:SAML:1.0:am:password'
+    confirmation_method = 'urn:oasis:names:tc:SAML:1.0:cm:artifact'
+
+    def __init__(self, context, **kwargs):
+        self._instant = datetime.datetime.utcnow()
+        super(SamlValidationResponse, self).__init__(context, **kwargs)
+
+    def instant(self, instant=None, offset=None):
+        if not instant:
+            instant = self._instant
+        if offset:
+            instant = instant + datetime.timedelta(seconds=offset)
+        return instant.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+
+    def generate_id(self):
+        return '_' + get_random_string(length=32,
+                                       allowed_chars='abcdef0123456789')
+
+    def render_content(self, context):
+        ticket = context.get('ticket')
+        attributes = context.get('attributes')
+        error = context.get('error')
+
+        envelope = etree.Element(self.ns('Envelope'))
+        etree.SubElement(envelope, self.ns('Header'))
+        body = etree.SubElement(envelope, self.ns('Body'))
+        response = etree.SubElement(body, 'Response')
+        response.set('xmlns', 'urn:oasis:names:tc:SAML:1.0:protocol')
+        response.set('xmlns:saml', 'urn:oasis:names:tc:SAML:1.0:assertion')
+        response.set('xmlns:samlp', 'urn:oasis:names:tc:SAML:1.0:protocol')
+        response.set('xmlns:xsd', 'http://www.w3.org/2001/XMLSchema')
+        response.set('xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance')
+        response.set('IssueInstant', self.instant())
+        response.set('MajorVersion', '1')
+        response.set('MinorVersion', '1')
+        response.set('ResponseID', self.generate_id())
+        if ticket:
+            response.set('Recipient', ticket.service)
+            response.append(self.get_status('Success'))
+            response.append(self.get_assertion(ticket, attributes))
+        elif error:
+            response.set('Recipient', 'UNKNOWN')
+            response.append(self.get_status('RequestDenied', message=str(error)))
+        return etree.tostring(envelope, encoding='UTF-8')
+
+    def get_status(self, status_value, message=None):
+        """
+        Build a Status XML block for a SAML 1.1 Response.
+        """
+        status = etree.Element('Status')
+        status_code = etree.SubElement(status, 'StatusCode')
+        status_code.set('Value', 'samlp:' + status_value)
+        if message:
+            status_message = etree.SubElement(status, 'StatusMessage')
+            status_message.text = message
+        return status
+
+    def get_assertion(self, ticket, attributes):
+        """
+        Build a SAML 1.1 Assertion XML block.
+        """
+        assertion = etree.Element('Assertion')
+        assertion.set('xmlns', 'urn:oasis:names:tc:SAML:1.0:assertion')
+        assertion.set('AssertionID', self.generate_id())
+        assertion.set('IssueInstant', self.instant())
+        assertion.set('Issuer', 'localhost')
+        assertion.set('MajorVersion', '1')
+        assertion.set('MinorVersion', '1')
+        assertion.append(self.get_conditions(ticket.service))
+        subject = self.get_subject(ticket.user.username)
+        if attributes:
+            assertion.append(self.get_attribute_statement(subject, attributes))
+        assertion.append(self.get_authentication_statement(subject, ticket))
+
+        return assertion
+
+    def get_conditions(self, service_id):
+        """
+        Build a Conditions XML block for a SAML 1.1 Assertion.
+        """
+        conditions = etree.Element('Conditions')
+        conditions.set('NotBefore', self.instant())
+        conditions.set('NotOnOrAfter', self.instant(offset=30))
+        restriction = etree.SubElement(conditions, 'AudienceRestrictionCondition')
+        audience = etree.SubElement(restriction, 'Audience')
+        audience.text = service_id
+        return conditions
+
+    def get_attribute_statement(self, subject, attributes):
+        """
+        Build an AttributeStatement XML block for a SAML 1.1 Assertion.
+        """
+        attribute_statement = etree.Element('AttributeStatement')
+        attribute_statement.append(subject)
+        for name, value in attributes.items():
+            attribute = etree.SubElement(attribute_statement, 'Attribute')
+            attribute.set('AttributeName', name)
+            attribute.set('AttributeNamespace', self.namespace)
+            attribute_value = etree.SubElement(attribute, 'AttributeValue')
+            attribute_value.text = value
+        return attribute_statement
+
+    def get_authentication_statement(self, subject, ticket):
+        """
+        Build an AuthenticationStatement XML block for a SAML 1.1
+        Assertion.
+        """
+        authentication_statement = etree.Element('AuthenticationStatement')
+        authentication_statement.set('AuthenticationInstant',
+                                     self.instant(instant=ticket.consumed))
+        authentication_statement.set('AuthenticationMethod',
+                                     self.authn_method_password)
+        authentication_statement.append(subject)
+        return authentication_statement
+
+    def get_subject(self, identifier):
+        """
+        Build a Subject XML block for a SAML 1.1
+        AuthenticationStatement or AttributeStatement.
+        """
+        subject = etree.Element('Subject')
+        name = etree.SubElement(subject, 'NameIdentifier')
+        name.text = identifier
+        subject_confirmation = etree.SubElement(subject, 'SubjectConfirmation')
+        method = etree.SubElement(subject_confirmation, 'ConfirmationMethod')
+        method.text = self.confirmation_method
+        return subject

@@ -23,6 +23,7 @@ from mama_cas.models import ProxyTicket
 from mama_cas.models import ServiceTicket
 from mama_cas.response import ValidationResponse
 from mama_cas.response import ProxyResponse
+from mama_cas.response import SamlValidationResponse
 from mama_cas.utils import add_query_params
 from mama_cas.utils import clean_service_url
 from mama_cas.utils import is_valid_service_url
@@ -327,7 +328,7 @@ class SamlValidateView(NeverCacheMixin, ValidateTicketMixin,
     (4.2) Check the validity of a service ticket provided by a
     SAML 1.1 request document provided by a HTTP POST. [CAS 3.0]
     """
-    response_class = ValidationResponse
+    response_class = SamlValidationResponse
     content_type = 'text/xml'
 
     def post(self, request, *args, **kwargs):

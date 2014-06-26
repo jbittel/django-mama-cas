@@ -5,16 +5,15 @@ from django.test import TestCase
 from .factories import ProxyGrantingTicketFactory
 from .factories import ProxyTicketFactory
 from .factories import ServiceTicketFactory
+from .factories import ConsumedServiceTicketFactory
 from .utils import parse
 from mama_cas.exceptions import InvalidTicket
 from mama_cas.response import ValidationResponse
 from mama_cas.response import ProxyResponse
+from mama_cas.response import SamlValidationResponse
 
 
 class ValidationResponseTests(TestCase):
-    """
-    Test the ``ValidationResponse`` XML output.
-    """
     def setUp(self):
         self.st = ServiceTicketFactory()
         self.pgt = ProxyGrantingTicketFactory()
@@ -102,9 +101,6 @@ class ValidationResponseTests(TestCase):
 
 
 class ProxyResponseTests(TestCase):
-    """
-    Test the ``ProxyResponse`` XML output.
-    """
     def setUp(self):
         self.st = ServiceTicketFactory()
         self.pgt = ProxyGrantingTicketFactory()
@@ -142,3 +138,58 @@ class ProxyResponseTests(TestCase):
         self.assertIsNotNone(failure)
         self.assertEqual(failure.get('code'), 'INVALID_TICKET')
         self.assertEqual(failure.text, 'Testing Error')
+
+
+class SamlValidationResponseTests(TestCase):
+    def setUp(self):
+        self.st = ConsumedServiceTicketFactory()
+
+    def test_saml_validation_response_ticket(self):
+        """
+        When given a ticket, a ``SamlValidationResponse`` should return
+        an authentication success.
+        """
+        resp = SamlValidationResponse(context={'ticket': self.st, 'error': None},
+                                      content_type='text/xml')
+        code = parse(resp.content).find('./Body/Response/Status/StatusCode')
+        self.assertIsNotNone(code)
+        self.assertEqual(code.get('Value'), 'samlp:Success')
+
+    def test_saml_validation_response_error(self):
+        """
+        When given an error, a ``SamlValidationResponse`` should return
+        an authentication failure with the error text.
+        """
+        error = InvalidTicket('Testing Error')
+        resp = SamlValidationResponse(context={'ticket': None, 'error': error},
+                                      content_type='text/xml')
+        code = parse(resp.content).find('./Body/Response/Status/StatusCode')
+        self.assertIsNotNone(code)
+        self.assertEqual(code.get('Value'), 'samlp:RequestDenied')
+
+        message = parse(resp.content).find('./Body/Response/Status/StatusMessage')
+        self.assertIsNotNone(message)
+        self.assertEqual(message.text, 'Testing Error')
+
+    def test_saml_validation_response_attributes(self):
+        """
+        When given custom user attributes, a ``SamlValidationResponse``
+        authentication success should include the attributes in the
+        response.
+        """
+        attrs = {'givenName': 'Ellen', 'sn': 'Cohen', 'email': 'ellen@example.com'}
+        resp = SamlValidationResponse(context={'ticket': self.st, 'error': None,
+                                               'attributes': attrs},
+                                      content_type='text/xml')
+        attribute_statement = parse(resp.content).find('./Body/Response/Assertion/AttributeStatement')
+        self.assertIsNotNone(attribute_statement)
+        for attr in attribute_statement.findall('Attribute'):
+            attr_name = attr.get('AttributeName')
+            attr_value = attr.find('AttributeValue')
+            self.assertTrue(attr_name in attrs)
+            self.assertEqual(attr_value.text, attrs[attr_name])
+            # Ordering is not guaranteed, so remove attributes from
+            # the dict as they are validated. When done, check if the
+            # dict is empty to see if all attributes were matched.
+            del attrs[attr_name]
+        self.assertEqual(len(attrs), 0)

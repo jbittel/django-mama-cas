@@ -647,7 +647,7 @@ class ProxyViewTests(TestCase):
         self.assertContains(response, 'INVALID_SERVICE')
 
 
-class SamlValidateViewTests(TestCase):
+class SamlValidationViewTests(TestCase):
     url = 'http://www.example.com/'
     url2 = 'https://www.example.org/'
 
@@ -655,16 +655,16 @@ class SamlValidateViewTests(TestCase):
         self.st = ServiceTicketFactory()
         self.rf = RequestFactory()
 
-    def test_saml_validate_view(self):
+    def test_saml_validation_view(self):
         """
         When called with no parameters, a validation failure should be
         returned.
         """
         request = self.rf.post(reverse('cas_saml_validate'))
         response = SamlValidateView.as_view()(request)
-        self.assertContains(response, 'INVALID_REQUEST')
+        self.assertContains(response, 'samlp:RequestDenied')
 
-    def test_saml_validate_view_invalid_service(self):
+    def test_saml_validation_view_invalid_service(self):
         """
         When called with an invalid service identifier, a validation
         failure should be returned.
@@ -673,9 +673,9 @@ class SamlValidateViewTests(TestCase):
         request = self.rf.post(build_url('cas_saml_validate', target=self.url2),
                                saml.render_content(), content_type='text/xml')
         response = SamlValidateView.as_view()(request)
-        self.assertContains(response, 'INVALID_SERVICE')
+        self.assertContains(response, 'samlp:RequestDenied')
 
-    def test_saml_validate_view_invalid_ticket(self):
+    def test_saml_validation_view_invalid_ticket(self):
         """
         When the provided ticket cannot be found, a validation failure
         should be returned.
@@ -686,9 +686,9 @@ class SamlValidateViewTests(TestCase):
         request = self.rf.post(build_url('cas_saml_validate', target=self.url),
                                saml.render_content(), content_type='text/xml')
         response = SamlValidateView.as_view()(request)
-        self.assertContains(response, 'INVALID_TICKET')
+        self.assertContains(response, 'samlp:RequestDenied')
 
-    def test_saml_validate_view_success(self):
+    def test_saml_validation_view_success(self):
         """
         When called with valid parameters, a validation success should
         be returned. The provided ticket should then be consumed.
@@ -697,7 +697,7 @@ class SamlValidateViewTests(TestCase):
         request = self.rf.post(build_url('cas_saml_validate', target=self.url),
                                saml.render_content(), content_type='text/xml')
         response = SamlValidateView.as_view()(request)
-        self.assertContains(response, 'authenticationSuccess')
+        self.assertContains(response, 'samlp:Success')
 
         st = ServiceTicket.objects.get(ticket=self.st.ticket)
         self.assertTrue(st.is_consumed())
