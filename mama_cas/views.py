@@ -186,11 +186,12 @@ class LogoutView(NeverCacheMixin, LogoutUserMixin, View):
     def get(self, request, *args, **kwargs):
         service = request.GET.get('service')
         url = request.GET.get('url')
+        follow_url = getattr(settings, 'MAMA_CAS_FOLLOW_LOGOUT_URL', True)
         self.logout_user(request)
-        if service and getattr(settings, 'MAMA_CAS_FOLLOW_LOGOUT_URL', False):
+        if service and follow_url:
             return redirect(service)
         elif url and is_valid_service_url(url):
-            if getattr(settings, 'MAMA_CAS_FOLLOW_LOGOUT_URL', False):
+            if follow_url:
                 return redirect(url)
             msg = _("The application provided this link to follow: %s") % url
             messages.success(request, msg)

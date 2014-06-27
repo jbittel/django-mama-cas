@@ -39,7 +39,7 @@ some of these settings alter stock CAS behavior.
 
 .. attribute:: MAMA_CAS_FOLLOW_LOGOUT_URL
 
-   :default: ``False``
+   :default: ``True``
 
    Controls the client redirection behavior at logout when the ``url``
    (CAS 2.0) or ``service`` (CAS 3.0) parameter is provided. When this
