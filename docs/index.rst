@@ -7,8 +7,8 @@ Introduction
 ============
 
 MamaCAS is a Django `Central Authentication Service (CAS)`_ single sign-on
-server. It implements the CAS 1.0 and 2.0 protocols, as well as some commonly
-used extensions to the specification.
+server. It implements the CAS 1.0, 2.0 and 3.0 protocols, including some of
+the optional features.
 
 CAS is a single sign-on protocol that allows a user to access multiple
 applications after providing their credentials a single time. It utilizes

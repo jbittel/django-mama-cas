@@ -13,8 +13,9 @@ defines that particular URI.
 
 CAS 1.0 is a plain text protocol that returns a simple "yes" or "no" response
 indicating a ticket validation success or failure. CAS 2.0 returns XML
-fragments for validation responses and can include a great deal of additional
-data within the response.
+fragments for validation responses and allows for proxy authentication. CAS
+3.0 expands the protocol with additional request parameters and a SAML
+response endpoint.
 
 .. seealso::
 
@@ -25,7 +26,7 @@ data within the response.
    * `Proxy Authentication`_
 
 .. _CAS Protocol: http://www.jasig.org/cas/protocol
-.. _CAS User Manual: https://wiki.jasig.org/display/CASUM/Home
+.. _CAS User Manual: http://jasig.github.io/cas
 .. _CAS 1 Architecture: http://www.jasig.org/cas/cas1-architecture
 .. _CAS 2 Architecture: http://www.jasig.org/cas/cas2-architecture
 .. _Proxy Authentication: http://www.jasig.org/cas/proxy-authentication
