@@ -27,6 +27,7 @@ Contents
 
    installation
    settings
+   security
    templates
    management-commands
    forms

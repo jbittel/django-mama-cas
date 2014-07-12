@@ -72,26 +72,6 @@ the server at ``http://example.com/cas/login``::
        (r'^cas/', include('mama_cas.urls')),
    )
 
-Sessions
-~~~~~~~~
-
-MamaCAS relies on standard Django sessions to govern single sign-on sessions.
-There are two Django session settings that typically ought to be changed from
-their defaults:
-
-   `SESSION_COOKIE_AGE`_
-      It is recommended this be set shorter than the default of two weeks.
-      This setting controls the duration of single sign-on sessions as well
-      as the duration of proxy-granting tickets.
-
-   `SESSION_EXPIRE_AT_BROWSER_CLOSE`_
-      This should be set to ``True`` to conform to the CAS specification.
-      Note that some browsers can be configured to retain cookies across
-      browser restarts, even for cookies set to be removed on browser close.
-
-For more information on how sessions work within Django, read the `session
-documentation`_.
-
 Authenticating
 --------------
 
@@ -113,9 +93,6 @@ will change depending on the individual backend.
 .. _PyPI: https://pypi.python.org/pypi/django-mama-cas/
 .. _GitHub: https://github.com/jbittel/django-mama-cas
 .. _tarball: https://github.com/jbittel/django-mama-cas/tarball/master
-.. _SESSION_COOKIE_AGE: https://docs.djangoproject.com/en/dev/ref/settings/#std:setting-SESSION_COOKIE_AGE
-.. _SESSION_EXPIRE_AT_BROWSER_CLOSE: https://docs.djangoproject.com/en/dev/ref/settings/#std:setting-SESSION_EXPIRE_AT_BROWSER_CLOSE
-.. _session documentation: https://docs.djangoproject.com/en/dev/topics/http/sessions/
 .. _authentication backends: http://pypi.python.org/pypi?:action=browse&c=475&c=523
 .. _installed and configured: https://docs.djangoproject.com/en/dev/topics/auth/customizing/#specifying-authentication-backends
 .. _user authentication documentation: https://docs.djangoproject.com/en/dev/topics/auth/
