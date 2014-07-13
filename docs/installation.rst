@@ -13,7 +13,7 @@ See the `Django downloads`_ page for information on downloading and installing
 Django.
 
 If you're installing MamaCAS manually, such as from the `GitHub`_ repository,
-you'll need to install the Python `requests`_ library.
+you'll need to install the `Requests`_ and `defusedxml`_ libraries.
 
 Installing
 ----------
@@ -88,7 +88,8 @@ will change depending on the individual backend.
 
 .. _Django: http://www.djangoproject.com/
 .. _Django downloads: https://www.djangoproject.com/download/
-.. _requests: http://python-requests.org/
+.. _Requests: http://python-requests.org/
+.. _defusedxml: https://bitbucket.org/tiran/defusedxml
 .. _pip: http://www.pip-installer.org/
 .. _PyPI: https://pypi.python.org/pypi/django-mama-cas/
 .. _GitHub: https://github.com/jbittel/django-mama-cas
