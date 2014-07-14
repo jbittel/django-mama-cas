@@ -10,8 +10,8 @@ from django.utils.timezone import now
 import requests
 
 from .factories import ConsumedProxyGrantingTicketFactory
+from .factories import ConsumedProxyTicketFactory
 from .factories import ConsumedServiceTicketFactory
-from .factories import ExpiredProxyTicketFactory
 from .factories import ExpiredProxyGrantingTicketFactory
 from .factories import ExpiredServiceTicketFactory
 from .factories import ProxyGrantingTicketFactory
@@ -573,8 +573,26 @@ class ManagementCommandTests(TestCase):
         that are expired or consumed.
         """
         st = ConsumedServiceTicketFactory()
-        pgt = ConsumedProxyGrantingTicketFactory(granted_by_st=st)
-        ExpiredProxyTicketFactory(granted_by_pgt=pgt)
+        pgt = ExpiredProxyGrantingTicketFactory(granted_by_st=st)
+        ConsumedProxyTicketFactory(granted_by_pgt=pgt)
+        management.call_command('cleanupcas')
+
+        self.assertEqual(ServiceTicket.objects.count(), 0)
+        self.assertEqual(ProxyGrantingTicket.objects.count(), 0)
+        self.assertEqual(ProxyTicket.objects.count(), 0)
+
+    def test_cleanupcas_management_command_chain(self):
+        """
+        The ``cleanupcas`` management command should delete chains of
+        invalid tickets.
+        """
+        st = ConsumedServiceTicketFactory()
+        pgt = ExpiredProxyGrantingTicketFactory(expires=now() - timedelta(seconds=5),
+                                                granted_by_st=st)
+        pt = ConsumedProxyTicketFactory(granted_by_pgt=pgt)
+        pgt2 = ExpiredProxyGrantingTicketFactory(granted_by_st=None,
+                                                 granted_by_pt=pt)
+        ConsumedProxyTicketFactory(granted_by_pgt=pgt2)
         management.call_command('cleanupcas')
 
         self.assertEqual(ServiceTicket.objects.count(), 0)

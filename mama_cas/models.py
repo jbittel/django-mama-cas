@@ -115,11 +115,9 @@ class TicketManager(models.Manager):
 
         A custom management command is provided that executes this method
         on all applicable models by running ``manage.py cleanupcas``.
-        This command should be run on a regular basis to prevent invalid
-        tickets from causing storage or performance issues.
         """
         for ticket in self.filter(Q(consumed__isnull=False) |
-                                  Q(expires__lte=now())):
+                                  Q(expires__lte=now())).order_by('-expires'):
             try:
                 ticket.delete()
             except models.ProtectedError:
@@ -258,7 +256,6 @@ class ProxyTicket(Ticket):
 
     service = models.CharField(_('service'), max_length=255)
     granted_by_pgt = models.ForeignKey('ProxyGrantingTicket',
-                                       on_delete=models.PROTECT,
                                        verbose_name=_('granted by proxy-granting ticket'))
 
     class Meta:

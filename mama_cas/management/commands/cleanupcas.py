@@ -24,6 +24,6 @@ class Command(NoArgsCommand):
     help = "Delete consumed or expired CAS tickets from the database"
 
     def handle_noargs(self, **options):
-        ProxyTicket.objects.delete_invalid_tickets()
         ProxyGrantingTicket.objects.delete_invalid_tickets()
+        ProxyTicket.objects.delete_invalid_tickets()
         ServiceTicket.objects.delete_invalid_tickets()
