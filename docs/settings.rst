@@ -17,14 +17,17 @@ some of these settings alter stock CAS behavior.
    process. When enabled, an additional checkbox will be displayed on the
    login form.
 
-.. attribute:: MAMA_CAS_ATTRIBUTES_CALLBACK
+.. attribute:: MAMA_CAS_ATTRIBUTE_CALLBACKS
 
-   :default: ``None``
+   :default: ``()``
 
-   A string representation of a callable that returns a dictionary of name
+   A tuple of dotted paths to callables that return a dictionary of name
    and attribute values to be returned along with a service or proxy
-   validation success. The callable is provided a single argument of the
-   ``User`` for which validation is occurring. For example::
+   validation success. The callables are provided a single argument of the
+   ``User`` for which validation is occurring. The output from all of the
+   callables is merged into a single attributes dictionary. For example::
+
+      MAMA_CAS_ATTRIBUTE_CALLBACKS = ('path.to.custom_attributes',)
 
       def custom_attributes(user):
           return {'givenName': user.first_name, 'email': user.email}
@@ -68,9 +71,8 @@ some of these settings alter stock CAS behavior.
 
    .. note::
 
-      This setting is intended for use with Django 1.4. In Django 1.5 and
-      later, the built-in mechanisms for accessing user profile data have
-      been deprecated.
+      This setting has been deprecated in favor of
+      MAMA_CAS_ATTRIBUTE_CALLBACKS.
 
 .. attribute:: MAMA_CAS_TICKET_EXPIRE
 
@@ -105,6 +107,11 @@ some of these settings alter stock CAS behavior.
           'sn': 'last_name',
           'email': 'email',
       }
+
+   .. note::
+
+      This setting has been deprecated in favor of
+      MAMA_CAS_ATTRIBUTE_CALLBACKS.
 
 .. attribute:: MAMA_CAS_VALID_SERVICES
 

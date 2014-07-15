@@ -165,7 +165,7 @@ class CustomAttributesMixin(object):
             can be any meaningful string, while the attribute must
             correspond with an attribute on the user profile object.
 
-        ``MAMA_CAS_ATTRIBUTES_CALLBACK``
+        ``MAMA_CAS_ATTRIBUTE_CALLBACKS``
             A string representation of a custom callable that returns
             a dict containing attributes. The callable is provided a
             single argument of the ``User``.
@@ -182,7 +182,7 @@ class CustomAttributesMixin(object):
             warnings.warn(
                 "The MAMA_CAS_USER_ATTRIBUTES setting is deprecated and "
                 "will be removed in MamaCAS 1.0. Use the "
-                "MAMA_CAS_ATTRIBUTES_CALLBACK setting instead.",
+                "MAMA_CAS_ATTRIBUTE_CALLBACKS setting instead.",
                 PendingDeprecationWarning)
         for name, attr in user_attr_list.items():
             try:
@@ -201,7 +201,7 @@ class CustomAttributesMixin(object):
                 warnings.warn(
                     "The MAMA_CAS_PROFILE_ATTRIBUTES setting is deprecated "
                     "and will be removed in MamaCAS 1.0. Use the "
-                    "MAMA_CAS_ATTRIBUTES_CALLBACK setting instead.",
+                    "MAMA_CAS_ATTRIBUTE_CALLBACKS setting instead.",
                     PendingDeprecationWarning)
             for name, attr in profile_attr_list.items():
                 try:
@@ -209,9 +209,9 @@ class CustomAttributesMixin(object):
                 except AttributeError:
                     logger.error("Profile has no attribute named '%s'" % attr)
 
-        callback_str = getattr(settings, 'MAMA_CAS_ATTRIBUTES_CALLBACK', None)
-        if callback_str is not None:
-            callback = get_callable(callback_str)
+        callbacks = getattr(settings, 'MAMA_CAS_ATTRIBUTE_CALLBACKS', ())
+        for path in callbacks:
+            callback = get_callable(path)
             attributes.update(callback(user))
 
         return attributes
