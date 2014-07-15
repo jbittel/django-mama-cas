@@ -1,4 +1,5 @@
 import logging
+import warnings
 
 from django.conf import settings
 from django.contrib import messages
@@ -177,6 +178,12 @@ class CustomAttributesMixin(object):
         attributes = {}
 
         user_attr_list = getattr(settings, 'MAMA_CAS_USER_ATTRIBUTES', {})
+        if user_attr_list:
+            warnings.warn(
+                "The MAMA_CAS_USER_ATTRIBUTES setting is deprecated and "
+                "will be removed in MamaCAS 1.0. Use the "
+                "MAMA_CAS_ATTRIBUTES_CALLBACK setting instead.",
+                PendingDeprecationWarning)
         for name, attr in user_attr_list.items():
             try:
                 attributes[name] = getattr(user, attr)
@@ -190,6 +197,12 @@ class CustomAttributesMixin(object):
         else:
             profile_attr_list = getattr(settings,
                                         'MAMA_CAS_PROFILE_ATTRIBUTES', {})
+            if profile_attr_list:
+                warnings.warn(
+                    "The MAMA_CAS_PROFILE_ATTRIBUTES setting is deprecated "
+                    "and will be removed in MamaCAS 1.0. Use the "
+                    "MAMA_CAS_ATTRIBUTES_CALLBACK setting instead.",
+                    PendingDeprecationWarning)
             for name, attr in profile_attr_list.items():
                 try:
                     attributes[name] = getattr(profile, attr)
