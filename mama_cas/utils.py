@@ -97,3 +97,18 @@ def to_bool(str):
     if str:
         return bool(str.strip())
     return False
+
+
+def get_callable(path):
+    """Returns a callable from a given dotted path."""
+    i = path.rfind('.')
+    module_path, callable_name = path[:i], path[i + 1:]
+    try:
+        module = __import__(module_path, fromlist=[''])
+    except:
+        raise ImportError("Could not import module %s" % module_path)
+    try:
+        return getattr(module, callable_name)
+    except:
+        raise ImportError("Could not import %s from module %s" %
+                          (callable_name, module_path))

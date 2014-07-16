@@ -6,7 +6,6 @@ from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.urlresolvers import get_callable
 from django.core.urlresolvers import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
@@ -18,6 +17,7 @@ from mama_cas.models import ProxyTicket
 from mama_cas.models import ProxyGrantingTicket
 from mama_cas.exceptions import InvalidTicket
 from mama_cas.exceptions import ValidationError
+from mama_cas.utils import get_callable
 
 
 logger = logging.getLogger(__name__)
