@@ -101,14 +101,15 @@ def to_bool(str):
 
 def get_callable(path):
     """Returns a callable from a given dotted path."""
-    i = path.rfind('.')
-    module_path, callable_name = path[:i], path[i + 1:]
     try:
-        module = __import__(module_path, fromlist=[''])
-    except:
-        raise ImportError("Could not import module %s" % module_path)
+        module_path, callable_name = path.rsplit('.', 1)
+    except ValueError:
+        raise ImportError("%s doesn't look like a callable path" % path)
+
+    module = __import__(module_path, fromlist=[''])
+
     try:
         return getattr(module, callable_name)
-    except:
+    except AttributeError:
         raise ImportError("Could not import %s from module %s" %
                           (callable_name, module_path))
