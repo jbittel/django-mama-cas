@@ -151,9 +151,9 @@ class CustomAttributesMixin(object):
     """
     def get_custom_attributes(self, ticket):
         """
-        Build a list of user attributes from the ``User`` object, the
-        user profile object or a custom callback callable. Attributes
-        are specified with one or more settings:
+        Build a dictionary of user attributes from the ``User``
+        object, the user profile object or custom callbacks using one
+        or more of these settings:
 
         ``MAMA_CAS_USER_ATTRIBUTES``
             A dict of name and ``User`` attribute values. The name can
@@ -166,9 +166,9 @@ class CustomAttributesMixin(object):
             correspond with an attribute on the user profile object.
 
         ``MAMA_CAS_ATTRIBUTE_CALLBACKS``
-            A string representation of a custom callable that returns
-            a dict containing attributes. The callable is provided a
-            single argument of the ``User``.
+            A tuple of dotted paths to callables that return a dict of
+            name and attribute values. Each callable is provided a
+            single argument of the authenticated ``User``.
 
         All attributes are returned as a single dictionary.
         """
