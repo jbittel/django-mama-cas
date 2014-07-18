@@ -2,7 +2,7 @@ from django.conf import settings
 
 
 __all__ = ['user_model', 'get_username', 'SiteProfileNotAvailable', 'etree',
-           'register_namespace']
+           'register_namespace', 'gevent']
 
 
 # Django >= 1.5 uses AUTH_USER_MODEL to specify the currently active
@@ -64,3 +64,11 @@ except AttributeError:  # pragma: no cover
             # uses ElementTree for serialization
             import xml.etree.ElementTree as ET
             ET._namespace_map[uri] = prefix
+
+
+# gevent is optional, and allows for asynchronous single sign-out
+# requests. If it is not present, synchronous requests will be sent.
+try:
+    import gevent
+except ImportError:
+    gevent = None

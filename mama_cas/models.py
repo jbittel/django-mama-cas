@@ -17,6 +17,7 @@ from django.utils.translation import ugettext_lazy as _
 
 import requests
 
+from mama_cas.compat import gevent
 from mama_cas.compat import user_model
 from mama_cas.exceptions import BadPgt
 from mama_cas.exceptions import InvalidProxyCallback
@@ -28,6 +29,10 @@ from mama_cas.utils import add_query_params
 from mama_cas.utils import is_scheme_https
 from mama_cas.utils import clean_service_url
 from mama_cas.utils import is_valid_service_url
+
+if gevent:
+    from gevent import monkey
+    monkey.patch_all(thread=False, select=False)
 
 
 logger = logging.getLogger(__name__)
@@ -193,9 +198,20 @@ class ServiceTicketManager(TicketManager):
         Send a single sign-out request to each service accessed by a
         specified user. This is called at logout when single sign-out
         is enabled.
+
+        If gevent is installed, asynchronous requests will be sent.
+        Otherwise, synchronous requests will be sent.
         """
-        for ticket in self.filter(user=user, consumed__gte=user.last_login):
-            ticket.request_sign_out()
+        tickets = list(self.filter(user=user, consumed__gte=user.last_login))
+
+        if gevent:
+            from gevent.pool import Pool
+            pool = Pool(4)
+            requests = [pool.spawn(t.request_sign_out) for t in tickets]
+            gevent.joinall(requests)
+        else:
+            for ticket in tickets:
+                ticket.request_sign_out()
 
 
 class ServiceTicket(Ticket):
