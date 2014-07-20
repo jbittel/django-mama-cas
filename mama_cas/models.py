@@ -31,6 +31,7 @@ from mama_cas.utils import clean_service_url
 from mama_cas.utils import is_valid_service_url
 
 if gevent:
+    from gevent.pool import Pool
     from gevent import monkey
     monkey.patch_all(thread=False, select=False)
 
@@ -202,12 +203,17 @@ class ServiceTicketManager(TicketManager):
         If gevent is installed, asynchronous requests will be sent.
         Otherwise, synchronous requests will be sent.
         """
+        def spawn(ticket, pool=None):
+            if pool != None:
+                return pool.spawn(ticket.request_sign_out)
+            return gevent.spawn(ticket.request_sign_out)
+
         tickets = list(self.filter(user=user, consumed__gte=user.last_login))
 
         if gevent:
-            from gevent.pool import Pool
-            pool = Pool(4)
-            requests = [pool.spawn(t.request_sign_out) for t in tickets]
+            size = getattr(settings, 'MAMA_CAS_ASYNC_CONCURRENCY', None)
+            pool = Pool(size) if size else None
+            requests = [spawn(t) for t in tickets]
             gevent.joinall(requests)
         else:
             for ticket in tickets:
