@@ -17,6 +17,15 @@ some of these settings alter stock CAS behavior.
    process. When enabled, an additional checkbox will be displayed on the
    login form.
 
+.. attribute:: MAMA_CAS_ASYNC_CONCURRENCY
+
+   :default: ``None``
+
+   If single sign-out is enabled and `gevent`_ is installed, this setting
+   controls the concurrency of requests sent. By default there is no
+   limiting of requests. Setting this value to a positive integer will
+   limit concurrent requests to that value.
+
 .. attribute:: MAMA_CAS_ATTRIBUTE_CALLBACKS
 
    :default: ``()``
@@ -39,6 +48,11 @@ some of these settings alter stock CAS behavior.
    If set, causes single sign-out requests to be sent to all active services
    when a user logs out. It is up to each service to handle these requests
    and terminate the session appropriately.
+
+   .. note::
+
+      If `gevent`_ is installed, the single sign-out requests will be sent
+      asynchronously. Otherwise, they will be sent synchronously.
 
 .. attribute:: MAMA_CAS_FOLLOW_LOGOUT_URL
 
@@ -72,7 +86,7 @@ some of these settings alter stock CAS behavior.
    .. note::
 
       This setting has been deprecated in favor of
-      MAMA_CAS_ATTRIBUTE_CALLBACKS.
+      ``MAMA_CAS_ATTRIBUTE_CALLBACKS``.
 
 .. attribute:: MAMA_CAS_TICKET_EXPIRE
 
@@ -111,7 +125,7 @@ some of these settings alter stock CAS behavior.
    .. note::
 
       This setting has been deprecated in favor of
-      MAMA_CAS_ATTRIBUTE_CALLBACKS.
+      ``MAMA_CAS_ATTRIBUTE_CALLBACKS``.
 
 .. attribute:: MAMA_CAS_VALID_SERVICES
 
@@ -131,4 +145,4 @@ some of these settings alter stock CAS behavior.
    logout. If the provided URL does not match one of these regular
    expressions, it will be ignored.
 
-.. _phpCAS: https://wiki.jasig.org/display/CASC/phpCAS
+.. _gevent: http://www.gevent.org/

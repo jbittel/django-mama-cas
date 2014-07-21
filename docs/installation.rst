@@ -14,6 +14,8 @@ Django.
 
 If you're installing MamaCAS manually, such as from the `GitHub`_ repository,
 you'll need to install the `Requests`_ and `defusedxml`_ libraries.
+Optionally, the `gevent`_ module may be installed to enable asynchronous
+single sign-out requests.
 
 Installing
 ----------
@@ -90,6 +92,7 @@ will change depending on the individual backend.
 .. _Django downloads: https://www.djangoproject.com/download/
 .. _Requests: http://python-requests.org/
 .. _defusedxml: https://bitbucket.org/tiran/defusedxml
+.. _gevent: http://www.gevent.org/
 .. _pip: http://www.pip-installer.org/
 .. _PyPI: https://pypi.python.org/pypi/django-mama-cas/
 .. _GitHub: https://github.com/jbittel/django-mama-cas
