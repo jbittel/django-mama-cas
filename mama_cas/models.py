@@ -201,7 +201,11 @@ class ServiceTicketManager(TicketManager):
         is enabled.
 
         If gevent is installed, asynchronous requests will be sent.
-        Otherwise, synchronous requests will be sent.
+        Otherwise, synchronous requests will be sent. Asynchronous
+        concurrency is controlled through the
+        ``MAMA_CAS_ASYNC_CONCURRENCY`` setting. If set, the number
+        of concurrent jobs will be limited to that number. If not set,
+        there is no limit to the number of concurrent jobs.
         """
         def spawn(ticket, pool=None):
             if pool != None:
