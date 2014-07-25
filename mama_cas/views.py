@@ -156,6 +156,10 @@ class WarnView(NeverCacheMixin, LoginRequiredMixin, TemplateView):
     def get(self, request, *args, **kwargs):
         service = request.GET.get('service')
         ticket = request.GET.get('ticket')
+
+        if not is_valid_service_url(service):
+            return redirect('cas_login')
+
         msg = _("Do you want to access %s as %s?") % (clean_service_url(service),
                                                       request.user)
         messages.info(request, msg)
