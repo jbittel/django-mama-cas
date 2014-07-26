@@ -199,10 +199,21 @@ class WarnViewTests(TestCase):
 
     def test_warn_view_anonymous_user(self):
         """
-        When a user is not logged in, a ``GET`` request to the view
-        should redirect to the login view.
+        When a user is not logged in, a request to the view should
+        redirect to the login view.
         """
         response = self.client.get(reverse('cas_warn'))
+        self.assertRedirects(response, reverse('cas_login'))
+
+    @override_settings(MAMA_CAS_VALID_SERVICES=('[^\.]+\.example\.org',))
+    def test_warn_view_invalid_service(self):
+        """
+        Whan in invalid service is provided, a request to the view
+        should redirect to the login view.
+        """
+        self.client.login(username=self.user_info['username'],
+                          password=self.user_info['password'])
+        response = self.client.get(reverse('cas_warn'), {'service': self.url})
         self.assertRedirects(response, reverse('cas_login'))
 
 
