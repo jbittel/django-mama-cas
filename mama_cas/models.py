@@ -207,7 +207,7 @@ class ServiceTicketManager(TicketManager):
         the specified value.
         """
         def spawn(ticket, pool=None):
-            if pool != None:
+            if pool is not None:
                 return pool.spawn(ticket.request_sign_out)
             return gevent.spawn(ticket.request_sign_out)
 
