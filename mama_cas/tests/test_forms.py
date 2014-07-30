@@ -88,3 +88,12 @@ class LoginFormTests(TestCase):
                                     'password': 'mamas&papas'})
         self.assertTrue(form.is_valid())
         self.assertEqual(form.cleaned_data['username'], 'ellen')
+
+    def test_login_form_invalid_username_clean(self):
+        """
+        If an username is provided such that it becomes invalid when
+        cleaned, the form should be invalid.
+        """
+        form = LoginFormEmail(data={'username': '@example.com',
+                                    'password': 'mamas&papas'})
+        self.assertFalse(form.is_valid())

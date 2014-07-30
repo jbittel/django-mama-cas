@@ -69,5 +69,7 @@ class LoginFormEmail(LoginForm):
         Remove an '@<domain>' suffix if present and return only
         the username.
         """
-        username = self.cleaned_data.get('username')
-        return username.split('@')[0]
+        username = self.cleaned_data.get('username').split('@')[0]
+        if not username:
+            raise forms.ValidationError(_('Invalid username provided'))
+        return username
