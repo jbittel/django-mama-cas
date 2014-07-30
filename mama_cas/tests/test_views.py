@@ -238,14 +238,6 @@ class LogoutViewTests(TestCase):
         self.assertTrue('Cache-Control' in response)
         self.assertEqual(response['Cache-Control'], 'max-age=0')
 
-    def test_logout_view_post(self):
-        """
-        A ``POST`` request to the view should return an error that the
-        method is not allowed.
-        """
-        response = self.client.post(reverse('cas_logout'))
-        self.assertEqual(response.status_code, 405)
-
     def test_logout_view_success(self):
         """
         When called with a logged in user, a ``GET`` request to the
