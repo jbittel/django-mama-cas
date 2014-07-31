@@ -39,23 +39,22 @@ class LoginForm(forms.Form):
 
         if username and password:
             try:
-                user = authenticate(username=username, password=password)
+                self.user = authenticate(username=username, password=password)
             except Exception:
                 logger.exception("Error authenticating %s" % username)
-                error_msg = _("Internal error while authenticating user")
+                error_msg = _('Internal error while authenticating user')
                 raise forms.ValidationError(error_msg)
 
-            if user:
-                if user.is_active:
-                    self.user = user
-                else:
-                    logger.warning("User account %s is disabled" % username)
-                    error_msg = _("This user account is disabled")
-                    raise forms.ValidationError(error_msg)
-            else:
+            if self.user is None:
                 logger.warning("Incorrect credentials for %s" % username)
-                error_msg = _("The username or password is not correct")
+                error_msg = _('The username or password is not correct')
                 raise forms.ValidationError(error_msg)
+            else:
+                if not self.user.is_active:
+                    logger.warning("User account %s is disabled" % username)
+                    error_msg = _('This user account is disabled')
+                    raise forms.ValidationError(error_msg)
+
         return self.cleaned_data
 
 
