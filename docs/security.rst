@@ -17,11 +17,10 @@ Open vs. Closed
 ~~~~~~~~~~~~~~~
 
 By default, MamaCAS operates in an "open" mode that allows any service to
-make use of its functionality. It is recommended that a production server
-is configured as "closed" by specifying approved services with
+authenticate and redirect. It is recommended that a production server be
+configured as "closed" by specifying approved services with
 ``MAMA_CAS_VALID_SERVICES``. Services not matching one of these patterns
-will not be able to validate tickets, nor will MamaCAS redirect to
-unspecified URLs.
+will not be able to validate tickets or cause clients to be redirected.
 
 Django Configuration
 --------------------
@@ -42,14 +41,14 @@ There are two primary Django session settings that should be considered:
       Note that some browsers can be configured to retain cookies across
       browser restarts, even for cookies set to be removed on browser close.
 
-For more information on Django sessions, see the `session documentation`_.
+For more information, see the `Django session documentation`_.
 
 Best Practices
 ~~~~~~~~~~~~~~
 
 The Django documentation includes some great `security best practices`_ that
-are useful to review when setting up any Django site. Some of them do not
-apply to a dedicated CAS server, but most of them are applicable.
+are useful to review. Some of them do not apply to a dedicated CAS server, but
+many are both applicable and recommended.
 
 Web Server
 ----------
@@ -63,16 +62,18 @@ SSL
 
 Obviously, a login server should require `SSL`_. Without it, login credentials
 and CAS tickets are exposed to anyone with access to the network traffic.
-Additionally, all services making use of CAS should be communicating via SSL.
+Additionally, all services utilizing CAS should be communicating via SSL. Note
+that you can enforce this service requirement with the valid service regular
+expressions.
 
 HSTS
 ~~~~
 
 `HTTP Strict Transport Security`_ (HSTS) headers tell browsers that the site
-should only be accessed via HTTPS and not HTTP. When a browser encounters
-this header, it will automatically use HTTPS for future visits. This prevents
-some man-in-the-middle attacks caused by browsers initially accessing the
-page via HTTP.
+should only be accessed via HTTPS and not allow HTTP. When a browser
+encounters this header, it will automatically use HTTPS for future visits.
+This prevents some man-in-the-middle attacks caused by browsers initially
+accessing the page via HTTP, even if they are subsequently redirected.
 
 X-Frame-Options
 ~~~~~~~~~~~~~~~
@@ -84,7 +85,7 @@ specified domains may be whitelisted.
 
 .. _SESSION_COOKIE_AGE: https://docs.djangoproject.com/en/dev/ref/settings/#std:setting-SESSION_COOKIE_AGE
 .. _SESSION_EXPIRE_AT_BROWSER_CLOSE: https://docs.djangoproject.com/en/dev/ref/settings/#std:setting-SESSION_EXPIRE_AT_BROWSER_CLOSE
-.. _session documentation: https://docs.djangoproject.com/en/dev/topics/http/sessions/
+.. _Django session documentation: https://docs.djangoproject.com/en/dev/topics/http/sessions/
 .. _security best practices: https://docs.djangoproject.com/en/dev/topics/security/
 .. _SSL: https://developer.mozilla.org/en-US/docs/Introduction_to_SSL
 .. _HTTP Strict Transport Security: https://developer.mozilla.org/en-US/docs/Web/Security/HTTP_strict_transport_security
