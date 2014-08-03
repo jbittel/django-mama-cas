@@ -6,11 +6,11 @@ Installation
 Prerequisites
 -------------
 
-The primary prerequisite of MamaCAS is `Django`_ itself. Generally speaking,
-MamaCAS supports all supported release versions of Django, including LTS
-releases. Other versions of Django may work, but are not tested or supported.
-See the `Django downloads`_ page for information on downloading and installing
-Django.
+The primary prerequisite of MamaCAS is `Django`_ itself. MamaCAS supports the
+last two major release versions of Django and the current LTS release,
+generally following Django's `support policy`_. Other versions of Django may
+work, but are not tested or supported. See the `Django downloads`_ page for
+information on downloading and installing Django.
 
 If you're installing MamaCAS manually, such as from the `GitHub`_ repository,
 you'll need to install the `Requests`_ and `defusedxml`_ libraries.
@@ -89,6 +89,7 @@ will change depending on the individual backend.
    * `Authentication packages`_ for Django
 
 .. _Django: http://www.djangoproject.com/
+.. _support policy: https://docs.djangoproject.com/en/dev/internals/release-process/
 .. _Django downloads: https://www.djangoproject.com/download/
 .. _Requests: http://python-requests.org/
 .. _defusedxml: https://bitbucket.org/tiran/defusedxml
