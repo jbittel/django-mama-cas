@@ -9,6 +9,17 @@ here. For additional detail, read the complete `commit history`_. From
 version 0.4.0 and following, version numbers follow the `semantic
 versioning`_ scheme.
 
+**django-mama-cas 0.9.0** ``[2014-08-07]``
+   * Add support for CAS 3.0 features
+   * Allow multiple custom attribute callbacks
+   * Use gevent for asynchronous single sign-out requests, if available
+   * Fix error when a malformed username was provided
+   * Fix logout occurring for a renew request
+   * Fix redirects not checking for a valid URL
+   * Improve removal of invalid tickets
+   * Default ``MAMA_CAS_FOLLOW_LOGOUT_URL`` to ``True``
+   * Deprecate ``MAMA_CAS_USER_ATTRIBUTES`` and ``MAMA_CAS_PROFILE_ATTRIBUTES``
+
 **django-mama-cas 0.8.1** ``[2014-05-20]``
    * Fix validation response not returning PGTIOU
 
