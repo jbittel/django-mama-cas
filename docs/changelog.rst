@@ -20,6 +20,12 @@ versioning`_ scheme.
    * Default ``MAMA_CAS_FOLLOW_LOGOUT_URL`` to ``True``
    * Deprecate ``MAMA_CAS_USER_ATTRIBUTES`` and ``MAMA_CAS_PROFILE_ATTRIBUTES``
 
+   .. warning::
+
+      The ``MAMA_CAS_ATTRIBUTES_CALLBACK`` setting was renamed to
+      ``MAMA_CAS_ATTRIBUTE_CALLBACKS`` and now takes a tuple of dotted
+      paths to callables.
+
 **django-mama-cas 0.8.1** ``[2014-05-20]``
    * Fix validation response not returning PGTIOU
 
