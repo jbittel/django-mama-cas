@@ -10,9 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class LoginForm(forms.Form):
-    """
-    Form implementing standard username and password authentication.
-    """
+    """Standard username and password authentication form."""
     username = forms.CharField(label=_("Username"),
                                error_messages={'required':
                                                _("Please enter your username")})
@@ -46,7 +44,7 @@ class LoginForm(forms.Form):
                 raise forms.ValidationError(error_msg)
 
             if self.user is None:
-                logger.warning("Incorrect credentials for %s" % username)
+                logger.warning("Failed authentication for %s" % username)
                 error_msg = _('The username or password is not correct')
                 raise forms.ValidationError(error_msg)
             else:
