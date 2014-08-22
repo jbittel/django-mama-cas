@@ -183,7 +183,7 @@ class CustomAttributesMixin(object):
                 "The MAMA_CAS_USER_ATTRIBUTES setting is deprecated and "
                 "will be removed in MamaCAS 1.0. Use the "
                 "MAMA_CAS_ATTRIBUTE_CALLBACKS setting instead.",
-                PendingDeprecationWarning)
+                DeprecationWarning)
         for name, attr in user_attr_list.items():
             try:
                 attributes[name] = getattr(user, attr)
@@ -202,7 +202,7 @@ class CustomAttributesMixin(object):
                     "The MAMA_CAS_PROFILE_ATTRIBUTES setting is deprecated "
                     "and will be removed in MamaCAS 1.0. Use the "
                     "MAMA_CAS_ATTRIBUTE_CALLBACKS setting instead.",
-                    PendingDeprecationWarning)
+                    DeprecationWarning)
             for name, attr in profile_attr_list.items():
                 try:
                     attributes[name] = getattr(profile, attr)
