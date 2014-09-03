@@ -19,13 +19,12 @@ alter stock CAS behavior.
 
 .. attribute:: MAMA_CAS_ASYNC_CONCURRENCY
 
-   :default: ``None``
+   :default: ``2``
 
    If single sign-out is enabled and `gevent`_ is installed, this setting
-   controls the concurrency of requests sent. By default there is no
-   limiting of concurrent requests. When this is set to a positive integer,
-   when the number of requests reaches this limit, additional requests block
-   until there is room.
+   controls the concurrency of requests sent for a logout event. When set
+   to a positive integer, if the number of requests reaches this limit,
+   additional requests block until there is room.
 
 .. attribute:: MAMA_CAS_ATTRIBUTE_CALLBACKS
 

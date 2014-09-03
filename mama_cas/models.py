@@ -201,10 +201,9 @@ class ServiceTicketManager(TicketManager):
         is enabled.
 
         If gevent is installed, asynchronous requests will be sent.
-        Otherwise, synchronous requests will be sent. By default there
-        is no limit to the number of concurrent jobs. Setting
-        ``MAMA_CAS_ASYNC_CONCURRENCY`` limits concurrent requests to
-        the specified value.
+        Otherwise, synchronous requests will be sent. Setting
+        ``MAMA_CAS_ASYNC_CONCURRENCY`` limits concurrent requests for
+        a logout event to the specified value.
         """
         def spawn(ticket, pool=None):
             if pool is not None:
@@ -214,7 +213,7 @@ class ServiceTicketManager(TicketManager):
         tickets = list(self.filter(user=user, consumed__gte=user.last_login))
 
         if gevent:
-            size = getattr(settings, 'MAMA_CAS_ASYNC_CONCURRENCY', None)
+            size = getattr(settings, 'MAMA_CAS_ASYNC_CONCURRENCY', 2)
             pool = Pool(size) if size else None
             requests = [spawn(t, pool=pool) for t in tickets]
             gevent.joinall(requests)
