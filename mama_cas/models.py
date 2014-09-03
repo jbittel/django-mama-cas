@@ -215,8 +215,8 @@ class ServiceTicketManager(TicketManager):
         if gevent:
             size = getattr(settings, 'MAMA_CAS_ASYNC_CONCURRENCY', 2)
             pool = Pool(size) if size else None
-            requests = [spawn(t, pool=pool) for t in tickets]
-            gevent.joinall(requests)
+            sign_out_requests = [spawn(t, pool=pool) for t in tickets]
+            gevent.joinall(sign_out_requests)
         else:
             for ticket in tickets:
                 ticket.request_sign_out()
