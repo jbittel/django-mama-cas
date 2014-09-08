@@ -149,7 +149,7 @@ class CustomAttributesMixin(object):
     """
     View mixin for including user attributes in a validation response.
     """
-    def get_custom_attributes(self, ticket):
+    def get_custom_attributes(self, user):
         """
         Build a dictionary of user attributes from the ``User``
         object, the user profile object or custom callbacks using one
@@ -172,9 +172,6 @@ class CustomAttributesMixin(object):
 
         All attributes are returned as a single dictionary.
         """
-        if not ticket:
-            return None
-        user = ticket.user
         attributes = {}
 
         user_attr_list = getattr(settings, 'MAMA_CAS_USER_ATTRIBUTES', {})
