@@ -55,7 +55,10 @@ free to add yourself as a contributor in the AUTHORS file.
 Development dependencies can be installed from ``requirements.txt``. Execute
 the test suite with::
 
-   $ py.test mama_cas/tests/ --cov=mama_cas --cov-report=html
+   $ py.test
+
+You can also use `tox`_ to run the tests against all supported versions of
+Python and Django.
 
 .. _Central Authentication Service (CAS): http://www.jasig.org/cas
 .. _github.com/jbittel/django-mama-cas: https://github.com/jbittel/django-mama-cas
@@ -65,3 +68,4 @@ the test suite with::
 .. _changelog: http://django-mama-cas.readthedocs.org/en/latest/changelog.html
 .. _PEP8: http://www.python.org/dev/peps/pep-0008
 .. _Django coding style: https://docs.djangoproject.com/en/dev/internals/contributing/writing-code/coding-style
+.. _tox: http://tox.testrun.org/
