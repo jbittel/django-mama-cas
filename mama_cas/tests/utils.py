@@ -1,13 +1,9 @@
 import re
 
-try:
-    from urllib.parse import urlencode
-except ImportError:  # pragma: no cover
-    from urllib import urlencode
-
 from django.core.urlresolvers import reverse
 
 from mama_cas.compat import etree
+from mama_cas.compat import urlencode
 
 
 def parse(s):

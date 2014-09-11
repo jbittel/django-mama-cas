@@ -1,8 +1,5 @@
+# flake8: noqa
 from django.conf import settings
-
-
-__all__ = ['user_model', 'get_username', 'SiteProfileNotAvailable', 'etree',
-           'register_namespace', 'gevent']
 
 
 # Django >= 1.5 uses AUTH_USER_MODEL to specify the currently active
@@ -70,5 +67,13 @@ except AttributeError:  # pragma: no cover
 # requests. If it is not present, synchronous requests will be sent.
 try:
     import gevent
-except ImportError:
+except ImportError:  # pragma: no cover
     gevent = None
+
+
+# Support both Python 2 and Python 3 locations for urllib imports.
+try:
+    from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
+except ImportError:  # pragma: no cover
+    from urllib import urlencode
+    from urlparse import parse_qsl, urlparse, urlunparse

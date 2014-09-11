@@ -1,16 +1,15 @@
 import logging
 import re
 
-try:
-    from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
-except ImportError:  # pragma: no cover
-    from urllib import urlencode
-    from urlparse import parse_qsl, urlparse, urlunparse
-
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.core import urlresolvers
 from django.http import HttpResponseRedirect
+
+from .compat import parse_qsl
+from .compat import urlencode
+from .compat import urlparse
+from .compat import urlunparse
 
 
 logger = logging.getLogger(__name__)
