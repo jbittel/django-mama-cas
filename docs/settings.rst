@@ -22,9 +22,9 @@ alter stock CAS behavior.
    :default: ``2``
 
    If single sign-out is enabled and `gevent`_ is installed, this setting
-   controls the concurrency of requests sent for a logout event. When set
-   to a positive integer, if the number of requests reaches this limit,
-   additional requests block until there is room.
+   limits the concurrency of requests sent for a logout event. If the number
+   of requests reaches this limit, additional requests block until there is
+   room. Setting this value to zero disables this limiting.
 
 .. attribute:: MAMA_CAS_ATTRIBUTE_CALLBACKS
 
