@@ -9,12 +9,12 @@ Prerequisites
 The primary prerequisite of MamaCAS is `Django`_ itself. MamaCAS supports the
 last two major release versions of Django and the current LTS release,
 generally following Django's `support policy`_. Other versions of Django may
-work, but are not tested or supported. See the `Django downloads`_ page for
-information on downloading and installing Django.
+work, but are not officially tested or supported. See the `Django downloads`_
+page for information on downloading and installing Django.
 
 If you're installing MamaCAS manually, such as from the `GitHub`_ repository,
-you'll need to install the `Requests`_ and `defusedxml`_ libraries.
-Optionally, the `gevent`_ module may be installed to enable asynchronous
+you'll need to install the `Requests`_ and `defusedxml`_ libraries. The
+optional `gevent`_ module may also be installed to enable asynchronous
 single sign-out requests.
 
 Installing
@@ -34,10 +34,6 @@ repository on `GitHub`_::
 
    $ git clone git://github.com/jbittel/django-mama-cas.git
 
-Or, download the `tarball`_::
-
-   $ curl -OL https://github.com/jbittel/django-mama-cas/tarball/master
-
 Configuring
 -----------
 
@@ -49,7 +45,7 @@ First, add MamaCAS to the ``INSTALLED_APPS`` setting within your project's
        'mama_cas',
    )
 
-Once added, run ``manage.py syncdb`` to create the required database tables.
+Once added, run ``manage.py migrate`` to create the required database tables.
 
 URL paths
 ~~~~~~~~~
