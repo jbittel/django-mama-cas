@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: django-mama-cas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-09-24 18:25-0700\n"
+"POT-Creation-Date: 2014-09-25 18:42-0700\n"
 "PO-Revision-Date: 2014-05-26 10:57-0700\n"
 "Last-Translator: Ming Chen\n"
 "Language-Team: Personal\n"
@@ -146,10 +146,10 @@ msgstr "你已使用 %s 的身份登录"
 #: views.py:163
 #, fuzzy, python-format
 #| msgid "Do you want to access %s as %s?"
-msgid "Do you want to access %s as %s?"
-msgstr "你想访问%s（当前登录为 %s）？"
+msgid "Do you want to access %(service)s as %(user)s?"
+msgstr "你想访问%(service)s（当前登录为 %(user)s）？"
 
-#: views.py:200
+#: views.py:201
 #, python-format
 msgid "The application provided this link to follow: %s"
 msgstr "接下来的重定向服务为：%s"

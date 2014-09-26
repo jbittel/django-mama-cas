@@ -160,8 +160,9 @@ class WarnView(NeverCacheMixin, LoginRequiredMixin, TemplateView):
         if not service or not is_valid_service_url(service):
             return redirect('cas_login')
 
-        msg = _("Do you want to access %s as %s?") % (clean_service_url(service),
-                                                      request.user)
+        msg = _("Do you want to access %(service)s as %(user)s?") % {
+                'service': clean_service_url(service),
+                'user': request.user}
         messages.info(request, msg)
         kwargs['service'] = add_query_params(service, {'ticket': ticket})
         return super(WarnView, self).get(request, *args, **kwargs)
