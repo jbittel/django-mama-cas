@@ -9,6 +9,18 @@ from django.conf import settings
 user_model = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
 
+# In Django >= 1.5 get_user_model() returns the currently active
+# User model. Previous versions of Django have no concept of custom
+# User models and reference User directly.
+#
+# This is not needed when support for Django 1.4 is dropped.
+try:
+    from django.contrib.auth import get_user_model
+except ImportError: # pragma: no cover
+    from django.contrib.auth.models import User
+    get_user_model = lambda: User
+
+
 # As custom user models can change the username field, Django >= 1.5
 # uses get_username() to access the username field. Previous versions
 # of Django do not have this method and access username directly.
