@@ -6,3 +6,4 @@ pytest-cov
 pytest-django
 requests>=2.0.0,<3.0.0
 wheel
+pytest-pythonpath==0.3
