@@ -1,0 +1,27 @@
+language: python
+python:
+  - "2.7"
+env:
+  global:
+    - PIP_DOWNLOAD_CACHE=$HOME/.pip_cache
+  matrix:
+    - TOX_ENV=py34-d17
+    - TOX_ENV=py33-d17
+    - TOX_ENV=py27-d17
+    - TOX_ENV=py33-d16
+    - TOX_ENV=py27-d16
+    - TOX_ENV=py27-d14
+    - TOX_ENV=py26-d14
+    - TOX_ENV=f8
+    - TOX_ENV=docs
+    - TOX_ENV=cov
+cache:
+  directories:
+    - $HOME/.pip-cache/
+install:
+  - "travis_retry pip install setuptools --upgrade"
+  - "pip install tox"
+script:
+  - tox -e $TOX_ENV
+after_script:
+  - cat .tox/$TOX_ENV/log/*.log
