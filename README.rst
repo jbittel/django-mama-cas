@@ -29,7 +29,7 @@ Add to ``INSTALLED_APPS``::
 
    INSTALLED_APPS += ('mama_cas',)
 
-Add to the URLconf::
+Include the URLs::
 
    urlpatterns += patterns('', (r'', include('mama_cas.urls')))
 
@@ -40,7 +40,7 @@ Upgrade
 
 Upgrade with `pip`_::
 
-   $ pip install django-mama-cas --upgrade
+   $ pip install --upgrade django-mama-cas
 
 Before upgrading, see the `changelog`_ for any backward incompatible
 changes or other important upgrade notes.
@@ -60,7 +60,7 @@ Execute the test suite with::
 
    $ py.test
 
-You can also use `tox`_ to run the tests against all supported versions of
+You can use `tox`_ to run the tests against all supported versions of
 Python and Django.
 
 .. _Central Authentication Service (CAS): http://www.jasig.org/cas
