@@ -9,6 +9,10 @@ here. For additional detail, read the complete `commit history`_. From
 version 0.4.0 and following, version numbers follow the `semantic
 versioning`_ scheme.
 
+**django-mama-cas 0.10.0** ``[2014-10-13]``
+   * Default the asychronous concurrency level to ``2``
+   * Improve test configuration and output
+
 **django-mama-cas 0.9.0** ``[2014-08-07]``
    * Add support for CAS 3.0 features
    * Allow multiple custom attribute callbacks
