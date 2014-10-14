@@ -34,5 +34,5 @@ Contents
    protocol
    changelog
 
-.. _Central Authentication Service (CAS): http://www.jasig.org/cas
+.. _Central Authentication Service (CAS): http://jasig.github.io/cas/
 .. _github.com/jbittel/django-mama-cas: https://github.com/jbittel/django-mama-cas

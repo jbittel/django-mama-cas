@@ -4,7 +4,7 @@ CAS Protocol
 ============
 
 The official CAS protocol specification can be found at
-http://www.jasig.org/cas/protocol. Where appropriate, docstrings and other
+http://jasig.github.io/cas/. Where appropriate, docstrings and other
 documentation include numbers in parenthesis (e.g. ``(2.3)``) corresponding
 to the section number within the CAS protocol documentation where that
 functionality is described. Additionally, views are labeled with a CAS version
@@ -25,19 +25,12 @@ response endpoint.
    * `CAS 2 Architecture`_
    * `Proxy Authentication`_
 
-.. _CAS Protocol: http://www.jasig.org/cas/protocol
-.. _CAS User Manual: http://jasig.github.io/cas
-.. _CAS 1 Architecture: http://www.jasig.org/cas/cas1-architecture
-.. _CAS 2 Architecture: http://www.jasig.org/cas/cas2-architecture
-.. _Proxy Authentication: http://www.jasig.org/cas/proxy-authentication
-
 Protocol Deviations
 -------------------
 
-In some areas MamaCAS deviates from the official CAS specification to
-take advantage of built-in Django behavior or offer additional functionality.
-These changes do not alter the contract between the client, service and CAS
-server.
+In some areas MamaCAS deviates from the official CAS specification to take
+advantage of built-in Django functionality. These changes do not alter the
+contract between the client, service and CAS server.
 
 **Login ticket (3.5)**
    This ticket string created for the login form is passed along with the
@@ -51,3 +44,9 @@ server.
    session. MamaCAS does not implement ticket-granting tickets, but instead
    uses Django sessions to determine if a single sign-on session has been
    established.
+
+.. _CAS Protocol: http://jasig.github.io/cas/4.0.0/protocol/CAS-Protocol.html
+.. _CAS User Manual: http://jasig.github.io/cas/
+.. _CAS 1 Architecture: https://www.apereo.org/cas/cas1-architecture
+.. _CAS 2 Architecture: https://www.apereo.org/cas/cas2-architecture
+.. _Proxy Authentication: https://www.apereo.org/cas/proxy-authentication
