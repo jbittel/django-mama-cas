@@ -1,17 +1,14 @@
 import logging
-import warnings
 
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.cache import never_cache
 
-from mama_cas.compat import SiteProfileNotAvailable
 from mama_cas.models import ServiceTicket
 from mama_cas.models import ProxyTicket
 from mama_cas.models import ProxyGrantingTicket
@@ -151,60 +148,10 @@ class CustomAttributesMixin(object):
     """
     def get_custom_attributes(self, user):
         """
-        Build a dictionary of user attributes from the ``User``
-        object, the user profile object or custom callbacks using one
-        or more of these settings:
-
-        ``MAMA_CAS_USER_ATTRIBUTES``
-            A dict of name and ``User`` attribute values. The name can
-            be any meaningful string, while the attribute must
-            correspond with an attribute on the ``User`` object.
-
-        ``MAMA_CAS_PROFILE_ATTRIBUTES``
-            A dict of name and user profile attribute values. The name
-            can be any meaningful string, while the attribute must
-            correspond with an attribute on the user profile object.
-
-        ``MAMA_CAS_ATTRIBUTE_CALLBACKS``
-            A tuple of dotted paths to callables that return a dict of
-            name and attribute values. Each callable is provided a
-            single argument of the authenticated ``User``.
-
-        All attributes are returned as a single dictionary.
+        Build a dictionary of user attributes from a set of custom
+        callbacks specified with ``MAMA_CAS_ATTRIBUTE_CALLBACKS``.
         """
         attributes = {}
-
-        user_attr_list = getattr(settings, 'MAMA_CAS_USER_ATTRIBUTES', {})
-        if user_attr_list:
-            warnings.warn(
-                "The MAMA_CAS_USER_ATTRIBUTES setting is deprecated and "
-                "will be removed in MamaCAS 1.0. Use the "
-                "MAMA_CAS_ATTRIBUTE_CALLBACKS setting instead.",
-                DeprecationWarning)
-        for name, attr in user_attr_list.items():
-            try:
-                attributes[name] = getattr(user, attr)
-            except AttributeError:
-                logger.error("User has no attribute named '%s'" % attr)
-
-        try:
-            profile = user.get_profile()
-        except (ObjectDoesNotExist, SiteProfileNotAvailable, AttributeError):
-            pass
-        else:
-            profile_attr_list = getattr(settings,
-                                        'MAMA_CAS_PROFILE_ATTRIBUTES', {})
-            if profile_attr_list:
-                warnings.warn(
-                    "The MAMA_CAS_PROFILE_ATTRIBUTES setting is deprecated "
-                    "and will be removed in MamaCAS 1.0. Use the "
-                    "MAMA_CAS_ATTRIBUTE_CALLBACKS setting instead.",
-                    DeprecationWarning)
-            for name, attr in profile_attr_list.items():
-                try:
-                    attributes[name] = getattr(profile, attr)
-                except AttributeError:
-                    logger.error("Profile has no attribute named '%s'" % attr)
 
         callbacks = getattr(settings, 'MAMA_CAS_ATTRIBUTE_CALLBACKS', ())
         for path in callbacks:

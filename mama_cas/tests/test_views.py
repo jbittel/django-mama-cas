@@ -448,16 +448,6 @@ class ServiceValidateViewTests(TestCase):
         response = ServiceValidateView.as_view()(request)
         self.assertContains(response, 'INVALID_SERVICE')
 
-    @override_settings(MAMA_CAS_USER_ATTRIBUTES={'email': 'email'})
-    def test_service_validate_view_user_attributes(self):
-        """
-        When ``MAMA_CAS_USER_ATTRIBUTES`` is defined, the validation
-        success should include the custom attribute block.
-        """
-        request = self.rf.get(reverse('cas_service_validate'), {'service': self.url, 'ticket': self.st.ticket})
-        response = ServiceValidateView.as_view()(request)
-        self.assertContains(response, 'attributes')
-
     @override_settings(MAMA_CAS_ATTRIBUTE_CALLBACKS=('mama_cas.tests.callback.test_callback',))
     def test_service_validate_view_attribute_callbacks(self):
         """
@@ -571,16 +561,6 @@ class ProxyValidateViewTests(TestCase):
         response = ProxyValidateView.as_view()(request)
         self.assertContains(response, 'authenticationSuccess')
         self.assertNotContains(response, 'proxyGrantingTicket')
-
-    @override_settings(MAMA_CAS_USER_ATTRIBUTES={'email': 'email'})
-    def test_proxy_validate_view_user_attributes(self):
-        """
-        When ``MAMA_CAS_USER_ATTRIBUTES`` is defined, the validation
-        success should include the custom attribute block.
-        """
-        request = self.rf.get(reverse('cas_proxy_validate'), {'service': self.url, 'ticket': self.pt.ticket})
-        response = ProxyValidateView.as_view()(request)
-        self.assertContains(response, 'attributes')
 
     @override_settings(MAMA_CAS_VALID_SERVICES=('^[^\.]+\.example\.net',))
     def test_proxy_validate_view_invalid_service_url(self):
