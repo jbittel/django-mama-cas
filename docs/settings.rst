@@ -71,25 +71,6 @@ alter stock CAS behavior.
    If neither parameter is specified or is not a valid service URL, the
    client will be redirected to the login page.
 
-.. attribute:: MAMA_CAS_PROFILE_ATTRIBUTES
-
-   :default: ``{}``
-
-   A dictionary of name and User profile attribute values to be returned along
-   with a service or proxy validation success. The key can be any meaningful
-   string, while the value must correspond with an attribute on the User
-   profile object. If no User profile is configured or available, this setting
-   will be ignored. For example::
-
-      MAMA_CAS_PROFILE_ATTRIBUTES = {
-          'employeeID': 'id_number',
-      }
-
-   .. note::
-
-      This setting has been deprecated in favor of
-      ``MAMA_CAS_ATTRIBUTE_CALLBACKS``.
-
 .. attribute:: MAMA_CAS_TICKET_EXPIRE
 
    :default: ``90``
@@ -108,26 +89,6 @@ alter stock CAS behavior.
    It should be long enough that the ticket string cannot be brute forced
    within a reasonable amount of time. Longer values are more secure, but
    could cause compatibility problems with some clients.
-
-.. attribute:: MAMA_CAS_USER_ATTRIBUTES
-
-   :default: ``{}``
-
-   A dictionary of name and User attribute values to be returned along with a
-   service or proxy validation success. The key can be any meaningful string,
-   while the value must correspond with an attribute on the User object. For
-   example::
-
-      MAMA_CAS_USER_ATTRIBUTES = {
-          'givenName': 'first_name',
-          'sn': 'last_name',
-          'email': 'email',
-      }
-
-   .. note::
-
-      This setting has been deprecated in favor of
-      ``MAMA_CAS_ATTRIBUTE_CALLBACKS``.
 
 .. attribute:: MAMA_CAS_VALID_SERVICES
 
