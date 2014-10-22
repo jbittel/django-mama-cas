@@ -30,7 +30,8 @@ class LoginForm(forms.Form):
         """
         Pass the provided username and password to the active
         authentication backends and verify the user account is
-        not disabled.
+        not disabled. If authentication succeeds, the ``User`` object
+        is assigned to the form so it can be accessed in the view.
         """
         username = self.cleaned_data.get('username')
         password = self.cleaned_data.get('password')

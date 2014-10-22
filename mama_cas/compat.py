@@ -16,7 +16,7 @@ user_model = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 # This is not needed when support for Django 1.4 is dropped.
 try:
     from django.contrib.auth import get_user_model
-except ImportError: # pragma: no cover
+except ImportError:  # pragma: no cover
     from django.contrib.auth.models import User
     get_user_model = lambda: User
 
@@ -34,7 +34,7 @@ def get_username(user):
 
 
 # Prefer cElementTree for performance, but fall back to the Python
-# implementation in case C extentions are not available.
+# implementation in case C extensions are not available.
 try:
     import xml.etree.cElementTree as etree
 except ImportError:  # pragma: no cover
