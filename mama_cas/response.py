@@ -70,7 +70,7 @@ class ValidationResponse(CasResponseBase):
                 attribute_set = etree.SubElement(auth_success, self.ns('attributes'))
                 for name, value in attributes.items():
                     attr = etree.SubElement(attribute_set, self.ns(name))
-                    attr.text = value
+                    attr.text = str(value)
             if pgt:
                 proxy_granting_ticket = etree.SubElement(auth_success, self.ns('proxyGrantingTicket'))
                 proxy_granting_ticket.text = pgt.iou
