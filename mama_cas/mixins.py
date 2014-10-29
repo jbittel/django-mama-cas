@@ -146,7 +146,7 @@ class CustomAttributesMixin(object):
     """
     View mixin for including user attributes in a validation response.
     """
-    def get_custom_attributes(self, user):
+    def get_attributes(self, user, service):
         """
         Build a dictionary of user attributes from a set of custom
         callbacks specified with ``MAMA_CAS_ATTRIBUTE_CALLBACKS``.
@@ -156,7 +156,7 @@ class CustomAttributesMixin(object):
         callbacks = getattr(settings, 'MAMA_CAS_ATTRIBUTE_CALLBACKS', ())
         for path in callbacks:
             callback = get_callable(path)
-            attributes.update(callback(user))
+            attributes.update(callback(user, service))
 
         return attributes
 

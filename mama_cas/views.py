@@ -260,7 +260,7 @@ class ServiceValidateView(NeverCacheMixin, ValidateTicketMixin,
 
         st, pgt, error = self.validate_service_ticket(service, ticket,
                                                       pgturl, renew)
-        attributes = self.get_custom_attributes(st.user) if st else None
+        attributes = self.get_attributes(st.user, st.service) if st else None
         return {'ticket': st, 'pgt': pgt, 'error': error,
                 'attributes': attributes}
 
@@ -302,7 +302,7 @@ class ProxyValidateView(NeverCacheMixin, ValidateTicketMixin,
             t, pgt, error = self.validate_service_ticket(service, ticket,
                                                          pgturl, renew)
             proxies = None
-        attributes = self.get_custom_attributes(t.user) if t else None
+        attributes = self.get_attributes(t.user, t.service) if t else None
         return {'ticket': t, 'pgt': pgt, 'proxies': proxies,
                 'error': error, 'attributes': attributes}
 
@@ -354,6 +354,6 @@ class SamlValidateView(NeverCacheMixin, ValidateTicketMixin,
             ticket = None
 
         st, pgt, error = self.validate_service_ticket(target, ticket, None, None)
-        attributes = self.get_custom_attributes(st.user) if st else None
+        attributes = self.get_attributes(st.user, st.service) if st else None
         return {'ticket': st, 'pgt': pgt, 'error': error,
                 'attributes': attributes}

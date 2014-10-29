@@ -32,15 +32,14 @@ alter stock CAS behavior.
 
    A tuple of dotted paths to callables that each provide a dictionary of
    name and attribute values. These values are merged together and included
-   with a service or proxy validation success. Each callable is provided a
-   single argument of the ``User`` for which validation is occurring. For
-   example::
+   with a service or proxy validation success. Each callable is provided the
+   authenticated ``User`` and the service URL as arguments. For example::
 
       # In settings.py
       MAMA_CAS_ATTRIBUTE_CALLBACKS = ('path.to.custom_attributes',)
 
       # In a convenient location
-      def custom_attributes(user):
+      def custom_attributes(user, service):
           return {'givenName': user.first_name, 'email': user.email}
 
 .. attribute:: MAMA_CAS_ENABLE_SINGLE_SIGN_OUT
