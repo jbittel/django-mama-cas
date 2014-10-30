@@ -99,6 +99,20 @@ class ValidationResponseTests(TestCase):
             del attrs[child.tag]
         self.assertEqual(len(attrs), 0)
 
+    def test_validation_response_nonstring_attributes(self):
+        """
+        When given non-string attributes, the values should be
+        converted to strings in the response.
+        """
+        attrs = {'boolean': True}
+        resp = ValidationResponse(context={'ticket': self.st, 'error': None,
+                                           'attributes': attrs},
+                                  content_type='text/xml')
+        attributes = parse(resp.content).find('./authenticationSuccess/attributes')
+        self.assertIsNotNone(attributes)
+        self.assertEqual(attributes[0].tag, 'boolean')
+        self.assertEqual(attributes[0].text, 'True')
+
 
 class ProxyResponseTests(TestCase):
     def setUp(self):
