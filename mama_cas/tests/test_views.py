@@ -448,7 +448,7 @@ class ServiceValidateViewTests(TestCase):
         response = ServiceValidateView.as_view()(request)
         self.assertContains(response, 'INVALID_SERVICE')
 
-    @override_settings(MAMA_CAS_ATTRIBUTE_CALLBACKS=('mama_cas.tests.callback.test_callback',))
+    @override_settings(MAMA_CAS_ATTRIBUTE_CALLBACKS=('mama_cas.callbacks.user_name_attributes',))
     def test_service_validate_view_attribute_callbacks(self):
         """
         When a custom callback is defined, a validation success should
