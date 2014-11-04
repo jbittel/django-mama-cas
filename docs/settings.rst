@@ -42,6 +42,12 @@ alter stock CAS behavior.
       def custom_attributes(user, service):
           return {'givenName': user.first_name, 'email': user.email}
 
+   Two callbacks are included out of the box for simple use cases and as
+   examples for custom callbacks::
+
+      mama_cas.callbacks.user_name_attributes
+      mama_cas.callbacks.user_model_attributes
+
 .. attribute:: MAMA_CAS_ENABLE_SINGLE_SIGN_OUT
 
    :default: ``False``
