@@ -42,11 +42,16 @@ alter stock CAS behavior.
       def custom_attributes(user, service):
           return {'givenName': user.first_name, 'email': user.email}
 
-   Two callbacks are included out of the box for simple use cases and as
-   examples for custom callbacks::
+   Two callbacks are provided to cover basic use cases and serve as
+   examples for custom callbacks:
 
-      mama_cas.callbacks.user_name_attributes
-      mama_cas.callbacks.user_model_attributes
+   ``mama_cas.callbacks.user_name_attributes``
+      Returns available name related fields using get_username(),
+      get_full_name() and get_short_name().
+
+   ``mama_cas.callbacks.user_model_attributes``
+      Returns all fields on the user object, except for ``id`` and
+      ``password``.
 
 .. attribute:: MAMA_CAS_ENABLE_SINGLE_SIGN_OUT
 
