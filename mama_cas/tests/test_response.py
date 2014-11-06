@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from __future__ import unicode_literals
 
 from django.test import TestCase
@@ -112,6 +114,20 @@ class ValidationResponseTests(TestCase):
         self.assertIsNotNone(attributes)
         self.assertEqual(attributes[0].tag, 'boolean')
         self.assertEqual(attributes[0].text, 'True')
+
+    def test_validation_response_unicode_attributes(self):
+        """
+        When given Unicode attributes, the values should be
+        handled correctly in the response.
+        """
+        attrs = {'unicode': u'тнє мαмαѕ & тнє ραραѕ'}
+        resp = ValidationResponse(context={'ticket': self.st, 'error': None,
+                                           'attributes': attrs},
+                                  content_type='text/xml')
+        attributes = parse(resp.content).find('./authenticationSuccess/attributes')
+        self.assertIsNotNone(attributes)
+        self.assertEqual(attributes[0].tag, 'unicode')
+        self.assertEqual(attributes[0].text, 'тнє мαмαѕ & тнє ραραѕ')
 
 
 class ProxyResponseTests(TestCase):
