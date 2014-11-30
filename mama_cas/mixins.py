@@ -12,7 +12,7 @@ from django.views.decorators.cache import never_cache
 from mama_cas.models import ServiceTicket
 from mama_cas.models import ProxyTicket
 from mama_cas.models import ProxyGrantingTicket
-from mama_cas.exceptions import InvalidTicket
+from mama_cas.exceptions import InvalidTicketSpec
 from mama_cas.exceptions import ValidationError
 from mama_cas.utils import get_callable
 
@@ -67,8 +67,8 @@ class ValidateTicketMixin(object):
         logger.debug("Service validation request received for %s" % ticket)
         # Check for proxy tickets passed to /serviceValidate
         if ticket and ticket.startswith(ProxyTicket.TICKET_PREFIX):
-            e = InvalidTicket('Proxy tickets cannot be validated'
-                              ' with /serviceValidate')
+            e = InvalidTicketSpec('Proxy tickets cannot be validated'
+                                  ' with /serviceValidate')
             logger.warning("%s %s" % (e.code, e))
             return None, None, e
 
