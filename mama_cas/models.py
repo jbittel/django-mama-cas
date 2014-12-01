@@ -181,9 +181,7 @@ class Ticket(models.Model):
         Check a ``Ticket``s consumed state. Return ``True`` if the ticket is
         consumed, and ``False`` otherwise.
         """
-        if self.consumed:
-            return True
-        return False
+        return self.consumed is not None
 
     def is_expired(self):
         """
