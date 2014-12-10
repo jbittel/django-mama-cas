@@ -23,7 +23,7 @@ setup(
     include_package_data=True,
     install_requires=['requests>=2.0.0,<3.0.0', 'defusedxml'],
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Environment :: Web Environment',
         'Framework :: Django',
         'Intended Audience :: Developers',
