@@ -389,9 +389,11 @@ class ProxyGrantingTicketManager(TestCase):
         If an invalid URL is provided, ``None`` should be returned
         instead of a ``ProxyGrantingTicket``.
         """
-        pgt = ProxyGrantingTicket.objects.create_ticket(self.pgturl,
-                                                        user=self.user,
-                                                        granted_by_pt=self.pt)
+        with patch('requests.get') as mock:
+            mock.side_effect = requests.exceptions.ConnectionError
+            pgt = ProxyGrantingTicket.objects.create_ticket(self.pgturl,
+                                                            user=self.user,
+                                                            granted_by_pt=self.pt)
         self.assertIsNone(pgt)
 
     def test_validate_callback(self):
@@ -416,8 +418,9 @@ class ProxyGrantingTicketManager(TestCase):
         pgtid = ProxyGrantingTicket.objects.create_ticket_str()
         prefix = ProxyGrantingTicket.objects.model.IOU_PREFIX
         pgtiou = ProxyGrantingTicket.objects.create_ticket_str(prefix=prefix)
+        http_url = 'http://www.example.com'
         with self.assertRaises(InvalidProxyCallback):
-            ProxyGrantingTicket.objects.validate_callback(self.pgturl,
+            ProxyGrantingTicket.objects.validate_callback(http_url,
                                                           pgtid, pgtiou)
 
     def test_validate_callback_ssl_error(self):
