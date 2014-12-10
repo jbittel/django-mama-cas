@@ -377,16 +377,17 @@ class ProxyGrantingTicketManager(TestCase):
         A ``ProxyGrantingTicket`` ought to be created with the
         appropriate ticket strings.
         """
-        pgt = ProxyGrantingTicket.objects.create_ticket(self.pgturl,
-                                                        validate=False,
-                                                        user=self.user,
-                                                        granted_by_pt=self.pt)
+        with patch('requests.get') as mock:
+            mock.return_value.status_code = 200
+            pgt = ProxyGrantingTicket.objects.create_ticket(self.pgturl,
+                                                            user=self.user,
+                                                            granted_by_pt=self.pt)
         self.assertTrue(re.search(pgt.TICKET_RE, pgt.ticket))
         self.assertTrue(pgt.iou.startswith(pgt.IOU_PREFIX))
 
     def test_create_ticket_invalid_pgturl(self):
         """
-        If an invalid URL is provided, ``None`` should be returned
+        If callback validation fails, ``None`` should be returned
         instead of a ``ProxyGrantingTicket``.
         """
         with patch('requests.get') as mock:
@@ -411,9 +412,9 @@ class ProxyGrantingTicketManager(TestCase):
             except InvalidProxyCallback:
                 self.fail("Exception raised validating proxy callback URL")
 
-    def test_validate_callback_invalid_pgturl(self):
+    def test_validate_callback_http_pgturl(self):
         """
-        If an invalid URL is provided, an exception should be raised.
+        If an HTTP URL is provided, InvalidProxyCallback should be raised.
         """
         pgtid = ProxyGrantingTicket.objects.create_ticket_str()
         prefix = ProxyGrantingTicket.objects.model.IOU_PREFIX
