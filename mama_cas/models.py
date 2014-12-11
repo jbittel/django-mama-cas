@@ -286,23 +286,18 @@ class ProxyTicket(Ticket):
 
 
 class ProxyGrantingTicketManager(TicketManager):
-    def create_ticket(self, pgturl, validate=True, **kwargs):
+    def create_ticket(self, pgturl, **kwargs):
         """
         When a ``pgtUrl`` parameter is provided to ``/serviceValidate`` or
         ``/proxyValidate``, attempt to create a new ``ProxyGrantingTicket``.
         Start by creating the necessary ticket strings and then validate the
         callback URL. If validation succeeds, create and return the
         ``ProxyGrantingTicket``. If validation fails, return ``None``.
-
-        If ``validate`` is set to False, ``pgtUrl`` validation is skipped.
-        This is intended only for testing purposes, so a PGT can be created
-        without a valid callback URL present.
         """
         pgtid = self.create_ticket_str()
         pgtiou = self.create_ticket_str(prefix=self.model.IOU_PREFIX)
         try:
-            if validate:
-                self.validate_callback(pgturl, pgtid, pgtiou)
+            self.validate_callback(pgturl, pgtid, pgtiou)
         except InvalidProxyCallback as e:
             # pgtUrl validation failed, so nothing has been created
             logger.warning("%s %s" % (e.code, e))

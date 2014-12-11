@@ -1,4 +1,5 @@
 from datetime import timedelta
+from mock import patch
 
 from django.contrib.auth.models import User
 from django.utils.timezone import now
@@ -63,9 +64,10 @@ class ProxyGrantingTicketFactory(TicketFactory):
     def _create(cls, target_class, *args, **kwargs):
         if not args:
             args = ('https://www.example.com',)
-            kwargs['validate'] = False
-        return super(ProxyGrantingTicketFactory, cls)._create(target_class,
-                                                              *args, **kwargs)
+        with patch('requests.get') as mock:
+            mock.return_value.status_code = 200
+            return super(ProxyGrantingTicketFactory, cls)._create(target_class,
+                                                                  *args, **kwargs)
 
 
 class ExpiredProxyGrantingTicketFactory(ProxyGrantingTicketFactory):
