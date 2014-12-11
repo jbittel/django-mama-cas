@@ -19,17 +19,7 @@ class UserFactory(factory.django.DjangoModelFactory):
     last_name = 'Cohen'
     username = factory.LazyAttribute(lambda o: o.first_name.lower())
     email = factory.LazyAttribute(lambda o: '%s@example.com' % o.username)
-    password = 'mamas&papas'
-
-    @classmethod
-    def _prepare(cls, create, **kwargs):
-        password = kwargs.pop('password', None)
-        user = super(UserFactory, cls)._prepare(create, **kwargs)
-        if password:
-            user.set_password(password)
-            if create:
-                user.save()
-        return user
+    password = factory.PostGenerationMethodCall('set_password', 'mamas&papas')
 
 
 class InactiveUserFactory(UserFactory):
