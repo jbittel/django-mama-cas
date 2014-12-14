@@ -21,18 +21,14 @@ logger = logging.getLogger(__name__)
 
 
 class NeverCacheMixin(object):
-    """
-    View mixin for disabling caching.
-    """
+    """View mixin for disabling caching."""
     @method_decorator(never_cache)
     def dispatch(self, request, *args, **kwargs):
         return super(NeverCacheMixin, self).dispatch(request, *args, **kwargs)
 
 
 class LoginRequiredMixin(object):
-    """
-    View mixin to require a logged in user.
-    """
+    """View mixin to require a logged in user."""
     @method_decorator(login_required(login_url=reverse_lazy('cas_login'),
                                      redirect_field_name=None))
     def dispatch(self, request, *args, **kwargs):
@@ -42,7 +38,7 @@ class LoginRequiredMixin(object):
 class CasResponseMixin(object):
     """
     View mixin for building CAS XML responses. Expects the view to
-    implement get_context_data() and define response_class.
+    implement ``get_context_data()`` and define ``response_class``.
     """
     content_type = 'text/xml'
 
@@ -55,9 +51,7 @@ class CasResponseMixin(object):
 
 
 class ValidateTicketMixin(object):
-    """
-    View mixin providing ticket validation methods.
-    """
+    """View mixin providing ticket validation methods."""
     def validate_service_ticket(self, service, ticket, pgturl, renew):
         """
         Validate a service ticket string. Return a triplet containing
@@ -148,8 +142,8 @@ class CustomAttributesMixin(object):
     """
     def get_attributes(self, user, service):
         """
-        Build a dictionary of user attributes from a set of custom
-        callbacks specified with ``MAMA_CAS_ATTRIBUTE_CALLBACKS``.
+        Build a dictionary of user attributes from a set of callbacks
+        specified with ``MAMA_CAS_ATTRIBUTE_CALLBACKS``.
         """
         attributes = {}
 

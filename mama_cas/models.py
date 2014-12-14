@@ -251,9 +251,7 @@ class ServiceTicket(Ticket):
         """
         Send a POST request to the ``ServiceTicket``s service URL to
         request sign-out. The remote session is identified by the
-        service ticket string that instantiated the session. Clients
-        that do not support single sign-out will notice these spurious
-        requests in their logs.
+        service ticket string that instantiated the session.
         """
         request = SingleSignOutRequest(context={'ticket': self})
         try:
@@ -290,8 +288,7 @@ class ProxyGrantingTicketManager(TicketManager):
         """
         When a ``pgtUrl`` parameter is provided to ``/serviceValidate`` or
         ``/proxyValidate``, attempt to create a new ``ProxyGrantingTicket``.
-        Start by creating the necessary ticket strings and then validate the
-        callback URL. If validation succeeds, create and return the
+        If PGT URL validation succeeds, create and return the
         ``ProxyGrantingTicket``. If validation fails, return ``None``.
         """
         pgtid = self.create_ticket_str()
@@ -299,12 +296,11 @@ class ProxyGrantingTicketManager(TicketManager):
         try:
             self.validate_callback(pgturl, pgtid, pgtiou)
         except InvalidProxyCallback as e:
-            # pgtUrl validation failed, so nothing has been created
             logger.warning("%s %s" % (e.code, e))
             return None
         else:
             # pgtUrl validation succeeded, so create a new PGT with the
-            # already created ticket strings
+            # previously generated ticket strings
             return super(ProxyGrantingTicketManager, self).create_ticket(ticket=pgtid,
                                                                          iou=pgtiou,
                                                                          **kwargs)
