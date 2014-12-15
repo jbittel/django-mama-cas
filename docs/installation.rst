@@ -90,7 +90,7 @@ will change depending on the individual backend.
 .. _Requests: http://python-requests.org/
 .. _defusedxml: https://bitbucket.org/tiran/defusedxml
 .. _gevent: http://www.gevent.org/
-.. _pip: http://www.pip-installer.org/
+.. _pip: https://pip.pypa.io/
 .. _PyPI: https://pypi.python.org/pypi/django-mama-cas/
 .. _GitHub: https://github.com/jbittel/django-mama-cas
 .. _tarball: https://github.com/jbittel/django-mama-cas/tarball/master

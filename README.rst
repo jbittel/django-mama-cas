@@ -66,7 +66,7 @@ Python and Django.
 .. _Central Authentication Service (CAS): http://jasig.github.io/cas/
 .. _github.com/jbittel/django-mama-cas: https://github.com/jbittel/django-mama-cas
 .. _django-mama-cas.readthedocs.org: http://django-mama-cas.readthedocs.org/
-.. _pip: http://www.pip-installer.org/
+.. _pip: https://pip.pypa.io/
 .. _installation instructions: http://django-mama-cas.readthedocs.org/en/latest/installation.html
 .. _changelog: http://django-mama-cas.readthedocs.org/en/latest/changelog.html
 .. _PEP8: http://www.python.org/dev/peps/pep-0008
