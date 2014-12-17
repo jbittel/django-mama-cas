@@ -50,10 +50,8 @@ Once added, run ``manage.py migrate`` to create the required database tables.
 URL paths
 ~~~~~~~~~
 
-MamaCAS includes a Django URLconf that provides the required CAS URIs (e.g.
-``login/``, ``logout/``, ``validate/``, etc.). They are located in
-``mama_cas.urls`` and can be included directly in your project's root
-``URLconf`` with the following::
+Include the required CAS URL endpoints in your project's root ``URLconf``
+with the following::
 
    urlpatterns = patterns('',
        # ...existing urls...
@@ -61,9 +59,9 @@ MamaCAS includes a Django URLconf that provides the required CAS URIs (e.g.
    )
 
 This makes the CAS server available at the top level of your project's
-URL (e.g. ``http://example.com/login``). To make the server available in a
-subdirectory, add the path to the regular expression. For example, to access
-the server at ``http://example.com/cas/login``::
+URL (e.g. ``http://example.com/login``). To add a subpath to the CAS root
+(e.g. ``http://example.com/cas/login``) add the path to the URL regular
+expression::
 
    urlpatterns = patterns('',
        # ...existing urls...
