@@ -4,13 +4,8 @@ Templates
 =========
 
 MamaCAS contains templates implementing standard username and password
-authentication. Depending on your needs, you can use them as-is, modify
-them or replace them entirely.
-
-.. note::
-
-   Changes made directly to the included template files will be lost when
-   MamaCAS is updated.
+authentication. Depending on your needs, you can use them as-is, override
+portions of them or replace them entirely.
 
 **mama_cas/login.html**
 
@@ -29,10 +24,10 @@ them or replace them entirely.
 Modifying
 ---------
 
-To modify or replace the stock templates, first make sure the replacement
-templates come first in the search order. If the replacement templates exist
-in a directory specified by ``TEMPLATE_DIRS``, then ``TEMPLATE_LOADERS``
-should look something like this::
+To override or extend blocks in the stock templates, first make sure the
+custom templates come first in the search order. If the custom templates
+exist in a directory specified by ``TEMPLATE_DIRS``, then
+``TEMPLATE_LOADERS`` should look something like this::
 
    TEMPLATE_LOADERS = (
        'django.template.loaders.filesystem.Loader',
@@ -42,8 +37,9 @@ should look something like this::
 The base level stock templates are wrappers to simplify extending the stock
 templates without circular template inheritance issues. The base template
 ``mama_cas/login.html`` has a corresponding ``mama_cas/__login.html`` and
-``mama_cas/warn.html`` has a corresponding ``mama_cas/__warn.html``. Using
-this structure, to add a header above the login form with additional styling
+``mama_cas/warn.html`` has a corresponding ``mama_cas/__warn.html``.
+
+For example, to add a header above the login form with some additional styling
 create a file named ``mama_cas/login.html`` in one of the ``TEMPLATE_DIRS``
 that extends ``mama_cas/__login.html``::
 
@@ -58,16 +54,16 @@ that extends ``mama_cas/__login.html``::
        <h1>If You Can Believe Your Eyes and Ears</h1>
    {% endblock header %}
 
-The stock templates have a variety of blocks defined to make modifications
-straightforward. Look through the templates to see what blocks are available.
+The stock templates have a variety of blocks defined to make many modifications
+straightforward.
 
 Replacing
 ---------
 
 If the required changes are substantial, then replace the stock templates
-entirely. Following the example above, simply remove the top line that extends
-the stock template. In addition to the login form, some elements custom
-templates should include are:
+entirely. Following the example above, remove the top line that extends
+the stock template and include the remainder of the page contents. In addition
+to the login form, some elements custom templates should include are:
 
 **Messages**
    The ``messages`` framework displays information to the user for a login,
