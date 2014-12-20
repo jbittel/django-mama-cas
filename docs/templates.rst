@@ -10,9 +10,10 @@ portions of them or replace them entirely.
 **mama_cas/login.html**
 
    This template displays the authentication form whenever ``LoginView``
-   requires user credentials. It also provides authentication success or
-   failure information. When the user logs out, by default they are redirected
-   to this template with a logout success message.
+   requires user credentials, as well as authentication success or failure
+   information. When the user logs out, they are redirected to this template
+   with a logout success message if ``MAMA_CAS_FOLLOW_LOGOUT_URL`` is
+   ``False`` or no URL is provided.
 
 **mama_cas/warn.html**
 
