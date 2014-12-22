@@ -9,6 +9,17 @@ here. For additional detail, read the complete `commit history`_. From
 version 0.4.0 and following, version numbers follow the `semantic
 versioning`_ scheme.
 
+**django-mama-cas 1.0.0** ``[2014-12-22]``
+   * Add Django and South database migrations
+   * Add example user attribute callbacks
+   * Fix error when supplying non-string attribute values
+   * Remove ``MAMA_CAS_USER_ATTRIBUTES`` and ``MAMA_CAS_PROFILE_ATTRIBUTES``
+
+   .. warning::
+
+      ``MAMA_CAS_USER_ATTRIBUTES`` and ``MAMA_CAS_PROFILE_ATTRIBUTES``
+      have been removed. Use ``MAMA_CAS_ATTRIBUTE_CALLBACKS`` instead.
+
 **django-mama-cas 0.10.0** ``[2014-10-13]``
    * Default the asychronous concurrency level to ``2``
    * Improve test configuration and output
