@@ -25,7 +25,7 @@ Install with `pip`_::
 
    $ pip install django-mama-cas
 
-Add to ``INSTALLED_APPS``::
+Add to ``INSTALLED_APPS`` and run ``migrate``::
 
    INSTALLED_APPS += ('mama_cas',)
 

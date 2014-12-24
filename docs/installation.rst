@@ -45,7 +45,7 @@ First, add MamaCAS to the ``INSTALLED_APPS`` setting within your project's
        'mama_cas',
    )
 
-Once added, run ``manage.py migrate`` to create the required database tables.
+Once added, run ``migrate`` to create the required database tables.
 
 URL paths
 ~~~~~~~~~
