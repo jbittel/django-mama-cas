@@ -3,10 +3,11 @@
 {% load url from future %}
 
 {% block content %}
-    {% include "mama_cas/_messages.html" %}
-
-    <a href="{{ service }}"><span class="button box">{% trans "Yes, continue" %}</span></a>
-    <div class="logout">
-        <a href="{% url 'cas_logout' %}">{% trans "No, log me out" %}</a>
+    <div class="row">
+        <div class="col-sm-6 col-md-4 col-md-offset-4">
+            {% include "mama_cas/_messages.html" %}
+            <a href="{{ service }}" class="btn btn-lg btn-primary btn-block" role="button">{% trans "Yes, continue" %}</a>
+            <a href="{% url 'cas_logout' %}" class="btn btn-link pull-right" role="button">{% trans "No, log me out" %}</a>
+        </div>
     </div>
 {% endblock content %}
