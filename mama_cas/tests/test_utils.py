@@ -109,4 +109,4 @@ class UtilsTests(TestCase):
     def test_get_callable_invalid_import(self):
         """An invalid callable should raise an ``ImportError``."""
         self.assertRaises(ImportError, get_callable,
-                          'mama_cas.tests.callback.invalid_callback')
+                          'mama_cas.callbacks.invalid_callback')
