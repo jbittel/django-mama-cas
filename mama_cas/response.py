@@ -80,7 +80,7 @@ class ValidationResponse(CasResponseBase):
                 for p in proxies:
                     proxy = etree.SubElement(proxy_list, self.ns('proxy'))
                     proxy.text = p
-        elif error:
+        elif error:  # pragma: no branch
             auth_failure = etree.SubElement(service_response, self.ns('authenticationFailure'))
             auth_failure.set('code', error.code)
             auth_failure.text = str(error)
@@ -118,7 +118,7 @@ class ProxyResponse(CasResponseBase):
             proxy_success = etree.SubElement(service_response, self.ns('proxySuccess'))
             proxy_ticket = etree.SubElement(proxy_success, self.ns('proxyTicket'))
             proxy_ticket.text = ticket.ticket
-        elif error:
+        elif error:  # pragma: no branch
             proxy_failure = etree.SubElement(service_response, self.ns('proxyFailure'))
             proxy_failure.set('code', error.code)
             proxy_failure.text = str(error)
@@ -174,7 +174,7 @@ class SamlValidationResponse(CasResponseBase):
             response.set('Recipient', ticket.service)
             response.append(self.get_status('Success'))
             response.append(self.get_assertion(ticket, attributes))
-        elif error:
+        elif error:  # pragma: no branch
             response.set('Recipient', 'UNKNOWN')
             response.append(self.get_status('RequestDenied', message=str(error)))
         return etree.tostring(envelope, encoding='UTF-8')
