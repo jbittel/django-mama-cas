@@ -48,15 +48,12 @@ that extends ``mama_cas/__login.html``::
 
    {% block styles %}
        {{ block.super }}
-       <style>#header { font-size:3em; text-align:center; color:#aaa; }</style>
+       <style>.login-title { color: #aaa; font-size: 2em; }</style>
    {% endblock styles %}
 
-   {% block header %}
-       <h1>If You Can Believe Your Eyes and Ears</h1>
-   {% endblock header %}
-
-The stock templates have a variety of blocks defined to make many modifications
-straightforward.
+   {% block content_title %}
+       If You Can Believe Your Eyes and Ears
+   {% endblock content_title %}
 
 Replacing
 ---------
