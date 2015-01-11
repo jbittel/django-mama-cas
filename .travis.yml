@@ -14,7 +14,6 @@ env:
     - TOX_ENV=py26-d14
     - TOX_ENV=f8
     - TOX_ENV=docs
-    - TOX_ENV=cov
 cache:
   directories:
     - $HOME/.pip-cache/
