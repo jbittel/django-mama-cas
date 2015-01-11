@@ -10,6 +10,7 @@ env:
     - TOX_ENV=py27-d17
     - TOX_ENV=py33-d16
     - TOX_ENV=py27-d16
+    - TOX_ENV=py26-d16
     - TOX_ENV=py27-d14
     - TOX_ENV=py26-d14
     - TOX_ENV=f8
