@@ -2,8 +2,6 @@ language: python
 python:
   - "2.7"
 env:
-  global:
-    - PIP_DOWNLOAD_CACHE=$HOME/.pip_cache
   matrix:
     - TOX_ENV=py34-django17
     - TOX_ENV=py33-django17
@@ -15,9 +13,6 @@ env:
     - TOX_ENV=py26-django14
     - TOX_ENV=flake8
     - TOX_ENV=docs
-cache:
-  directories:
-    - $HOME/.pip-cache/
 install:
   - "travis_retry pip install setuptools --upgrade"
   - "pip install tox"
