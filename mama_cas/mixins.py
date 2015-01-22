@@ -8,6 +8,7 @@ from django.core.urlresolvers import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.cache import never_cache
+from django.views.decorators.csrf import csrf_protect
 
 from mama_cas.models import ServiceTicket
 from mama_cas.models import ProxyTicket
@@ -33,6 +34,13 @@ class LoginRequiredMixin(object):
                                      redirect_field_name=None))
     def dispatch(self, request, *args, **kwargs):
         return super(LoginRequiredMixin, self).dispatch(request, *args, **kwargs)
+
+
+class CsrfProtectMixin(object):
+    """View mixin to require CSRF protection."""
+    @method_decorator(csrf_protect)
+    def dispatch(self, request, *args, **kwargs):
+        return super(CsrfProtectMixin, self).dispatch(request, *args, **kwargs)
 
 
 class CasResponseMixin(object):

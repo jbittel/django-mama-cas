@@ -14,6 +14,7 @@ import defusedxml.ElementTree as etree
 from mama_cas.compat import get_username
 from mama_cas.forms import LoginForm
 from mama_cas.mixins import CasResponseMixin
+from mama_cas.mixins import CsrfProtectMixin
 from mama_cas.mixins import CustomAttributesMixin
 from mama_cas.mixins import LoginRequiredMixin
 from mama_cas.mixins import LogoutUserMixin
@@ -34,7 +35,7 @@ from mama_cas.utils import to_bool
 logger = logging.getLogger(__name__)
 
 
-class LoginView(NeverCacheMixin, LogoutUserMixin, FormView):
+class LoginView(CsrfProtectMixin, NeverCacheMixin, LogoutUserMixin, FormView):
     """
     (2.1 and 2.2) Credential requestor and acceptor.
 
