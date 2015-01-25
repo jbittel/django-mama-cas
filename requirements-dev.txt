@@ -6,5 +6,6 @@ pytest-cov
 pytest-django
 requests>=2.0.0,<3.0.0
 Sphinx
+twine
 wheel
 pytest-pythonpath==0.3
