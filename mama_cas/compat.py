@@ -69,6 +69,14 @@ except ImportError:  # pragma: no cover
     gevent = None
 
 
+# defusedxml is optional, and is used for the /samlValidate
+# endpoint. If it is not present, this endpoint raises an exception.
+try:
+    import defusedxml.ElementTree as defused_etree
+except ImportError:  # pragma: no cover
+    defused_etree = None
+
+
 # Support both Python 2 and Python 3 locations for urllib imports.
 try:
     from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse

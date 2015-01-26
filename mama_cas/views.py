@@ -9,8 +9,7 @@ from django.views.generic import FormView
 from django.views.generic import TemplateView
 from django.views.generic import View
 
-import defusedxml.ElementTree as etree
-
+from mama_cas.compat import defused_etree
 from mama_cas.compat import get_username
 from mama_cas.forms import LoginForm
 from mama_cas.mixins import CasResponseMixin
@@ -348,10 +347,12 @@ class SamlValidateView(NeverCacheMixin, ValidateTicketMixin,
     def get_context_data(self, **kwargs):
         target = self.request.GET.get('target')
 
+        assert defused_etree, '/samlValidate endpoint requires defusedxml to be installed'
+
         try:
-            root = etree.parse(self.request, forbid_dtd=True).getroot()
+            root = defused_etree.parse(self.request, forbid_dtd=True).getroot()
             ticket = root.find('.//{urn:oasis:names:tc:SAML:1.0:protocol}AssertionArtifact').text
-        except (etree.ParseError, ValueError, AttributeError):
+        except (defused_etree.ParseError, ValueError, AttributeError):
             ticket = None
 
         st, pgt, error = self.validate_service_ticket(target, ticket, None, None)

@@ -21,7 +21,7 @@ setup(
     download_url='https://pypi.python.org/pypi/django-mama-cas/',
     packages=find_packages(),
     include_package_data=True,
-    install_requires=['requests>=2.0.0,<3.0.0', 'defusedxml'],
+    install_requires=['requests>=2.0.0,<3.0.0'],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Environment :: Web Environment',
