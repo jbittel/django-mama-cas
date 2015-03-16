@@ -1,6 +1,7 @@
 defusedxml
 factory-boy
 flake8
+gevent
 mock
 pytest-cov
 pytest-django

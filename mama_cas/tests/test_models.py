@@ -1,6 +1,6 @@
-import re
 from datetime import timedelta
 from mock import patch
+import re
 
 from django.core import management
 from django.test import TestCase
@@ -279,6 +279,20 @@ class ServiceTicketManagerTests(TestCase):
         Calling the ``request_sign_out()`` manager method should
         issue a POST request for each consumed ticket for the
         provided user.
+        """
+        ConsumedServiceTicketFactory()
+        ConsumedServiceTicketFactory()
+        with patch('requests.post') as mock:
+            mock.return_value.status_code = 200
+            ServiceTicket.objects.request_sign_out(self.user)
+            self.assertEqual(mock.call_count, 2)
+
+    @override_settings(MAMA_CAS_ASYNC_CONCURRENCY=0)
+    def test_request_sign_out_no_pool(self):
+        """
+        Calling the ``request_sign_out()`` manager method with
+        concurrency disabled should issue a POST request for each
+        consumed ticket for the provided user.
         """
         ConsumedServiceTicketFactory()
         ConsumedServiceTicketFactory()
