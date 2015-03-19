@@ -61,7 +61,7 @@ class LoginViewTests(TestCase):
         the user, and redirect to the correct view.
         """
         response = self.client.post(reverse('cas_login'), self.user_info)
-        self.assertEqual(self.client.session['_auth_user_id'], self.user.pk)
+        self.assertEqual(int(self.client.session['_auth_user_id']), self.user.pk)
         self.assertRedirects(response, reverse('cas_login'))
 
     def test_login_view_login_service(self):
@@ -97,7 +97,7 @@ class LoginViewTests(TestCase):
         """
         url = reverse('cas_login') + "?service=%s" % self.service_url
         response = self.client.post(url, self.user_info)
-        self.assertEqual(self.client.session['_auth_user_id'], self.user.pk)
+        self.assertEqual(int(self.client.session['_auth_user_id']), self.user.pk)
         self.assertEqual(ServiceTicket.objects.count(), 1)
         st = ServiceTicket.objects.latest('id')
         self.assertEqual(response.status_code, 302)
