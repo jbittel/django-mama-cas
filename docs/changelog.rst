@@ -9,6 +9,12 @@ here. For additional detail, read the complete `commit history`_. From
 version 0.4.0 and following, version numbers follow the `semantic
 versioning`_ scheme.
 
+**django-mama-cas 1.1.0** ``[2015-04-01]``
+   * Made defusedxml requirement optional
+   * Changed stock templates to use Bootstrap
+   * Enforce CSRF protection on login form
+   * Fix South migrations for user model foreign keys
+
 **django-mama-cas 1.0.0** ``[2014-12-22]``
    * Add Django and South database migrations
    * Add example user attribute callbacks
