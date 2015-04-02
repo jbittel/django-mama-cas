@@ -13,8 +13,9 @@ from mama_cas.models import Ticket
 
 
 class UserFactory(factory.django.DjangoModelFactory):
-    FACTORY_FOR = User
-    FACTORY_DJANGO_GET_OR_CREATE = ('username',)
+    class Meta:
+        model = User
+        django_get_or_create = ('username',)
 
     first_name = 'Ellen'
     last_name = 'Cohen'
@@ -31,8 +32,9 @@ class InactiveUserFactory(UserFactory):
 
 
 class TicketFactory(factory.django.DjangoModelFactory):
-    FACTORY_FOR = Ticket
-    ABSTRACT_FACTORY = True
+    class Meta:
+        model = Ticket
+        abstract = True
 
     user = factory.SubFactory(UserFactory)
 
@@ -43,7 +45,8 @@ class TicketFactory(factory.django.DjangoModelFactory):
 
 
 class ServiceTicketFactory(TicketFactory):
-    FACTORY_FOR = ServiceTicket
+    class Meta:
+        model = ServiceTicket
 
     service = 'http://www.example.com'
 
@@ -57,7 +60,8 @@ class ConsumedServiceTicketFactory(ServiceTicketFactory):
 
 
 class ProxyGrantingTicketFactory(TicketFactory):
-    FACTORY_FOR = ProxyGrantingTicket
+    class Meta:
+        model = ProxyGrantingTicket
 
     granted_by_st = factory.SubFactory(ServiceTicketFactory)
 
@@ -80,7 +84,8 @@ class ConsumedProxyGrantingTicketFactory(ProxyGrantingTicketFactory):
 
 
 class ProxyTicketFactory(TicketFactory):
-    FACTORY_FOR = ProxyTicket
+    class Meta:
+        model = ProxyTicket
 
     service = 'http://www.example.com'
     granted_by_pgt = factory.SubFactory(ProxyGrantingTicketFactory)
