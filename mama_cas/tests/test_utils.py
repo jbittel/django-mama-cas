@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from django.test import TestCase
 from django.test.utils import override_settings
 
@@ -26,6 +28,16 @@ class UtilsTests(TestCase):
         self.assertNotIn('test2=', url)
         # Existing parameters with the same name should be overwritten
         self.assertIn('test3=indigo', url)
+
+    def test_add_query_params_unicode(self):
+        """
+        When Unicode parameters are provided, ``add_query_params()``
+        should encode them appropriately.
+        """
+        params = {'unicode1': u'ä', u'unicode²': 'b'}
+        url = add_query_params('http://www.example.com/', params)
+        self.assertIn('unicode1=%C3%A4', url)
+        self.assertIn('unicode%C2%B2=b', url)
 
     def test_is_scheme_https(self):
         """

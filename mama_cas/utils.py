@@ -6,6 +6,7 @@ from django.core.exceptions import PermissionDenied
 from django.core import urlresolvers
 from django.http import HttpResponseRedirect
 
+from .compat import force_bytes
 from .compat import parse_qsl
 from .compat import urlencode
 from .compat import urlparse
@@ -19,10 +20,12 @@ def add_query_params(url, params):
     """
     Inject additional query parameters into an existing URL. If
     parameters already exist with the same name, they will be
-    overwritten. Return the modified URL as a string.
+    overwritten. Parameters with empty values are ignored. Return
+    the modified URL as a string.
     """
-    # Ignore additional parameters with empty values
-    params = dict([(k, v) for k, v in params.items() if v])
+    encode = lambda v: force_bytes(v, settings.DEFAULT_CHARSET)
+    params = dict([(encode(k), encode(v)) for k, v in params.items() if v])
+
     parts = list(urlparse(url))
     query = dict(parse_qsl(parts[4]))
     query.update(params)

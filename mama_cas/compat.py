@@ -33,6 +33,15 @@ def get_username(user):
         return user.username
 
 
+# Django >= 1.5 provides force_bytes() that returns a bytestring
+# version of the provided string. Previous versions of Django use
+# a different function for similar functionality.
+try:
+    from django.utils.encoding import force_bytes
+except ImportError:
+    from django.utils.encoding import smart_str as force_bytes
+
+
 # Prefer cElementTree for performance, but fall back to the Python
 # implementation in case C extensions are not available.
 try:
