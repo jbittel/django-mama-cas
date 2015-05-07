@@ -55,7 +55,7 @@ appropriate, pull requests should add or update tests, along with any
 necessary documentation changes. With any substantial contribution, feel
 free to add yourself as a contributor in the AUTHORS file.
 
-Development dependencies can be installed from ``requirements-dev.txt``.
+Development dependencies can be installed from ``requirements.txt``.
 Execute the test suite with::
 
    $ py.test
