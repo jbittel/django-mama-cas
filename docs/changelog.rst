@@ -9,6 +9,9 @@ here. For additional detail, read the complete `commit history`_. From
 version 0.4.0 and following, version numbers follow the `semantic
 versioning`_ scheme.
 
+**django-mama-cas 1.1.1** ``[2015-05-15]``
+   * Fix exception when inserting Unicode parameters
+
 **django-mama-cas 1.1.0** ``[2015-04-01]``
    * Made defusedxml requirement optional
    * Changed stock templates to use Bootstrap
