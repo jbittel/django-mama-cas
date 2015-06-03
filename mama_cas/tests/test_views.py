@@ -608,7 +608,7 @@ class ProxyViewTests(TestCase):
         pgt_str = ProxyTicket.objects.create_ticket_str()
         request = self.rf.get(reverse('cas_proxy'), {'targetService': self.url, 'pgt': pgt_str})
         response = ProxyView.as_view()(request)
-        self.assertContains(response, 'BAD_PGT')
+        self.assertContains(response, 'INVALID_TICKET')
 
     def test_proxy_view_success(self):
         """

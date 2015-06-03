@@ -19,7 +19,6 @@ import requests
 
 from mama_cas.compat import gevent
 from mama_cas.compat import user_model
-from mama_cas.exceptions import BadPgt
 from mama_cas.exceptions import InvalidProxyCallback
 from mama_cas.exceptions import InvalidRequest
 from mama_cas.exceptions import InvalidService
@@ -361,7 +360,7 @@ class ProxyGrantingTicketManager(TicketManager):
         try:
             t = self.get(ticket=ticket)
         except self.model.DoesNotExist:
-            raise BadPgt("Ticket %s does not exist" % ticket)
+            raise InvalidTicket("Ticket %s does not exist" % ticket)
 
         if t.is_consumed():
             raise InvalidTicket("%s %s has already been used" %

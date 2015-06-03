@@ -49,6 +49,6 @@ class InternalError(ValidationError):
     code = 'INTERNAL_ERROR'
 
 
-class BadPgt(ValidationError):
-    """The PGT provided was invalid."""
-    code = 'BAD_PGT'
+class UnauthorizedService(ValidationError):
+    """Service is unauthorized to perform the proxy request."""
+    code = 'UNAUTHORIZED_SERVICE'

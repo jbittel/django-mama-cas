@@ -21,7 +21,6 @@ from .factories import UserFactory
 from mama_cas.models import ProxyGrantingTicket
 from mama_cas.models import ProxyTicket
 from mama_cas.models import ServiceTicket
-from mama_cas.exceptions import BadPgt
 from mama_cas.exceptions import InvalidProxyCallback
 from mama_cas.exceptions import InvalidRequest
 from mama_cas.exceptions import InvalidService
@@ -536,7 +535,7 @@ class ProxyGrantingTicketManager(TestCase):
         cannot be found in the database.
         """
         ticket = 'PGT-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
-        with self.assertRaises(BadPgt):
+        with self.assertRaises(InvalidTicket):
             ProxyGrantingTicket.objects.validate_ticket(ticket, self.url)
 
     def test_validate_ticket_consumed_ticket(self):
