@@ -1,5 +1,5 @@
 """
-URLconf for CAS server URIs as described in the CAS protocol.
+(2) CAS server URIs as described in the CAS protocol.
 """
 
 from django.conf.urls import patterns
@@ -34,6 +34,12 @@ urlpatterns = patterns('',
     url(r'^proxy/?$',
         ProxyView.as_view(),
         name='cas_proxy'),
+    url(r'^p3/serviceValidate/?$',
+        ServiceValidateView.as_view(),
+        name='cas_p3_service_validate'),
+    url(r'^p3/proxyValidate/?$',
+        ProxyValidateView.as_view(),
+        name='cas_p3_proxy_validate'),
     url(r'^warn/?$',
         WarnView.as_view(),
         name='cas_warn'),
