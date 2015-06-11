@@ -71,9 +71,9 @@ class TicketManager(models.Manager):
         corresponding ``Ticket``. If validation succeeds, return the
         ``Ticket``. If validation fails, raise an appropriate error.
 
-        If ``renew`` is provided, the validation will only succeed if the
-        ticket was issued from the presentation of the user's primary
-        credentials.
+        If ``renew`` is provided, ``ServiceTicket`` validation will
+        only succeed if the ticket was issued from the presentation
+        of the user's primary credentials.
         """
         if not ticket:
             raise InvalidRequest("No ticket string provided")
@@ -89,8 +89,6 @@ class TicketManager(models.Manager):
         if t.is_consumed():
             raise InvalidTicket("%s %s has already been used" %
                                 (t.name, ticket))
-        t.consume()
-
         if t.is_expired():
             raise InvalidTicket("%s %s has expired" % (t.name, ticket))
 
@@ -101,13 +99,19 @@ class TicketManager(models.Manager):
             raise InvalidService("Service %s is not a valid %s URL" %
                                  (service, t.name))
 
-        if not same_origin(t.service, service):
-            raise InvalidService("%s %s for service %s is invalid for service "
-                                 "%s" % (t.name, ticket, t.service, service))
+        try:
+            if not same_origin(t.service, service):
+                raise InvalidService("%s %s for service %s is invalid for "
+                        "service %s" % (t.name, ticket, t.service, service))
+        except AttributeError:
+            pass
 
-        if renew and not t.is_primary():
-            raise InvalidTicket("%s %s was not issued via primary "
-                                "credentials" % (t.name, ticket))
+        try:
+            if renew and not t.is_primary():
+                raise InvalidTicket("%s %s was not issued via primary "
+                                    "credentials" % (t.name, ticket))
+        except AttributeError:
+            pass
 
         logger.debug("Validated %s %s" % (t.name, ticket))
         return t
@@ -177,10 +181,12 @@ class Ticket(models.Model):
 
     def is_consumed(self):
         """
-        Check a ``Ticket``s consumed state. Return ``True`` if the ticket is
-        consumed, and ``False`` otherwise.
+        Check a ``Ticket``s consumed state, consuming it in the process.
         """
-        return self.consumed is not None
+        if self.consumed is None:
+            self.consume()
+            return False
+        return True
 
     def is_expired(self):
         """
@@ -342,40 +348,6 @@ class ProxyGrantingTicketManager(TicketManager):
             msg = "Proxy callback %s returned %s" % (url, e)
             raise InvalidProxyCallback(msg)
 
-    def validate_ticket(self, ticket, service):
-        """
-        Given a ticket string and service identifier, validate the
-        corresponding ``Ticket``. If validation succeeds, return the
-        ``Ticket``. If validation fails, raise an appropriate error.
-        """
-        if not ticket:
-            raise InvalidRequest("No ticket string provided")
-
-        if not service:
-            raise InvalidRequest("No service identifier provided")
-
-        if not self.model.TICKET_RE.match(ticket):
-            raise InvalidTicket("Ticket string %s is invalid" % ticket)
-
-        try:
-            t = self.get(ticket=ticket)
-        except self.model.DoesNotExist:
-            raise InvalidTicket("Ticket %s does not exist" % ticket)
-
-        if t.is_consumed():
-            raise InvalidTicket("%s %s has already been used" %
-                                (t.name, ticket))
-
-        if t.is_expired():
-            raise InvalidTicket("%s %s has expired" % (t.name, ticket))
-
-        if not is_valid_service_url(service):
-            raise InvalidService("Service %s is not a valid %s URL" %
-                                 (service, t.name))
-
-        logger.debug("Validated %s %s" % (t.name, ticket))
-        return t
-
 
 class ProxyGrantingTicket(Ticket):
     """
@@ -401,3 +373,7 @@ class ProxyGrantingTicket(Ticket):
     class Meta:
         verbose_name = _('proxy-granting ticket')
         verbose_name_plural = _('proxy-granting tickets')
+
+    def is_consumed(self):
+        """Check a ``ProxyGrantingTicket``s consumed state."""
+        return self.consumed is not None

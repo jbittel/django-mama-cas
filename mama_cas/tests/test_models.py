@@ -517,9 +517,9 @@ class ProxyGrantingTicketManager(TestCase):
         The validation process ought to fail when no service identifier
         is provided.
         """
-        ticket = 'PGT-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+        pgt = ProxyGrantingTicketFactory()
         with self.assertRaises(InvalidRequest):
-            ProxyGrantingTicket.objects.validate_ticket(ticket, None)
+            ProxyGrantingTicket.objects.validate_ticket(pgt.ticket, None)
 
     def test_validate_ticket_invalid_ticket(self):
         """
