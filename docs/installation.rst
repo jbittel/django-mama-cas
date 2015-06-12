@@ -12,9 +12,10 @@ Other versions of Django may work, but are not officially tested or supported.
 See the `Django downloads`_ page for download and installation details.
 
 If you're installing MamaCAS manually, such as from the `GitHub`_ repository,
-you'll also need to install the `Requests`_ and `defusedxml`_ libraries. The
-optional `gevent`_ module may also be installed to enable asynchronous
-single sign-out requests.
+you'll also need to install the `Requests`_ library. The optional `gevent`_
+module may be installed to enable asynchronous single logout requests. The
+optional `defusedxml`_ module may be installed to enable the /samlValidate
+endpoint.
 
 Installing
 ----------
@@ -86,8 +87,8 @@ will change depending on the individual backend.
 .. _Long-term support (LTS) releases: https://docs.djangoproject.com/en/dev/internals/release-process/#long-term-support-lts-releases
 .. _Django downloads: https://www.djangoproject.com/download/
 .. _Requests: http://python-requests.org/
-.. _defusedxml: https://bitbucket.org/tiran/defusedxml
 .. _gevent: http://www.gevent.org/
+.. _defusedxml: https://bitbucket.org/tiran/defusedxml
 .. _pip: https://pip.pypa.io/
 .. _PyPI: https://pypi.python.org/pypi/django-mama-cas/
 .. _GitHub: https://github.com/jbittel/django-mama-cas

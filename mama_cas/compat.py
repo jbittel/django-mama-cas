@@ -70,7 +70,7 @@ except AttributeError:  # pragma: no cover
             ET._namespace_map[uri] = prefix
 
 
-# gevent is optional, and allows for asynchronous single sign-out
+# gevent is optional, and allows for asynchronous single logout
 # requests. If it is not present, synchronous requests will be sent.
 try:
     import gevent

@@ -5,14 +5,14 @@ MamaCAS
     :target: https://travis-ci.org/jbittel/django-mama-cas
 
 MamaCAS is a Django `Central Authentication Service (CAS)`_ single sign-on
-server. It implements the CAS 1.0, 2.0 and 3.0 protocols, including some of
-the optional features.
+and single logout server. It implements the CAS 1.0, 2.0 and 3.0 protocols,
+including some of the optional features.
 
-CAS_ is a single sign-on protocol that allows a user to access multiple
-applications after providing their credentials a single time. It utilizes
-security tickets, unique text strings generated and validated by the server,
-allowing applications to authenticate a user without direct access to the
-user's credentials (typically a user ID and password).
+CAS_ is a single sign-on and single logout web protocol that allows a user
+to access multiple applications after providing their credentials a single
+time. It utilizes security tickets, unique text strings generated and
+validated by the server, allowing applications to authenticate a user without
+direct access to the user's credentials (typically a user ID and password).
 
 The source code can be found at `github.com/jbittel/django-mama-cas`_, and is
 the preferred location for contributions, suggestions and bug reports.

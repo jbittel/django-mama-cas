@@ -21,7 +21,7 @@ alter stock CAS behavior.
 
    :default: ``2``
 
-   If single sign-out is enabled and `gevent`_ is installed, this setting
+   If single logout is enabled and `gevent`_ is installed, this setting
    limits the concurrency of requests sent for a logout event. If the number
    of requests reaches this limit, additional requests block until there is
    room. Setting this value to zero disables this limiting.
@@ -57,13 +57,13 @@ alter stock CAS behavior.
 
    :default: ``False``
 
-   If set, causes single sign-out requests to be sent to all accessed services
+   If set, causes single logout requests to be sent to all accessed services
    when a user logs out. It is up to each service to handle these requests
    and terminate the session appropriately.
 
    .. note::
 
-      By default, the single sign-out requests are sent synchronously. If
+      By default, the single logout requests are sent synchronously. If
       `gevent`_ is installed, they are sent asynchronously.
 
 .. attribute:: MAMA_CAS_FOLLOW_LOGOUT_URL

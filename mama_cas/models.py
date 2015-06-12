@@ -199,8 +199,8 @@ class Ticket(models.Model):
 class ServiceTicketManager(TicketManager):
     def request_sign_out(self, user):
         """
-        Send a single sign-out request to each service accessed by a
-        specified user. This is called at logout when single sign-out
+        Send a single logout request to each service accessed by a
+        specified user. This is called at logout when single logout
         is enabled.
 
         If gevent is installed, asynchronous requests will be sent.

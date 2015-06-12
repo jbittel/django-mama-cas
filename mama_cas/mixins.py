@@ -174,7 +174,7 @@ class LogoutUserMixin(object):
 
         1. Consume all valid tickets created for the user.
 
-        2. (Optional) Send single sign-out requests to services.
+        2. (Optional) Send single logout requests to services.
 
         3. Call logout() to end the session and purge all session data.
         """
