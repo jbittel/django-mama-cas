@@ -345,7 +345,7 @@ class SamlValidateView(NeverCacheMixin, ValidateTicketMixin,
         return self.response_class(context, content_type=self.content_type)
 
     def get_context_data(self, **kwargs):
-        target = self.request.GET.get('target')
+        target = self.request.GET.get('TARGET')
 
         assert defused_etree, '/samlValidate endpoint requires defusedxml to be installed'
 

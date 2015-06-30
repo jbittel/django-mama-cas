@@ -653,7 +653,7 @@ class SamlValidationViewTests(TestCase):
         failure should be returned.
         """
         saml = SamlValidateRequest(context={'ticket': self.st})
-        request = self.rf.post(build_url('cas_saml_validate', target=self.url2),
+        request = self.rf.post(build_url('cas_saml_validate', TARGET=self.url2),
                                saml.render_content(), content_type='text/xml')
         response = SamlValidateView.as_view()(request)
         self.assertContains(response, 'samlp:RequestDenied')
@@ -666,7 +666,7 @@ class SamlValidationViewTests(TestCase):
         temp_st = ServiceTicketFactory()
         saml = SamlValidateRequest(context={'ticket': temp_st})
         temp_st.delete()
-        request = self.rf.post(build_url('cas_saml_validate', target=self.url),
+        request = self.rf.post(build_url('cas_saml_validate', TARGET=self.url),
                                saml.render_content(), content_type='text/xml')
         response = SamlValidateView.as_view()(request)
         self.assertContains(response, 'samlp:RequestDenied')
@@ -677,7 +677,7 @@ class SamlValidationViewTests(TestCase):
         be returned. The provided ticket should then be consumed.
         """
         saml = SamlValidateRequest(context={'ticket': self.st})
-        request = self.rf.post(build_url('cas_saml_validate', target=self.url),
+        request = self.rf.post(build_url('cas_saml_validate', TARGET=self.url),
                                saml.render_content(), content_type='text/xml')
         response = SamlValidateView.as_view()(request)
         self.assertContains(response, 'samlp:Success')
