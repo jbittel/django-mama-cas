@@ -60,7 +60,8 @@ class CasResponseMixin(object):
 
 class ValidateTicketMixin(object):
     """View mixin providing ticket validation methods."""
-    def validate_service_ticket(self, service, ticket, pgturl, renew):
+    def validate_service_ticket(self, service, ticket, pgturl,
+                                renew=False, require_https=False):
         """
         Validate a service ticket string. Return a triplet containing
         a ``ServiceTicket`` and an optional ``ProxyGrantingTicket``,
@@ -76,7 +77,7 @@ class ValidateTicketMixin(object):
 
         try:
             st = ServiceTicket.objects.validate_ticket(ticket, service,
-                                                       renew=renew)
+                    renew=renew, require_https=require_https)
         except ValidationError as e:
             logger.warning("%s %s" % (e.code, e))
             return None, None, e
@@ -85,8 +86,7 @@ class ValidateTicketMixin(object):
                 logger.debug("Proxy-granting ticket request received for %s" %
                              pgturl)
                 pgt = ProxyGrantingTicket.objects.create_ticket(pgturl,
-                                                                user=st.user,
-                                                                granted_by_st=st)
+                        user=st.user, granted_by_st=st)
             else:
                 pgt = None
             return st, pgt, None

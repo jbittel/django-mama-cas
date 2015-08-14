@@ -631,11 +631,8 @@ class ProxyViewTests(TestCase):
 
 
 class SamlValidationViewTests(TestCase):
-    url = 'http://www.example.com/'
-    url2 = 'https://www.example.org/'
-
     def setUp(self):
-        self.st = ServiceTicketFactory()
+        self.st = ServiceTicketFactory(service='https://www.example.com/')
         self.rf = RequestFactory()
 
     def test_saml_validation_view(self):
@@ -653,7 +650,18 @@ class SamlValidationViewTests(TestCase):
         failure should be returned.
         """
         saml = SamlValidateRequest(context={'ticket': self.st})
-        request = self.rf.post(build_url('cas_saml_validate', TARGET=self.url2),
+        request = self.rf.post(build_url('cas_saml_validate', TARGET='https://example.com'),
+                               saml.render_content(), content_type='text/xml')
+        response = SamlValidateView.as_view()(request)
+        self.assertContains(response, 'samlp:RequestDenied')
+
+    def test_saml_validation_view_http_service(self):
+        """
+        When called with a non-HTTPS service identifier, a validation
+        failure should be returned.
+        """
+        saml = SamlValidateRequest(context={'ticket': self.st})
+        request = self.rf.post(build_url('cas_saml_validate', TARGET='http://www.example.com'),
                                saml.render_content(), content_type='text/xml')
         response = SamlValidateView.as_view()(request)
         self.assertContains(response, 'samlp:RequestDenied')
@@ -666,7 +674,7 @@ class SamlValidationViewTests(TestCase):
         temp_st = ServiceTicketFactory()
         saml = SamlValidateRequest(context={'ticket': temp_st})
         temp_st.delete()
-        request = self.rf.post(build_url('cas_saml_validate', TARGET=self.url),
+        request = self.rf.post(build_url('cas_saml_validate', TARGET=self.st.service),
                                saml.render_content(), content_type='text/xml')
         response = SamlValidateView.as_view()(request)
         self.assertContains(response, 'samlp:RequestDenied')
@@ -677,7 +685,7 @@ class SamlValidationViewTests(TestCase):
         be returned. The provided ticket should then be consumed.
         """
         saml = SamlValidateRequest(context={'ticket': self.st})
-        request = self.rf.post(build_url('cas_saml_validate', TARGET=self.url),
+        request = self.rf.post(build_url('cas_saml_validate', TARGET=self.st.service),
                                saml.render_content(), content_type='text/xml')
         response = SamlValidateView.as_view()(request)
         self.assertContains(response, 'samlp:Success')

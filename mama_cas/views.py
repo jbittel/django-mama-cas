@@ -355,7 +355,8 @@ class SamlValidateView(NeverCacheMixin, ValidateTicketMixin,
         except (defused_etree.ParseError, ValueError, AttributeError):
             ticket = None
 
-        st, pgt, error = self.validate_service_ticket(target, ticket, None, None)
+        st, pgt, error = self.validate_service_ticket(target, ticket, None,
+                renew=False, require_https=True)
         attributes = self.get_attributes(st.user, st.service) if st else None
         return {'ticket': st, 'pgt': pgt, 'error': error,
                 'attributes': attributes}

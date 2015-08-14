@@ -65,15 +65,18 @@ class TicketManager(models.Manager):
         return "%s-%d-%s" % (prefix, int(time.time()),
                              get_random_string(length=self.model.TICKET_RAND_LEN))
 
-    def validate_ticket(self, ticket, service, renew=False):
+    def validate_ticket(self, ticket, service, renew=False, require_https=False):
         """
         Given a ticket string and service identifier, validate the
         corresponding ``Ticket``. If validation succeeds, return the
         ``Ticket``. If validation fails, raise an appropriate error.
 
-        If ``renew`` is provided, ``ServiceTicket`` validation will
+        If ``renew`` is ``True``, ``ServiceTicket`` validation will
         only succeed if the ticket was issued from the presentation
         of the user's primary credentials.
+
+        If ``require_https`` is ``True``, ``ServiceTicket`` validation
+        will only succeed if the service URL scheme is HTTPS.
         """
         if not ticket:
             raise InvalidRequest("No ticket string provided")
@@ -94,6 +97,9 @@ class TicketManager(models.Manager):
 
         if not service:
             raise InvalidRequest("No service identifier provided")
+
+        if require_https and not is_scheme_https(service):
+            raise InvalidService("Service %s is not HTTPS" % service)
 
         if not is_valid_service_url(service):
             raise InvalidService("Service %s is not a valid %s URL" %
