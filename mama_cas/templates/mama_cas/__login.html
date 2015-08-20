@@ -2,6 +2,10 @@
 {% load i18n %}
 
 {% block content %}
+    <h1 class="text-center login-title">
+        {% block content_title %}{% trans "Central Authentication Service" %}{% endblock content_title %}
+    </h1>
+
     <div class="row">
         <div class="col-sm-6 col-md-4 col-md-offset-4">
             {% include "mama_cas/_messages.html" %}
