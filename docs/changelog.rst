@@ -9,6 +9,12 @@ here. For additional detail, read the complete `commit history`_. From
 version 0.4.0 and following, version numbers follow the `semantic
 versioning`_ scheme.
 
+**django-mama-cas 1.2.0** ``[2015-08-21]``
+   * Add new CAS 3 endpoints as aliases
+   * Update CAS validation error response codes
+   * Fix ``TARGET`` parameter case for /samlValidate
+   * Require HTTPS URLs for /samlValidate
+
 **django-mama-cas 1.1.1** ``[2015-05-15]``
    * Fix exception when inserting Unicode parameters
 
