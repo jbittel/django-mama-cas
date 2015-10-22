@@ -47,6 +47,6 @@ contract between the client, service and CAS server.
 
 .. _CAS Protocol: http://jasig.github.io/cas/4.0.x/protocol/CAS-Protocol.html
 .. _CAS User Manual: http://jasig.github.io/cas/
-.. _CAS 1 Architecture: https://www.apereo.org/cas/cas1-architecture
-.. _CAS 2 Architecture: https://www.apereo.org/cas/cas2-architecture
-.. _Proxy Authentication: https://www.apereo.org/cas/proxy-authentication
+.. _CAS 1 Architecture: https://www.apereo.org/projects/cas/cas-1-architecture
+.. _CAS 2 Architecture: https://www.apereo.org/content/cas-2-architecture
+.. _Proxy Authentication: https://www.apereo.org/content/why-do-we-need-proxy-authentication
