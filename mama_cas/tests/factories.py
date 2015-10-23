@@ -48,7 +48,7 @@ class ServiceTicketFactory(TicketFactory):
     class Meta:
         model = ServiceTicket
 
-    service = 'http://www.example.com'
+    service = 'http://www.example.com/'
 
 
 class ExpiredServiceTicketFactory(ServiceTicketFactory):
@@ -68,7 +68,7 @@ class ProxyGrantingTicketFactory(TicketFactory):
     @classmethod
     def _create(cls, target_class, *args, **kwargs):
         if not args:
-            args = ('https://www.example.com',)
+            args = ('https://www.example.com/',)
         with patch('requests.get') as mock:
             mock.return_value.status_code = 200
             return super(ProxyGrantingTicketFactory, cls)._create(target_class,
@@ -87,7 +87,7 @@ class ProxyTicketFactory(TicketFactory):
     class Meta:
         model = ProxyTicket
 
-    service = 'http://www.example.com'
+    service = 'http://www.example.com/'
     granted_by_pgt = factory.SubFactory(ProxyGrantingTicketFactory)
 
 

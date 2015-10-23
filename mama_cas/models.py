@@ -11,7 +11,6 @@ from django.db import models
 from django.db.models import Q
 from django.utils.crypto import get_random_string
 from django.utils.encoding import python_2_unicode_compatible
-from django.utils.http import same_origin
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
@@ -27,6 +26,7 @@ from mama_cas.request import SingleSignOutRequest
 from mama_cas.utils import add_query_params
 from mama_cas.utils import is_scheme_https
 from mama_cas.utils import clean_service_url
+from mama_cas.utils import match_service
 from mama_cas.utils import is_valid_service_url
 
 if gevent:
@@ -106,7 +106,7 @@ class TicketManager(models.Manager):
                                  (service, t.name))
 
         try:
-            if not same_origin(t.service, service):
+            if not match_service(t.service, service):
                 raise InvalidService("%s %s for service %s is invalid for "
                         "service %s" % (t.name, ticket, t.service, service))
         except AttributeError:

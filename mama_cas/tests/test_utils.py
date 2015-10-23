@@ -6,6 +6,7 @@ from django.test.utils import override_settings
 from mama_cas.utils import add_query_params
 from mama_cas.utils import is_scheme_https
 from mama_cas.utils import clean_service_url
+from mama_cas.utils import match_service
 from mama_cas.utils import is_valid_service_url
 from mama_cas.utils import redirect
 from mama_cas.utils import to_bool
@@ -56,6 +57,16 @@ class UtilsTests(TestCase):
         self.assertEqual('http://www.example.com/test', clean_service_url(url))
         url = 'https://example.com:9443/'
         self.assertEqual('https://example.com:9443/', clean_service_url(url))
+
+    def test_match_service(self):
+        """
+        When called with two service URLs, ``match_service()`` should return
+        ``True`` if the ``scheme``, ``netloc`` and ``path`` components match
+        and ``False`` otherwise.
+        """
+        self.assertTrue(match_service('https://www.example.com:80/', 'https://www.example.com:80/'))
+        self.assertFalse(match_service('https://www.example.com:80/', 'https://www.example.com/'))
+        self.assertFalse(match_service('https://www.example.com', 'https://www.example.com/'))
 
     @override_settings(MAMA_CAS_VALID_SERVICES=('http://.*\.example\.com',))
     def test_is_valid_service_url(self):

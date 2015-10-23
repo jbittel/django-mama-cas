@@ -32,7 +32,7 @@ class TicketManagerTests(TestCase):
     """
     Test the ``TicketManager`` model manager.
     """
-    url = 'http://www.example.com'
+    url = 'http://www.example.com/'
 
     def setUp(self):
         self.user = UserFactory()
@@ -378,8 +378,8 @@ class ProxyGrantingTicketManager(TestCase):
     """
     Test the ``ProxyGrantingTicketManager`` model manager.
     """
-    url = 'http://www.example.com'
-    pgturl = 'https://www.example.com'
+    url = 'http://www.example.com/'
+    pgturl = 'https://www.example.com/'
 
     def setUp(self):
         self.user = UserFactory()
@@ -432,7 +432,7 @@ class ProxyGrantingTicketManager(TestCase):
         pgtid = ProxyGrantingTicket.objects.create_ticket_str()
         prefix = ProxyGrantingTicket.objects.model.IOU_PREFIX
         pgtiou = ProxyGrantingTicket.objects.create_ticket_str(prefix=prefix)
-        http_url = 'http://www.example.com'
+        http_url = 'http://www.example.com/'
         with self.assertRaises(InvalidProxyCallback):
             ProxyGrantingTicket.objects.validate_callback(http_url,
                                                           pgtid, pgtiou)
