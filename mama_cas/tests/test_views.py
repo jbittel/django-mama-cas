@@ -52,7 +52,7 @@ class LoginViewTests(TestCase):
         """
         response = self.client.get(reverse('cas_login'))
         self.assertTrue('Cache-Control' in response)
-        self.assertEqual(response['Cache-Control'], 'max-age=0')
+        self.assertTrue('max-age=0' in response['Cache-Control'])
 
     def test_login_view_login(self):
         """
@@ -236,7 +236,7 @@ class LogoutViewTests(TestCase):
         response = self.client.get(reverse('cas_logout'))
         self.assertRedirects(response, reverse('cas_login'))
         self.assertTrue('Cache-Control' in response)
-        self.assertEqual(response['Cache-Control'], 'max-age=0')
+        self.assertTrue('max-age=0' in response['Cache-Control'])
 
     def test_logout_view_success(self):
         """
