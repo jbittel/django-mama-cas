@@ -20,6 +20,7 @@
                         <input type="checkbox" id="id_warn" name="warn"> {{ form.warn.label }}
                     </label>
                 {% endif %}
+                <input type="hidden" name="next" value="{{ next }}" />
                 <button class="btn btn-lg btn-primary btn-block" type="submit">{% trans "Login" %}</button>
             </form>
         </div>
