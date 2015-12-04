@@ -3,6 +3,8 @@ python:
   - "2.7"
 env:
   matrix:
+    - TOX_ENV=py34-django19
+    - TOX_ENV=py27-django19
     - TOX_ENV=py34-django18
     - TOX_ENV=py33-django18
     - TOX_ENV=py27-django18
