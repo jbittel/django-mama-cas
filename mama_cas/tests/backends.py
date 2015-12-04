@@ -1,6 +1,5 @@
+from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
-
-from mama_cas.compat import get_user_model
 
 
 class ExceptionBackend(ModelBackend):

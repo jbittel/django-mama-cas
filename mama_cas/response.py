@@ -5,8 +5,6 @@ from django.utils.crypto import get_random_string
 from django.utils.encoding import force_text
 
 from .compat import etree
-from .compat import get_username
-from .compat import register_namespace
 
 
 class CasResponseBase(HttpResponse):
@@ -17,7 +15,7 @@ class CasResponseBase(HttpResponse):
     uri = 'http://www.yale.edu/tp/cas'
 
     def __init__(self, context, **kwargs):
-        register_namespace(self.prefix, self.uri)
+        etree.register_namespace(self.prefix, self.uri)
         content = self.render_content(context)
         super(CasResponseBase, self).__init__(content, **kwargs)
 
@@ -66,7 +64,7 @@ class ValidationResponse(CasResponseBase):
         if ticket:
             auth_success = etree.SubElement(service_response, self.ns('authenticationSuccess'))
             user = etree.SubElement(auth_success, self.ns('user'))
-            user.text = get_username(ticket.user)
+            user.text = ticket.user.get_username()
             if attributes:
                 attribute_set = etree.SubElement(auth_success, self.ns('attributes'))
                 for name, value in attributes.items():

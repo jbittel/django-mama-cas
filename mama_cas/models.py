@@ -17,7 +17,6 @@ from django.utils.translation import ugettext_lazy as _
 import requests
 
 from mama_cas.compat import gevent
-from mama_cas.compat import user_model
 from mama_cas.exceptions import InvalidProxyCallback
 from mama_cas.exceptions import InvalidRequest
 from mama_cas.exceptions import InvalidService
@@ -160,7 +159,7 @@ class Ticket(models.Model):
     TICKET_RE = re.compile("^[A-Z]{2,3}-[0-9]{10,}-[a-zA-Z0-9]{%d}$" % TICKET_RAND_LEN)
 
     ticket = models.CharField(_('ticket'), max_length=255, unique=True)
-    user = models.ForeignKey(user_model, verbose_name=_('user'))
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('user'))
     expires = models.DateTimeField(_('expires'))
     consumed = models.DateTimeField(_('consumed'), null=True)
 

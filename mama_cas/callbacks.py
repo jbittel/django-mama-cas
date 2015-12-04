@@ -1,16 +1,9 @@
-from .compat import get_username
-
-
 def user_name_attributes(user, service):
     """Return all available user name related fields and methods."""
     attributes = {}
-    attributes['username'] = get_username(user)
+    attributes['username'] = user.get_username()
     attributes['full_name'] = user.get_full_name()
-    try:
-        attributes['short_name'] = user.get_short_name()
-    except AttributeError:  # pragma: no cover
-        # Django 1.4 does not provide this method
-        pass
+    attributes['short_name'] = user.get_short_name()
     return attributes
 
 

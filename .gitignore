@@ -1,5 +1,6 @@
 __pycache__/
 *.py[co]
+.cache/
 
 *.egg-info/
 dist/

@@ -3,7 +3,6 @@ import datetime
 from django.utils.crypto import get_random_string
 
 from .compat import etree
-from .compat import register_namespace
 
 
 class CasRequestBase(object):
@@ -16,7 +15,7 @@ class CasRequestBase(object):
     def __init__(self, context):
         self.context = context
         for prefix, uri in self.prefixes.items():
-            register_namespace(prefix, uri)
+            etree.register_namespace(prefix, uri)
 
     def ns(self, prefix, tag):
         """

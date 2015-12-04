@@ -10,7 +10,6 @@ from django.views.generic import TemplateView
 from django.views.generic import View
 
 from mama_cas.compat import defused_etree
-from mama_cas.compat import get_username
 from mama_cas.forms import LoginForm
 from mama_cas.mixins import CasResponseMixin
 from mama_cas.mixins import CsrfProtectMixin
@@ -225,7 +224,7 @@ class ValidateView(NeverCacheMixin, ValidateTicketMixin, View):
         st, pgt, error = self.validate_service_ticket(service, ticket,
                                                       None, renew)
         if st:
-            content = "yes\n%s\n" % get_username(st.user)
+            content = "yes\n%s\n" % st.user.get_username()
         else:
             content = "no\n\n"
         return HttpResponse(content=content, content_type='text/plain')

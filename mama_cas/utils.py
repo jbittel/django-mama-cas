@@ -5,8 +5,8 @@ from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.core import urlresolvers
 from django.http import HttpResponseRedirect
+from django.utils.encoding import force_bytes
 
-from .compat import force_bytes
 from .compat import parse_qsl
 from .compat import urlencode
 from .compat import urlparse
