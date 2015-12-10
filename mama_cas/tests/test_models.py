@@ -432,9 +432,17 @@ class ProxyGrantingTicketManager(TestCase):
         pgtid = ProxyGrantingTicket.objects.create_ticket_str()
         prefix = ProxyGrantingTicket.objects.model.IOU_PREFIX
         pgtiou = ProxyGrantingTicket.objects.create_ticket_str(prefix=prefix)
-        http_url = 'http://www.example.com/'
         with self.assertRaises(InvalidProxyCallback):
-            ProxyGrantingTicket.objects.validate_callback(http_url,
+            ProxyGrantingTicket.objects.validate_callback('http://www.example.com/',
+                                                          pgtid, pgtiou)
+
+    def test_validate_callback_invalid_pgturl(self):
+        """If an invalid URL is provided, InvalidProxyCallback should be raised."""
+        pgtid = ProxyGrantingTicket.objects.create_ticket_str()
+        prefix = ProxyGrantingTicket.objects.model.IOU_PREFIX
+        pgtiou = ProxyGrantingTicket.objects.create_ticket_str(prefix=prefix)
+        with self.assertRaises(InvalidProxyCallback):
+            ProxyGrantingTicket.objects.validate_callback('https://www.example.org/',
                                                           pgtid, pgtiou)
 
     def test_validate_callback_ssl_error(self):

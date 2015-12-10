@@ -316,22 +316,14 @@ class ProxyGrantingTicketManager(TicketManager):
                                                                          **kwargs)
 
     def validate_callback(self, url, pgtid, pgtiou):
-        """
-        Verify the provided proxy callback URL. This verification process
-        requires three steps:
-
-        1. The URL scheme must be HTTPS
-        2. The SSL certificate must be valid and its name must match that
-           of the service
-        3. The callback URL must respond with a 200 or 3xx response code
-
-        It is not required for validation that 3xx redirects be followed.
-        """
-        # Ensure the scheme is HTTPS before proceeding
+        """Verify the provided proxy callback URL."""
         if not is_scheme_https(url):
             raise InvalidProxyCallback("Proxy callback %s is not HTTPS" % url)
 
-        # Connect to proxy callback URL, checking the SSL certificate
+        if not is_valid_service_url(url):
+            raise InvalidProxyCallback("%s is not a valid proxy callback URL" % url)
+
+        # Check the proxy callback URL and SSL certificate
         url_params = add_query_params(url, {'pgtId': pgtid, 'pgtIou': pgtiou})
         verify = os.environ.get('REQUESTS_CA_BUNDLE', True)
         try:
