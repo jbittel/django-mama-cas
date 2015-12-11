@@ -169,27 +169,16 @@ class LogoutView(NeverCacheMixin, LogoutUserMixin, View):
     requiring a new single sign-on session to be established for
     future authentication attempts.
 
-    [CAS 3.0] If ``service`` is specified and
+    (2.3.1) If ``service`` is specified and
     ``MAMA_CAS_FOLLOW_LOGOUT_URL`` is ``True``, the client will be
     redirected to the specified service URL.
-
-    [CAS 1.0, CAS 2.0] If ``url`` is specified, by default it will be
-    displayed to the user as a recommended link to follow. This
-    behavior can be altered by setting ``MAMA_CAS_FOLLOW_LOGOUT_URL``
-    to ``True``, which redirects the client to the specified URL.
     """
     def get(self, request, *args, **kwargs):
         service = request.GET.get('service')
-        url = request.GET.get('url')
         follow_url = getattr(settings, 'MAMA_CAS_FOLLOW_LOGOUT_URL', True)
         self.logout_user(request)
         if service and follow_url:
             return redirect(service)
-        elif url and is_valid_service_url(url):
-            if follow_url:
-                return redirect(url)
-            msg = _("The application provided this link to follow: %s") % url
-            messages.success(request, msg)
         return redirect('cas_login')
 
 

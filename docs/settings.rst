@@ -6,8 +6,7 @@ Settings
 .. currentmodule:: django.conf.settings
 
 None of these settings are required and have sane defaults, but may be used to
-customize behavior and improve security. Note that some of these settings
-alter stock CAS behavior.
+customize behavior and improve security.
 
 .. attribute:: MAMA_CAS_ALLOW_AUTH_WARN
 
@@ -70,16 +69,11 @@ alter stock CAS behavior.
 
    :default: ``True``
 
-   Controls the client redirection behavior at logout when the ``url``
-   (CAS 2.0) or ``service`` (CAS 3.0) parameter is provided. When this
-   setting is ``True`` and one of these parameters is present, the
-   client will be redirected to the specified URL. When this setting
-   is ``False``, the client will be redirected to the login page. When
-   ``url`` is present, the login page will then display the provided
-   URL as a recommended link to follow.
-
-   If neither parameter is specified or is not a valid service URL, the
-   client will be redirected to the login page.
+   Controls the client redirection behavior at logout when the ``service``
+   parameter is provided. When this setting is ``True`` and the parameter
+   is present, the client will be redirected to the specified URL. When
+   this setting is ``False`` or the parameter is not provided, the client
+   is redirected to the login page.
 
 .. attribute:: MAMA_CAS_TICKET_EXPIRE
 
@@ -113,9 +107,5 @@ alter stock CAS behavior.
           '^https?://www\.example\.edu/secure',
           '^https://[^\.]+\.example\.com',
       )
-
-   The ``url`` and ``service`` parameters are checked against this list of
-   services at logout. If the provided URL does not match one of these regular
-   expressions, it is ignored.
 
 .. _gevent: http://www.gevent.org/
