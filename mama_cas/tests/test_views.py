@@ -421,7 +421,9 @@ class ServiceValidateViewTests(TestCase):
         When called with valid parameters and a ``pgtUrl``, the
         validation success should include a ``ProxyGrantingTicket``.
         """
-        request = self.rf.get(reverse('cas_service_validate'), {'service': self.url, 'ticket': self.st.ticket, 'pgtUrl': self.url2})
+        request = self.rf.get(reverse('cas_service_validate'), {'service': self.url,
+                                                                'ticket': self.st.ticket,
+                                                                'pgtUrl': self.url2})
         with patch('requests.get') as mock:
             mock.return_value.status_code = 200
             response = ServiceValidateView.as_view()(request)
@@ -433,7 +435,9 @@ class ServiceValidateViewTests(TestCase):
         When called with valid parameters and an invalid ``pgtUrl``,
         the validation success should have no ``ProxyGrantingTicket``.
         """
-        request = self.rf.get(reverse('cas_service_validate'), {'service': self.url, 'ticket': self.st.ticket, 'pgtUrl': self.url})
+        request = self.rf.get(reverse('cas_service_validate'), {'service': self.url,
+                                                                'ticket': self.st.ticket,
+                                                                'pgtUrl': self.url})
         response = ServiceValidateView.as_view()(request)
         self.assertContains(response, 'authenticationSuccess')
         self.assertNotContains(response, 'proxyGrantingTicket')
@@ -545,7 +549,9 @@ class ProxyValidateViewTests(TestCase):
         When called with valid parameters and a ``pgtUrl``, a
         validation success should include a ``ProxyGrantingTicket``.
         """
-        request = self.rf.get(reverse('cas_proxy_validate'), {'service': self.url, 'ticket': self.pt.ticket, 'pgtUrl': self.url2})
+        request = self.rf.get(reverse('cas_proxy_validate'), {'service': self.url,
+                                                              'ticket': self.pt.ticket,
+                                                              'pgtUrl': self.url2})
         with patch('requests.get') as mock:
             mock.return_value.status_code = 200
             response = ProxyValidateView.as_view()(request)
@@ -557,7 +563,9 @@ class ProxyValidateViewTests(TestCase):
         When called with valid parameters and an invalid ``pgtUrl``,
         the validation success should have no ``ProxyGrantingTicket``.
         """
-        request = self.rf.get(reverse('cas_proxy_validate'), {'service': self.url, 'ticket': self.pt.ticket, 'pgtUrl': self.url})
+        request = self.rf.get(reverse('cas_proxy_validate'), {'service': self.url,
+                                                              'ticket': self.pt.ticket,
+                                                              'pgtUrl': self.url})
         response = ProxyValidateView.as_view()(request)
         self.assertContains(response, 'authenticationSuccess')
         self.assertNotContains(response, 'proxyGrantingTicket')
