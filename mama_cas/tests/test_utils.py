@@ -10,7 +10,6 @@ from mama_cas.utils import match_service
 from mama_cas.utils import is_valid_service_url
 from mama_cas.utils import redirect
 from mama_cas.utils import to_bool
-from mama_cas.utils import get_callable
 
 
 class UtilsTests(TestCase):
@@ -124,12 +123,3 @@ class UtilsTests(TestCase):
         self.assertFalse(to_bool(None))
         self.assertFalse(to_bool(''))
         self.assertFalse(to_bool('   '))
-
-    def test_get_callable_invalid_path(self):
-        """An invalid callable path should raise an ``ImportError``."""
-        self.assertRaises(ImportError, get_callable, 'invalid_import_path')
-
-    def test_get_callable_invalid_import(self):
-        """An invalid callable should raise an ``ImportError``."""
-        self.assertRaises(ImportError, get_callable,
-                          'mama_cas.callbacks.invalid_callback')

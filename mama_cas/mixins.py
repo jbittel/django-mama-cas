@@ -6,6 +6,7 @@ from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse_lazy
 from django.utils.decorators import method_decorator
+from django.utils.module_loading import import_string
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
@@ -15,7 +16,6 @@ from mama_cas.models import ProxyTicket
 from mama_cas.models import ProxyGrantingTicket
 from mama_cas.exceptions import InvalidTicketSpec
 from mama_cas.exceptions import ValidationError
-from mama_cas.utils import get_callable
 
 
 logger = logging.getLogger(__name__)
@@ -157,7 +157,7 @@ class CustomAttributesMixin(object):
 
         callbacks = getattr(settings, 'MAMA_CAS_ATTRIBUTE_CALLBACKS', ())
         for path in callbacks:
-            callback = get_callable(path)
+            callback = import_string(path)
             attributes.update(callback(user, service))
 
         return attributes
