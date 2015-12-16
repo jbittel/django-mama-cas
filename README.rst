@@ -31,9 +31,9 @@ Add to ``INSTALLED_APPS`` and run ``migrate``::
 
 Include the URLs::
 
-   urlpatterns += patterns('', (r'', include('mama_cas.urls')))
+   urlpatterns += [url(r'', include('mama_cas.urls'))]
 
-See the full `installation instructions`_ for further details.
+See the full `installation instructions`_ for details.
 
 Upgrade
 -------

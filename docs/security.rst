@@ -56,7 +56,7 @@ Web Server
 
 Securing a web server is a vast topic completely outside the scope of this
 guide, and many details depend on the specific server in use. Here are some
-broadly applicable configuration options that ought to be considered.
+broadly applicable considerations.
 
 SSL
 ~~~

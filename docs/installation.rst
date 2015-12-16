@@ -6,10 +6,10 @@ Installation
 Prerequisites
 -------------
 
-The primary prerequisite of MamaCAS is `Django`_ itself. MamaCAS works with
-`supported versions`_ of Django as well as `Long-term support (LTS) releases`_.
-Other versions of Django may work, but are not officially tested or supported.
-See the `Django downloads`_ page for download and installation details.
+The primary prerequisite of MamaCAS is `Django`_ itself. MamaCAS is tested
+with and supports all `supported versions`_ of Django. Other versions of
+Django may work, but are not officially tested or supported. See the `Django
+downloads`_ page for download and installation details.
 
 If you're installing MamaCAS manually, such as from the `GitHub`_ repository,
 you'll also need to install the `Requests`_ library. The optional `gevent`_
@@ -53,20 +53,20 @@ URL paths
 Include the required CAS URL endpoints in your project's root ``URLconf``
 with the following::
 
-   urlpatterns = patterns('',
+   urlpatterns = [
        # ...existing urls...
-       (r'', include('mama_cas.urls')),
-   )
+       url(r'', include('mama_cas.urls')),
+   ]
 
 This makes the CAS server available at the top level of your project's
-URL (e.g. ``http://example.com/login``). To add a subpath to the CAS root
-(e.g. ``http://example.com/cas/login``) add the path to the URL regular
+URL (e.g. ``http://example.com/login``). To add a path to the CAS root
+(e.g. ``http://example.com/cas/login``) include the path in the URL regular
 expression::
 
-   urlpatterns = patterns('',
+   urlpatterns = [
        # ...existing urls...
-       (r'^cas/', include('mama_cas.urls')),
-   )
+       url(r'^cas/', include('mama_cas.urls')),
+   ]
 
 Authenticating
 --------------
@@ -83,8 +83,7 @@ will change depending on the individual backend.
    * `Authentication packages`_ for Django
 
 .. _Django: http://www.djangoproject.com/
-.. _supported versions: https://docs.djangoproject.com/en/dev/internals/release-process/#supported-versions
-.. _Long-term support (LTS) releases: https://docs.djangoproject.com/en/dev/internals/release-process/#long-term-support-lts-releases
+.. _supported versions: https://www.djangoproject.com/download/#supported-versions
 .. _Django downloads: https://www.djangoproject.com/download/
 .. _Requests: http://python-requests.org/
 .. _gevent: http://www.gevent.org/

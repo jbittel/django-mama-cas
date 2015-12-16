@@ -45,8 +45,8 @@ customize behavior and improve security.
    examples for custom callbacks:
 
    ``mama_cas.callbacks.user_name_attributes``
-      Returns available name related fields using get_username(),
-      get_full_name() and get_short_name().
+      Returns name-related fields using get_username(), get_full_name() and
+      get_short_name().
 
    ``mama_cas.callbacks.user_model_attributes``
       Returns all fields on the user object, except for ``id`` and
@@ -81,7 +81,7 @@ customize behavior and improve security.
 
    Controls the length of time, in seconds, between when a service or proxy
    ticket is generated and when it expires. If the ticket is not validated
-   before this time has elapsed, it will become invalid. This does **not**
+   before this time has elapsed, it becomes invalid. This does **not**
    affect proxy-granting ticket expiration or the duration of a user's single
    sign-on session.
 
