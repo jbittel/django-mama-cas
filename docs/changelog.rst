@@ -9,6 +9,22 @@ here. For additional detail, read the complete `commit history`_. From
 version 0.4.0 and following, version numbers follow the `semantic
 versioning`_ scheme.
 
+**django-mama-cas 2.0.0** ``[2015-12-17]``
+   * Fix Django 1.9 compatibility
+   * Drop support for unsupported Django versions
+   * Remove ``url`` parameter to ``/logout``
+   * Change service URL comparison to be more strict
+   * Fix pgtURL validation not checking against valid services
+
+   .. warning::
+
+      Support has been dropped for Django 1.4, 1.6 and 1.7, matching Django's
+      supported versions policy.
+
+   .. warning::
+
+      The ``url`` parameter is no longer accepted by ``/logout``, per CAS 3.0.
+
 **django-mama-cas 1.2.0** ``[2015-08-21]``
    * Add new CAS 3 endpoints as aliases
    * Update CAS validation error response codes
