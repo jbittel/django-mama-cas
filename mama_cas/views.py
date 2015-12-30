@@ -13,11 +13,13 @@ from mama_cas.compat import defused_etree
 from mama_cas.forms import LoginForm
 from mama_cas.mixins import CasResponseMixin
 from mama_cas.mixins import CsrfProtectMixin
-from mama_cas.mixins import CustomAttributesMixin
 from mama_cas.mixins import LoginRequiredMixin
-from mama_cas.mixins import LogoutUserMixin
+from mama_cas.cas import get_attributes
+from mama_cas.cas import logout_user
+from mama_cas.cas import validate_service_ticket
+from mama_cas.cas import validate_proxy_ticket
+from mama_cas.cas import validate_proxy_granting_ticket
 from mama_cas.mixins import NeverCacheMixin
-from mama_cas.mixins import ValidateTicketMixin
 from mama_cas.models import ProxyTicket
 from mama_cas.models import ServiceTicket
 from mama_cas.response import ValidationResponse
@@ -33,7 +35,7 @@ from mama_cas.utils import to_bool
 logger = logging.getLogger(__name__)
 
 
-class LoginView(CsrfProtectMixin, NeverCacheMixin, LogoutUserMixin, FormView):
+class LoginView(CsrfProtectMixin, NeverCacheMixin, FormView):
     """
     (2.1 and 2.2) Credential requestor and acceptor.
 
@@ -67,8 +69,7 @@ class LoginView(CsrfProtectMixin, NeverCacheMixin, LogoutUserMixin, FormView):
         elif gateway and service:
             logger.debug("Gateway request received by credential requestor")
             if request.user.is_authenticated():
-                st = ServiceTicket.objects.create_ticket(service=service,
-                                                         user=request.user)
+                st = ServiceTicket.objects.create_ticket(service=service, user=request.user)
                 if self.warn_user():
                     return redirect('cas_warn', params={'service': service,
                                                         'ticket': st.ticket})
@@ -77,10 +78,8 @@ class LoginView(CsrfProtectMixin, NeverCacheMixin, LogoutUserMixin, FormView):
                 return redirect(service)
         elif request.user.is_authenticated():
             if service:
-                logger.debug("Service ticket request received "
-                             "by credential requestor")
-                st = ServiceTicket.objects.create_ticket(service=service,
-                                                         user=request.user)
+                logger.debug("Service ticket request received by credential requestor")
+                st = ServiceTicket.objects.create_ticket(service=service, user=request.user)
                 if self.warn_user():
                     return redirect('cas_warn', params={'service': service,
                                                         'ticket': st.ticket})
@@ -161,7 +160,7 @@ class WarnView(NeverCacheMixin, LoginRequiredMixin, TemplateView):
         return kwargs
 
 
-class LogoutView(NeverCacheMixin, LogoutUserMixin, View):
+class LogoutView(NeverCacheMixin, View):
     """
     (2.3) End a client's single sign-on session.
 
@@ -171,18 +170,18 @@ class LogoutView(NeverCacheMixin, LogoutUserMixin, View):
 
     (2.3.1) If ``service`` is specified and
     ``MAMA_CAS_FOLLOW_LOGOUT_URL`` is ``True``, the client will be
-    redirected to the specified service URL.
+    redirected to the specified service URL. [CAS 3.0]
     """
     def get(self, request, *args, **kwargs):
         service = request.GET.get('service')
         follow_url = getattr(settings, 'MAMA_CAS_FOLLOW_LOGOUT_URL', True)
-        self.logout_user(request)
+        logout_user(request)
         if service and follow_url:
             return redirect(service)
         return redirect('cas_login')
 
 
-class ValidateView(NeverCacheMixin, ValidateTicketMixin, View):
+class ValidateView(NeverCacheMixin, View):
     """
     (2.4) Check the validity of a service ticket. [CAS 1.0]
 
@@ -201,8 +200,7 @@ class ValidateView(NeverCacheMixin, ValidateTicketMixin, View):
         ticket = request.GET.get('ticket')
         renew = to_bool(request.GET.get('renew'))
 
-        st, pgt, error = self.validate_service_ticket(service, ticket,
-                                                      None, renew)
+        st, pgt, error = validate_service_ticket(service, ticket, None, renew)
         if st:
             content = "yes\n%s\n" % st.user.get_username()
         else:
@@ -210,8 +208,7 @@ class ValidateView(NeverCacheMixin, ValidateTicketMixin, View):
         return HttpResponse(content=content, content_type='text/plain')
 
 
-class ServiceValidateView(NeverCacheMixin, ValidateTicketMixin,
-                          CustomAttributesMixin, CasResponseMixin, View):
+class ServiceValidateView(NeverCacheMixin, CasResponseMixin, View):
     """
     (2.5) Check the validity of a service ticket. [CAS 2.0]
 
@@ -237,15 +234,12 @@ class ServiceValidateView(NeverCacheMixin, ValidateTicketMixin,
         pgturl = self.request.GET.get('pgtUrl')
         renew = to_bool(self.request.GET.get('renew'))
 
-        st, pgt, error = self.validate_service_ticket(service, ticket,
-                                                      pgturl, renew)
-        attributes = self.get_attributes(st.user, st.service) if st else None
-        return {'ticket': st, 'pgt': pgt, 'error': error,
-                'attributes': attributes}
+        st, pgt, error = validate_service_ticket(service, ticket, pgturl, renew)
+        attributes = get_attributes(st.user, st.service) if st else None
+        return {'ticket': st, 'pgt': pgt, 'error': error, 'attributes': attributes}
 
 
-class ProxyValidateView(NeverCacheMixin, ValidateTicketMixin,
-                        CustomAttributesMixin, CasResponseMixin, View):
+class ProxyValidateView(NeverCacheMixin, CasResponseMixin, View):
     """
     (2.6) Perform the same validation tasks as ServiceValidateView and
     additionally validate proxy tickets. [CAS 2.0]
@@ -275,18 +269,16 @@ class ProxyValidateView(NeverCacheMixin, ValidateTicketMixin,
         if not ticket or ticket.startswith(ProxyTicket.TICKET_PREFIX):
             # If no ticket parameter is present, attempt to validate it
             # anyway so the appropriate error is raised
-            t, pgt, proxies, error = self.validate_proxy_ticket(service,
-                                                                ticket, pgturl)
+            t, pgt, proxies, error = validate_proxy_ticket(service, ticket, pgturl)
         else:
-            t, pgt, error = self.validate_service_ticket(service, ticket,
-                                                         pgturl, renew)
+            t, pgt, error = validate_service_ticket(service, ticket, pgturl, renew)
             proxies = None
-        attributes = self.get_attributes(t.user, t.service) if t else None
+        attributes = get_attributes(t.user, t.service) if t else None
         return {'ticket': t, 'pgt': pgt, 'proxies': proxies,
                 'error': error, 'attributes': attributes}
 
 
-class ProxyView(NeverCacheMixin, ValidateTicketMixin, CasResponseMixin, View):
+class ProxyView(NeverCacheMixin, CasResponseMixin, View):
     """
     (2.7) Provide proxy tickets to services that have acquired proxy-
     granting tickets. [CAS 2.0]
@@ -303,12 +295,11 @@ class ProxyView(NeverCacheMixin, ValidateTicketMixin, CasResponseMixin, View):
         pgt = self.request.GET.get('pgt')
         target_service = self.request.GET.get('targetService')
 
-        pt, error = self.validate_proxy_granting_ticket(pgt, target_service)
+        pt, error = validate_proxy_granting_ticket(pgt, target_service)
         return {'ticket': pt, 'error': error}
 
 
-class SamlValidateView(NeverCacheMixin, ValidateTicketMixin,
-                       CustomAttributesMixin, View):
+class SamlValidateView(NeverCacheMixin, View):
     """
     (4.2) Check the validity of a service ticket provided by a
     SAML 1.1 request document provided by a HTTP POST. [CAS 3.0]
@@ -334,8 +325,6 @@ class SamlValidateView(NeverCacheMixin, ValidateTicketMixin,
         except (defused_etree.ParseError, ValueError, AttributeError):
             ticket = None
 
-        st, pgt, error = self.validate_service_ticket(target, ticket, None,
-                renew=False, require_https=True)
-        attributes = self.get_attributes(st.user, st.service) if st else None
-        return {'ticket': st, 'pgt': pgt, 'error': error,
-                'attributes': attributes}
+        st, pgt, error = validate_service_ticket(target, ticket, None, require_https=True)
+        attributes = get_attributes(st.user, st.service) if st else None
+        return {'ticket': st, 'pgt': pgt, 'error': error, 'attributes': attributes}
