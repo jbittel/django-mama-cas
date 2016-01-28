@@ -14,15 +14,6 @@ class SingleSignOutRequestTests(TestCase):
     def setUp(self):
         self.st = ServiceTicketFactory()
 
-    def test_sso_request_content_type(self):
-        """
-        A ``SingleSignOutRequest`` should return headers containing
-        the appropriate content type.
-        """
-        headers = SingleSignOutRequest(context={}).headers()
-        self.assertIn('content-type', headers)
-        self.assertEqual(headers['content-type'], 'text/xml')
-
     def test_sso_request(self):
         """
         A ``SingleSignOutRequest`` should contain the ticket string

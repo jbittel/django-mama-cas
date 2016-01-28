@@ -9,7 +9,6 @@ class CasRequestBase(object):
     """
     Base class for CAS 3.1 SAML format requests.
     """
-    content_type = 'text/xml'
     prefixes = {}
 
     def __init__(self, context):
@@ -23,9 +22,6 @@ class CasRequestBase(object):
         for proper namespace handling on output.
         """
         return etree.QName(self.prefixes[prefix], tag)
-
-    def headers(self):
-        return {'content-type': self.content_type}
 
     def instant(self):
         return datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
@@ -59,7 +55,7 @@ class SingleSignOutRequest(CasRequestBase):
         session_index = etree.SubElement(logout_request, self.ns('samlp', 'SessionIndex'))
         session_index.text = ticket.ticket
 
-        return etree.tostring(logout_request, encoding='UTF-8')
+        return etree.tostring(logout_request)
 
 
 class SamlValidateRequest(CasRequestBase):

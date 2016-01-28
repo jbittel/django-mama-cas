@@ -265,9 +265,7 @@ class ServiceTicket(Ticket):
         """
         request = SingleSignOutRequest(context={'ticket': self})
         try:
-            resp = requests.post(self.service,
-                                 data={'logoutRequest': request.render_content()},
-                                 headers=request.headers())
+            resp = requests.post(self.service, data={'logoutRequest': request.render_content()})
             resp.raise_for_status()
         except requests.exceptions.RequestException as e:
             logger.warning("Single sign-out request to %s returned %s" %
