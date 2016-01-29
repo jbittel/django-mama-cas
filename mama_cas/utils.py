@@ -23,7 +23,8 @@ def add_query_params(url, params):
     overwritten. Parameters with empty values are ignored. Return
     the modified URL as a string.
     """
-    encode = lambda v: force_bytes(v, settings.DEFAULT_CHARSET)
+    def encode(s):
+        return force_bytes(s, settings.DEFAULT_CHARSET)
     params = dict([(encode(k), encode(v)) for k, v in params.items() if v])
 
     parts = list(urlparse(url))
