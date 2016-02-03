@@ -8,26 +8,18 @@ from mama_cas.forms import LoginFormEmail
 
 
 class LoginFormTests(TestCase):
-    """
-    Test the ``LoginForm`` and its subclasses.
-    """
     def setUp(self):
-        """
-        Initialize the environment for each test.
-        """
         self.user = UserFactory()
 
     def test_login_form(self):
-        """
-        When provided with correct data, the form should validate.
-        """
+        """When provided with correct data, the form should validate."""
         form = LoginForm(data={'username': 'ellen', 'password': 'mamas&papas'})
         self.assertTrue(form.is_valid())
 
     def test_login_form_empty(self):
         """
         When no username or password is provided, the form should
-        not validate.
+        be invalid.
         """
         form = LoginForm(data={'username': '', 'password': ''})
         self.assertFalse(form.is_valid())
@@ -35,7 +27,7 @@ class LoginFormTests(TestCase):
     def test_login_form_invalid(self):
         """
         When provided with incorrect username or password the form
-        should not validate.
+        should be invalid.
         """
         form = LoginForm(data={'username': 'denny', 'password': 'mamas&papas'})
         self.assertFalse(form.is_valid())
@@ -64,8 +56,7 @@ class LoginFormTests(TestCase):
 
     def test_login_form_inactive(self):
         """
-        When provided with an inactive user, the form should not
-        validate.
+        When provided with an inactive user, the form should be invalid.
         """
         InactiveUserFactory()
         form = LoginForm(data={'username': 'denny', 'password': 'mamas&papas'})
@@ -74,7 +65,8 @@ class LoginFormTests(TestCase):
     @override_settings(MAMA_CAS_ALLOW_AUTH_WARN=True)
     def test_login_form_warn(self):
         """
-        The form should contain an additional ``warn`` field.
+        When `MAMA_CAS_ALLOW_AUTH_WARN` is `True` the form should
+        contain an additional ``warn`` field.
         """
         form = LoginForm(data={'username': 'ellen', 'password': 'mamas&papas'})
         self.assertTrue('warn' in form.fields)
@@ -84,8 +76,7 @@ class LoginFormTests(TestCase):
         If an email address is provided, the username portion should be
         extracted and returned as the username.
         """
-        form = LoginFormEmail(data={'username': 'ellen@example.com',
-                                    'password': 'mamas&papas'})
+        form = LoginFormEmail(data={'username': 'ellen@example.com', 'password': 'mamas&papas'})
         self.assertTrue(form.is_valid())
         self.assertEqual(form.cleaned_data['username'], 'ellen')
 
@@ -94,6 +85,5 @@ class LoginFormTests(TestCase):
         If an username is provided such that it becomes invalid when
         cleaned, the form should be invalid.
         """
-        form = LoginFormEmail(data={'username': '@example.com',
-                                    'password': 'mamas&papas'})
+        form = LoginFormEmail(data={'username': '@example.com', 'password': 'mamas&papas'})
         self.assertFalse(form.is_valid())
