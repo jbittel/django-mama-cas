@@ -1,6 +1,6 @@
 defusedxml
-factory-boy==2.5.1
+factory-boy==2.6.0
 mock
 pytest-django
-pytest-pythonpath==0.3
+pytest-pythonpath==0.7
 requests>=2.0.0,<3.0.0
