@@ -9,6 +9,9 @@ here. For additional detail, read the complete `commit history`_. From
 version 0.4.0 and following, version numbers follow the `semantic
 versioning`_ scheme.
 
+**django-mama-cas 2.0.1** ``[2016-01-04]``
+   * Fix SLO request encoding
+
 **django-mama-cas 2.0.0** ``[2015-12-17]``
    * Fix Django 1.9 compatibility
    * Drop support for unsupported Django versions
