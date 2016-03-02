@@ -49,10 +49,12 @@ class LoginView(CsrfProtectMixin, NeverCacheMixin, FormView):
     """
     template_name = 'mama_cas/login.html'
     form_class = LoginForm
+    http_host = ''
+    service = ''
 
     def get_context_data(self, **kwargs):
         data = super(LoginView, self).get_context_data(**kwargs)
-        data['oauth_github_url'] = 'https://github.com/login/oauth/authorize?client_id=' + getattr(settings, 'MAMA_CAS_OAUTH_GITHUB_CLIENT_ID', '') + '&redirect_uri=' + getattr(settings, 'MAMA_CAS_OAUTH_GITHUB_CALLBACK', '')
+        data['oauth_github_url'] = 'https://github.com/login/oauth/authorize?client_id=' + getattr(settings, 'MAMA_CAS_OAUTH_GITHUB_CLIENT_ID', '') + '&redirect_uri=http://' + self.http_host + '/oauth?v=github,' + self.service
         return data
 
     def get(self, request, *args, **kwargs):
@@ -70,30 +72,31 @@ class LoginView(CsrfProtectMixin, NeverCacheMixin, FormView):
            Otherwise, the user remains logged out and is forwarded to
            the specified service.
         """
-        service = request.GET.get('service')
+        self.http_host = request.META['HTTP_HOST']
+        self.service = request.GET.get('service')
         renew = to_bool(request.GET.get('renew'))
         gateway = to_bool(request.GET.get('gateway'))
 
         if renew:
             logger.debug("Renew request received by credential requestor")
-        elif gateway and service:
+        elif gateway and self.service:
             logger.debug("Gateway request received by credential requestor")
             if request.user.is_authenticated():
-                st = ServiceTicket.objects.create_ticket(service=service, user=request.user)
+                st = ServiceTicket.objects.create_ticket(service=self.service, user=request.user)
                 if self.warn_user():
-                    return redirect('cas_warn', params={'service': service,
+                    return redirect('cas_warn', params={'service': self.service,
                                                         'ticket': st.ticket})
-                return redirect(service, params={'ticket': st.ticket})
+                return redirect(self.service, params={'ticket': st.ticket})
             else:
-                return redirect(service)
+                return redirect(self.service)
         elif request.user.is_authenticated():
-            if service:
+            if self.service:
                 logger.debug("Service ticket request received by credential requestor")
-                st = ServiceTicket.objects.create_ticket(service=service, user=request.user)
+                st = ServiceTicket.objects.create_ticket(service=self.service, user=request.user)
                 if self.warn_user():
-                    return redirect('cas_warn', params={'service': service,
+                    return redirect('cas_warn', params={'service': self.service,
                                                         'ticket': st.ticket})
-                return redirect(service, params={'ticket': st.ticket})
+                return redirect(self.service, params={'ticket': st.ticket})
             else:
                 msg = _("You are logged in as %s") % request.user
                 messages.success(request, msg)
@@ -140,7 +143,7 @@ class LoginView(CsrfProtectMixin, NeverCacheMixin, FormView):
             st = ServiceTicket.objects.create_ticket(service=service,
                                                      user=self.request.user,
                                                      primary=True)
-            # TODO
+            #TODO: the redirect is very important!!!
             return redirect(service, params={'ticket': st.ticket})
         return redirect('cas_login')
 
@@ -342,19 +345,19 @@ class SamlValidateView(NeverCacheMixin, View):
 
 class OAuthView(View):
     def get(self, request, *args, **kwargs):
-        thirdparty = self.request.GET.get('p')
-        print 'DEBUG: ', thirdparty
-        if thirdparty == 'github':
-            return self.do_github(self.request.GET.get('code'))
+        arr = self.request.GET.get('v').split(',')
+        print 'DEBUG: ', arr
+        if arr[0] == 'github':
+            return self.do_github(self.request.GET.get('code'), arr[1])
 
-    def do_github(self, code):
+    def do_github(self, code, service):
         url = 'https://github.com/login/oauth/access_token'
         data = {
             'grant_type': 'authorization_code',
             'client_id': getattr(settings, 'MAMA_CAS_OAUTH_GITHUB_CLIENT_ID', ''),
             'client_secret': getattr(settings, 'MAMA_CAS_OAUTH_GITHUB_CLIENT_SECRET', ''),
             'code': code,
-            'redirect_uri': getattr(settings, 'MAMA_CAS_OAUTH_GITHUB_CALLBACK', ''),
+            #'redirect_uri': 'http://' + host + '/oauth?p=github',
         }
         data = urllib.urlencode(data)
         req = urllib2.Request(url, data, headers={'Accept': 'application/json'})
@@ -379,5 +382,6 @@ class OAuthView(View):
                 user.save()
             user = authenticate(username=username, password=password)
             login(self.request, user)
-            return redirect(getattr(settings, 'MAMA_CAS_WORDPRESS_URL', ''))
+            print 'DEBUG: redirect ', service
+            return redirect(service)
         return HttpResponse(content='GitHub OAuth failed', content_type='text/plain')

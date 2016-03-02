@@ -12,7 +12,7 @@ from mama_cas.views import ProxyValidateView
 from mama_cas.views import ProxyView
 from mama_cas.views import WarnView
 from mama_cas.views import SamlValidateView
-
+from mama_cas.views import OAuthView
 
 urlpatterns = [
     url(r'^login/?$', LoginView.as_view(), name='cas_login'),
@@ -25,4 +25,5 @@ urlpatterns = [
     url(r'^p3/proxyValidate/?$', ProxyValidateView.as_view(), name='cas_p3_proxy_validate'),
     url(r'^warn/?$', WarnView.as_view(), name='cas_warn'),
     url(r'^samlValidate/?$', SamlValidateView.as_view(), name='cas_saml_validate'),
+    url(r'^oauth/?$', OAuthView.as_view(), name='oauth'),
 ]
