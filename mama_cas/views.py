@@ -357,7 +357,6 @@ class OAuthView(View):
             'client_id': getattr(settings, 'MAMA_CAS_OAUTH_GITHUB_CLIENT_ID', ''),
             'client_secret': getattr(settings, 'MAMA_CAS_OAUTH_GITHUB_CLIENT_SECRET', ''),
             'code': code,
-            #'redirect_uri': 'http://' + host + '/oauth?p=github',
         }
         data = urllib.urlencode(data)
         req = urllib2.Request(url, data, headers={'Accept': 'application/json'})
