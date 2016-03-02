@@ -12,6 +12,7 @@ from django.views.generic import FormView
 from django.views.generic import TemplateView
 from django.views.generic import View
 from django.contrib.auth.models import User
+from django.contrib.auth import authenticate
 
 from mama_cas.compat import defused_etree
 from mama_cas.forms import LoginForm
@@ -92,7 +93,7 @@ class LoginView(CsrfProtectMixin, NeverCacheMixin, FormView):
                 if self.warn_user():
                     return redirect('cas_warn', params={'service': service,
                                                         'ticket': st.ticket})
-                #TODO return redirect(service, params={'ticket': st.ticket})
+                return redirect(service, params={'ticket': st.ticket})
             else:
                 msg = _("You are logged in as %s") % request.user
                 messages.success(request, msg)
@@ -139,6 +140,7 @@ class LoginView(CsrfProtectMixin, NeverCacheMixin, FormView):
             st = ServiceTicket.objects.create_ticket(service=service,
                                                      user=self.request.user,
                                                      primary=True)
+            # TODO
             return redirect(service, params={'ticket': st.ticket})
         return redirect('cas_login')
 
@@ -369,11 +371,13 @@ class OAuthView(View):
             print 'DEBUG: ', data
             username = data['login']
             email = data['email']
-            password = '********'
+            password = getattr(settings, 'SECRET_KEY', '')
             try:
                 user = User.objects.get(username=username)
             except:
                 user = User.objects.create_user(username, email, password)
                 user.save()
-            return HttpResponse(content='GitHub OAuth success', content_type='text/plain')
+            user = authenticate(username=username, password=password)
+            login(self.request, user)
+            return redirect(getattr(settings, 'MAMA_CAS_WORDPRESS_URL', ''))
         return HttpResponse(content='GitHub OAuth failed', content_type='text/plain')
