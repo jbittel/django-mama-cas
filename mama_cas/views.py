@@ -346,7 +346,6 @@ class SamlValidateView(NeverCacheMixin, View):
 class OAuthView(View):
     def get(self, request, *args, **kwargs):
         arr = self.request.GET.get('v').split(',')
-        print 'DEBUG: ', arr
         if arr[0] == 'github':
             return self.do_github(self.request.GET.get('code'), arr[1])
 
@@ -363,14 +362,12 @@ class OAuthView(View):
         response = urllib2.urlopen(req)
         result = response.read()
         result = json.loads(result)
-        print 'DEBUG: ', result
         if 'access_token' in result:
             access_token = result['access_token']
             url = 'https://api.github.com/user?access_token=%s' % (access_token)
             response = urllib2.urlopen(url)
             html = response.read()
             data = json.loads(html)
-            print 'DEBUG: ', data
             username = data['login']
             email = data['email']
             password = getattr(settings, 'SECRET_KEY', '')
@@ -381,6 +378,5 @@ class OAuthView(View):
                 user.save()
             user = authenticate(username=username, password=password)
             login(self.request, user)
-            print 'DEBUG: redirect ', service
             return redirect(service)
         return HttpResponse(content='GitHub OAuth failed', content_type='text/plain')
