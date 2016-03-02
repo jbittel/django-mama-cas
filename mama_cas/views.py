@@ -1,4 +1,7 @@
 import logging
+import urllib
+import urllib2
+import json
 
 from django.conf import settings
 from django.contrib import messages
@@ -8,6 +11,7 @@ from django.utils.translation import ugettext as _
 from django.views.generic import FormView
 from django.views.generic import TemplateView
 from django.views.generic import View
+from django.contrib.auth.models import User
 
 from mama_cas.compat import defused_etree
 from mama_cas.forms import LoginForm
@@ -44,6 +48,11 @@ class LoginView(CsrfProtectMixin, NeverCacheMixin, FormView):
     """
     template_name = 'mama_cas/login.html'
     form_class = LoginForm
+
+    def get_context_data(self, **kwargs):
+        data = super(LoginView, self).get_context_data(**kwargs)
+        data['oauth_github_url'] = 'https://github.com/login/oauth/authorize?client_id=' + getattr(settings, 'MAMA_CAS_OAUTH_GITHUB_CLIENT_ID', '') + '&redirect_uri=' + getattr(settings, 'MAMA_CAS_OAUTH_GITHUB_CALLBACK', '')
+        return data
 
     def get(self, request, *args, **kwargs):
         """
@@ -83,7 +92,7 @@ class LoginView(CsrfProtectMixin, NeverCacheMixin, FormView):
                 if self.warn_user():
                     return redirect('cas_warn', params={'service': service,
                                                         'ticket': st.ticket})
-                return redirect(service, params={'ticket': st.ticket})
+                #TODO return redirect(service, params={'ticket': st.ticket})
             else:
                 msg = _("You are logged in as %s") % request.user
                 messages.success(request, msg)
@@ -328,3 +337,43 @@ class SamlValidateView(NeverCacheMixin, View):
         st, pgt, error = validate_service_ticket(target, ticket, None, require_https=True)
         attributes = get_attributes(st.user, st.service) if st else None
         return {'ticket': st, 'pgt': pgt, 'error': error, 'attributes': attributes}
+
+class OAuthView(View):
+    def get(self, request, *args, **kwargs):
+        thirdparty = self.request.GET.get('p')
+        print 'DEBUG: ', thirdparty
+        if thirdparty == 'github':
+            return self.do_github(self.request.GET.get('code'))
+
+    def do_github(self, code):
+        url = 'https://github.com/login/oauth/access_token'
+        data = {
+            'grant_type': 'authorization_code',
+            'client_id': getattr(settings, 'MAMA_CAS_OAUTH_GITHUB_CLIENT_ID', ''),
+            'client_secret': getattr(settings, 'MAMA_CAS_OAUTH_GITHUB_CLIENT_SECRET', ''),
+            'code': code,
+            'redirect_uri': getattr(settings, 'MAMA_CAS_OAUTH_GITHUB_CALLBACK', ''),
+        }
+        data = urllib.urlencode(data)
+        req = urllib2.Request(url, data, headers={'Accept': 'application/json'})
+        response = urllib2.urlopen(req)
+        result = response.read()
+        result = json.loads(result)
+        print 'DEBUG: ', result
+        if 'access_token' in result:
+            access_token = result['access_token']
+            url = 'https://api.github.com/user?access_token=%s' % (access_token)
+            response = urllib2.urlopen(url)
+            html = response.read()
+            data = json.loads(html)
+            print 'DEBUG: ', data
+            username = data['login']
+            email = data['email']
+            password = '********'
+            try:
+                user = User.objects.get(username=username)
+            except:
+                user = User.objects.create_user(username, email, password)
+                user.save()
+            return HttpResponse(content='GitHub OAuth success', content_type='text/plain')
+        return HttpResponse(content='GitHub OAuth failed', content_type='text/plain')
