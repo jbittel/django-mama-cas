@@ -201,7 +201,7 @@ class SamlValidationResponse(CasResponseBase):
         assertion.set('MajorVersion', '1')
         assertion.set('MinorVersion', '1')
         assertion.append(self.get_conditions(ticket.service))
-        subject = self.get_subject(ticket.user.username)
+        subject = self.get_subject(ticket.user.get_username())
         if attributes:
             assertion.append(self.get_attribute_statement(subject, attributes))
         assertion.append(self.get_authentication_statement(subject, ticket))
