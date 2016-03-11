@@ -2,6 +2,7 @@
 
 from django.test import TestCase
 from django.test.utils import override_settings
+from django.core.exceptions import ImproperlyConfigured
 
 from mama_cas.utils import add_query_params
 from mama_cas.utils import is_scheme_https
@@ -68,6 +69,16 @@ class UtilsTests(TestCase):
         self.assertFalse(match_service('https://www.example.com', 'https://www.example.com/'))
 
     @override_settings(MAMA_CAS_VALID_SERVICES=('http://.*\.example\.com',))
+    def test_is_valid_service_url_tuple(self):
+        """
+        When valid services are configured, ``is_valid_service_url()``
+        should return ``True`` if the provided URL matches, and
+        ``False`` otherwise.
+        """
+        self.assertTrue(is_valid_service_url('http://www.example.com'))
+        self.assertFalse(is_valid_service_url('http://www.example.org'))
+
+    @override_settings(MAMA_CAS_VALID_SERVICES=[{'URL': 'http://.*\.example\.com'}])
     def test_is_valid_service_url(self):
         """
         When valid services are configured, ``is_valid_service_url()``
@@ -78,12 +89,29 @@ class UtilsTests(TestCase):
         self.assertFalse(is_valid_service_url('http://www.example.org'))
 
     @override_settings(MAMA_CAS_VALID_SERVICES=())
+    def test_empty_valid_services_tuple(self):
+        """
+        When no valid services are configured,
+        ``is_valid_service_url()`` should return ``True``.
+        """
+        self.assertTrue(is_valid_service_url('http://www.example.com'))
+
+    @override_settings(MAMA_CAS_VALID_SERVICES=[])
     def test_empty_valid_services(self):
         """
         When no valid services are configured,
         ``is_valid_service_url()`` should return ``True``.
         """
         self.assertTrue(is_valid_service_url('http://www.example.com'))
+
+    @override_settings(MAMA_CAS_VALID_SERVICES=[{}])
+    def test_invalid_valid_services(self):
+        """
+        When invalid services are configured, ``is_valid_service_url``
+        should raise ``ImproperlyConfigured``.
+        """
+        with self.assertRaises(ImproperlyConfigured):
+            is_valid_service_url('http://www.example.com')
 
     def test_redirect(self):
         """
