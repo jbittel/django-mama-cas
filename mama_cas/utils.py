@@ -113,6 +113,8 @@ def is_valid_service_url(url):
     Check the provided URL against the configured list of valid
     services.
     """
+    if not url:
+        return False
     return services.is_valid_url(url)
 
 
