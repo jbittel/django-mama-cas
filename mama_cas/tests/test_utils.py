@@ -11,9 +11,18 @@ from mama_cas.utils import match_service
 from mama_cas.utils import is_valid_service_url
 from mama_cas.utils import redirect
 from mama_cas.utils import to_bool
+from mama_cas.utils import services as service_config
 
 
 class UtilsTests(TestCase):
+    def tearDown(self):
+        try:
+            # Remove cached property so the valid services
+            # setting can be changed per-test
+            del service_config.services
+        except AttributeError:
+            pass
+
     def test_add_query_params(self):
         """
         When called with a URL and a dict of parameters,
@@ -78,7 +87,6 @@ class UtilsTests(TestCase):
         self.assertTrue(is_valid_service_url('http://www.example.com'))
         self.assertFalse(is_valid_service_url('http://www.example.org'))
 
-    @override_settings(MAMA_CAS_VALID_SERVICES=[{'URL': 'http://.*\.example\.com'}])
     def test_is_valid_service_url(self):
         """
         When valid services are configured, ``is_valid_service_url()``
@@ -118,8 +126,8 @@ class UtilsTests(TestCase):
         When redirecting, params should be injected on the redirection
         URL.
         """
-        r = redirect('http://example.com', params={'test1': 'red'})
-        self.assertEqual('http://example.com?test1=red', r['Location'])
+        r = redirect('http://www.example.com', params={'test1': 'red'})
+        self.assertEqual('http://www.example.com?test1=red', r['Location'])
         r = redirect('cas_login', params={'test3': 'blue'})
         self.assertEqual('/login?test3=blue', r['Location'])
 
@@ -128,8 +136,8 @@ class UtilsTests(TestCase):
         When redirecting, if no params are provided only the URL
         should be present.
         """
-        r = redirect('http://example.com')
-        self.assertEqual('http://example.com', r['Location'])
+        r = redirect('http://www.example.com')
+        self.assertEqual('http://www.example.com', r['Location'])
         r = redirect('cas_login')
         self.assertEqual('/login', r['Location'])
 

@@ -79,13 +79,12 @@ class LoginViewTests(TestCase):
         self.assertTrue(response['Location'].startswith(self.service_url))
         self.assertTrue(st.ticket in response['Location'])
 
-    @override_settings(MAMA_CAS_VALID_SERVICES=('http://[^\.]+\.example\.org',))
     def test_login_view_invalid_service(self):
         """
         When called with an invalid service URL, the view should
         return a 403 Forbidden response.
         """
-        response = self.client.get(reverse('cas_login'), {'service': self.service_url, 'gateway': 'true'})
+        response = self.client.get(reverse('cas_login'), {'service': 'http://example.org', 'gateway': 'true'})
         self.assertEqual(response.status_code, 403)
 
     def test_login_view_login_post(self):
@@ -205,7 +204,6 @@ class WarnViewTests(TestCase):
         response = self.client.get(reverse('cas_warn'))
         self.assertRedirects(response, reverse('cas_login'))
 
-    @override_settings(MAMA_CAS_VALID_SERVICES=('[^\.]+\.example\.org',))
     def test_warn_view_invalid_service(self):
         """
         Whan in invalid service is provided, a request to the view
@@ -213,11 +211,10 @@ class WarnViewTests(TestCase):
         """
         self.client.login(username=self.user_info['username'],
                           password=self.user_info['password'])
-        response = self.client.get(reverse('cas_warn'), {'service': self.url})
+        response = self.client.get(reverse('cas_warn'), {'service': 'http://example.org'})
         self.assertRedirects(response, reverse('cas_login'))
 
 
-@override_settings(MAMA_CAS_VALID_SERVICES=('[^\.]+\.example\.com',))
 @override_settings(MAMA_CAS_FOLLOW_LOGOUT_URL=False)
 class LogoutViewTests(TestCase):
     user_info = {'username': 'ellen',
@@ -278,7 +275,6 @@ class LogoutViewTests(TestCase):
 
 class ValidateViewTests(TestCase):
     url = 'http://www.example.com/'
-    url2 = 'http://www.example.org/'
 
     def setUp(self):
         self.st = ServiceTicketFactory()
@@ -294,13 +290,12 @@ class ValidateViewTests(TestCase):
         self.assertContains(response, "no\n\n")
         self.assertEqual(response.get('Content-Type'), 'text/plain')
 
-    @override_settings(MAMA_CAS_VALID_SERVICES=('[^\.]+\.example\.com',))
     def test_validate_view_invalid_service(self):
         """
         When called with an invalid service identifier, a validation
         failure should be returned.
         """
-        request = self.rf.get(reverse('cas_validate'), {'service': self.url2, 'ticket': self.st.ticket})
+        request = self.rf.get(reverse('cas_validate'), {'service': 'http://example.org', 'ticket': self.st.ticket})
         response = ValidateView.as_view()(request)
         self.assertContains(response, "no\n\n")
         self.assertEqual(response.get('Content-Type'), 'text/plain')
@@ -332,7 +327,6 @@ class ValidateViewTests(TestCase):
 
 class ServiceValidateViewTests(TestCase):
     url = 'http://www.example.com/'
-    url2 = 'https://www.example.org/'
 
     def setUp(self):
         self.st = ServiceTicketFactory()
@@ -352,7 +346,8 @@ class ServiceValidateViewTests(TestCase):
         When called with an invalid service identifier, a validation
         failure should be returned.
         """
-        request = self.rf.get(reverse('cas_service_validate'), {'service': self.url2, 'ticket': self.st.ticket})
+        request = self.rf.get(reverse('cas_service_validate'), {'service': 'http://example.org',
+                                                                'ticket': self.st.ticket})
         response = ServiceValidateView.as_view()(request)
         self.assertContains(response, 'INVALID_SERVICE')
 
@@ -398,7 +393,7 @@ class ServiceValidateViewTests(TestCase):
         """
         request = self.rf.get(reverse('cas_service_validate'), {'service': self.url,
                                                                 'ticket': self.st.ticket,
-                                                                'pgtUrl': self.url2})
+                                                                'pgtUrl': 'https://www.example.com'})
         with patch('requests.get') as mock:
             mock.return_value.status_code = 200
             response = ServiceValidateView.as_view()(request)
@@ -412,18 +407,18 @@ class ServiceValidateViewTests(TestCase):
         """
         request = self.rf.get(reverse('cas_service_validate'), {'service': self.url,
                                                                 'ticket': self.st.ticket,
-                                                                'pgtUrl': self.url})
+                                                                'pgtUrl': 'http://example.org'})
         response = ServiceValidateView.as_view()(request)
         self.assertContains(response, 'authenticationSuccess')
         self.assertNotContains(response, 'proxyGrantingTicket')
 
-    @override_settings(MAMA_CAS_VALID_SERVICES=('[^\.]+\.example\.net',))
     def test_service_validate_view_invalid_service_url(self):
         """
         When ``MAMA_CAS_VALID_SERVICES`` is defined, a validation
         failure should be returned if the service URL does not match.
         """
-        request = self.rf.get(reverse('cas_service_validate'), {'service': self.url, 'ticket': self.st.ticket})
+        request = self.rf.get(reverse('cas_service_validate'), {'service': 'http://example.org',
+                                                                'ticket': self.st.ticket})
         response = ServiceValidateView.as_view()(request)
         self.assertContains(response, 'INVALID_SERVICE')
 
@@ -441,7 +436,6 @@ class ServiceValidateViewTests(TestCase):
 
 class ProxyValidateViewTests(TestCase):
     url = 'http://www.example.com/'
-    url2 = 'https://www.example.com/'
 
     def setUp(self):
         self.st = ServiceTicketFactory()
@@ -463,7 +457,8 @@ class ProxyValidateViewTests(TestCase):
         When called with an invalid service identifier, a validation
         failure should be returned.
         """
-        request = self.rf.get(reverse('cas_proxy_validate'), {'service': self.url2, 'ticket': self.pt.ticket})
+        request = self.rf.get(reverse('cas_proxy_validate'), {'service': 'http://example.org',
+                                                              'ticket': self.pt.ticket})
         response = ProxyValidateView.as_view()(request)
         self.assertContains(response, 'INVALID_SERVICE')
 
@@ -526,7 +521,7 @@ class ProxyValidateViewTests(TestCase):
         """
         request = self.rf.get(reverse('cas_proxy_validate'), {'service': self.url,
                                                               'ticket': self.pt.ticket,
-                                                              'pgtUrl': self.url2})
+                                                              'pgtUrl': 'https://ww2.example.com'})
         with patch('requests.get') as mock:
             mock.return_value.status_code = 200
             response = ProxyValidateView.as_view()(request)
@@ -540,25 +535,24 @@ class ProxyValidateViewTests(TestCase):
         """
         request = self.rf.get(reverse('cas_proxy_validate'), {'service': self.url,
                                                               'ticket': self.pt.ticket,
-                                                              'pgtUrl': self.url})
+                                                              'pgtUrl': 'https://example.org'})
         response = ProxyValidateView.as_view()(request)
         self.assertContains(response, 'authenticationSuccess')
         self.assertNotContains(response, 'proxyGrantingTicket')
 
-    @override_settings(MAMA_CAS_VALID_SERVICES=('^[^\.]+\.example\.net',))
     def test_proxy_validate_view_invalid_service_url(self):
         """
         When ``MAMA_CAS_VALID_SERVICES`` is defined, a validation
         failure should be returned if the service URL does not match.
         """
-        request = self.rf.get(reverse('cas_proxy_validate'), {'service': self.url, 'ticket': self.pt.ticket})
+        request = self.rf.get(reverse('cas_proxy_validate'), {'service': 'http://example.org',
+                                                              'ticket': self.pt.ticket})
         response = ProxyValidateView.as_view()(request)
         self.assertContains(response, 'INVALID_SERVICE')
 
 
 class ProxyViewTests(TestCase):
     url = 'http://www.example.com/'
-    url2 = 'http://www.example.org/'
 
     def setUp(self):
         self.st = ServiceTicketFactory()
@@ -602,13 +596,12 @@ class ProxyViewTests(TestCase):
         response = ProxyView.as_view()(request)
         self.assertContains(response, 'proxyTicket')
 
-    @override_settings(MAMA_CAS_VALID_SERVICES=('[^\.]+\.example\.com',))
     def test_proxy_view_invalid_service_url(self):
         """
         When called with an invalid service identifier, a proxy
         authentication failure should be returned.
         """
-        request = self.rf.get(reverse('cas_proxy'), {'targetService': self.url2, 'pgt': self.pgt.ticket})
+        request = self.rf.get(reverse('cas_proxy'), {'targetService': 'http://example.org', 'pgt': self.pgt.ticket})
         response = ProxyView.as_view()(request)
         self.assertContains(response, 'INVALID_SERVICE')
 

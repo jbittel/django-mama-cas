@@ -7,8 +7,9 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.exceptions import PermissionDenied
 from django.core import urlresolvers
 from django.http import HttpResponseRedirect
-from django.utils.encoding import force_bytes
 from django.utils import six
+from django.utils.encoding import force_bytes
+from django.utils.functional import cached_property
 
 from .compat import parse_qsl
 from .compat import urlencode
@@ -17,6 +18,47 @@ from .compat import urlunparse
 
 
 logger = logging.getLogger(__name__)
+
+
+class ServiceConfig(object):
+    @cached_property
+    def services(self):
+        services = []
+
+        for service in getattr(settings, 'MAMA_CAS_VALID_SERVICES', []):
+            if isinstance(service, six.string_types):
+                warnings.warn(
+                    'Service URL configuration is changing. Check the documentation '
+                    'for the MAMA_CAS_VALID_SERVICES setting.', DeprecationWarning)
+                match = re.compile(service)
+                service = {'URL': service}
+            else:
+                service = service.copy()
+                try:
+                    match = re.compile(service['URL'])
+                except KeyError:
+                    raise ImproperlyConfigured(
+                        'Missing URL key for service configuration. Check '
+                        'your MAMA_CAS_VALID_SERVICES setting.')
+
+            service['MATCH'] = match
+            services.append(service)
+
+        return services
+
+    def get_config(self, url):
+        for service in self.services:
+            if service['MATCH'].match(url):
+                return service
+        return {}
+
+    def is_valid_url(self, url):
+        if not self.services:
+            return True
+        return bool(self.get_config(url))
+
+
+services = ServiceConfig()
 
 
 def add_query_params(url, params):
@@ -68,31 +110,10 @@ def match_service(service1, service2):
 
 def is_valid_service_url(url):
     """
-    Check the provided URL against the configured list of valid service
-    URLs. If the service URL matches at least one valid service, return
-    ``True``, otherwise return ``False``. If no valid service URLs are
-    configured, return ``True``.
+    Check the provided URL against the configured list of valid
+    services.
     """
-    valid_services = getattr(settings, 'MAMA_CAS_VALID_SERVICES', [])
-    if not valid_services:
-        return True
-    for service in valid_services:
-        if isinstance(service, six.string_types):
-            warnings.warn(
-                'Service URL configuration is changing. Check the documentation '
-                'for the MAMA_CAS_VALID_SERVICES setting.', DeprecationWarning)
-            if re.match(service, url):
-                return True
-        else:
-            try:
-                service_url = service['URL']
-                if re.match(service_url, url):
-                    return True
-            except KeyError:
-                raise ImproperlyConfigured(
-                    'Missing URL key for service configuration. Check '
-                    'your MAMA_CAS_VALID_SERVICES setting.')
-    return False
+    return services.is_valid_url(url)
 
 
 def redirect(to, *args, **kwargs):

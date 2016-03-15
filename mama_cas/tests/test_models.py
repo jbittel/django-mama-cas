@@ -27,7 +27,6 @@ from mama_cas.exceptions import InvalidService
 from mama_cas.exceptions import InvalidTicket
 
 
-@override_settings(MAMA_CAS_VALID_SERVICES=('.*\.example\.com',))
 class TicketManagerTests(TestCase):
     """
     Test the ``TicketManager`` model manager.
@@ -373,7 +372,6 @@ class ProxyTicketTests(TestCase):
         self.assertTrue(pt.ticket.startswith(pt.TICKET_PREFIX))
 
 
-@override_settings(MAMA_CAS_VALID_SERVICES=('.*\.example\.com',))
 class ProxyGrantingTicketManager(TestCase):
     """
     Test the ``ProxyGrantingTicketManager`` model manager.

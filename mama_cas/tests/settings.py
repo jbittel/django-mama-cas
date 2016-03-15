@@ -34,3 +34,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'mama_cas',
 )
+
+MAMA_CAS_VALID_SERVICES = [
+    {'URL': 'https?://.*\.example\.com'}
+]
