@@ -114,7 +114,7 @@ def match_service(service1, service2):
         return False
 
 
-def is_valid_service_url(url):
+def is_valid_service(url):
     """
     Check the provided URL against the configured list of valid
     services.
@@ -149,7 +149,7 @@ def redirect(to, *args, **kwargs):
     except urlresolvers.NoReverseMatch:
         if '/' not in to and '.' not in to:
             to = urlresolvers.reverse('cas_login')
-        elif not is_valid_service_url(to):
+        elif not is_valid_service(to):
             raise PermissionDenied()
 
     if params:
