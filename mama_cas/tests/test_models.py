@@ -25,6 +25,7 @@ from mama_cas.exceptions import InvalidProxyCallback
 from mama_cas.exceptions import InvalidRequest
 from mama_cas.exceptions import InvalidService
 from mama_cas.exceptions import InvalidTicket
+from mama_cas.exceptions import UnauthorizedServiceProxy
 
 
 class TicketManagerTests(TestCase):
@@ -376,9 +377,6 @@ class ProxyGrantingTicketManager(TestCase):
     """
     Test the ``ProxyGrantingTicketManager`` model manager.
     """
-    url = 'http://www.example.com/'
-    pgturl = 'https://www.example.com/'
-
     def setUp(self):
         self.user = UserFactory()
         self.pt = ProxyTicketFactory()
@@ -392,9 +390,8 @@ class ProxyGrantingTicketManager(TestCase):
         """
         with patch('requests.get') as mock:
             mock.return_value.status_code = 200
-            pgt = ProxyGrantingTicket.objects.create_ticket(self.pgturl,
-                                                            user=self.user,
-                                                            granted_by_pt=self.pt)
+            pgt = ProxyGrantingTicket.objects.create_ticket('https://www.example.com', 'https://www.example.com/',
+                                                            user=self.user, granted_by_pt=self.pt)
         self.assertTrue(re.search(pgt.TICKET_RE, pgt.ticket))
         self.assertTrue(pgt.iou.startswith(pgt.IOU_PREFIX))
 
@@ -405,33 +402,44 @@ class ProxyGrantingTicketManager(TestCase):
         """
         with patch('requests.get') as mock:
             mock.side_effect = requests.exceptions.ConnectionError
-            pgt = ProxyGrantingTicket.objects.create_ticket(self.pgturl,
-                                                            user=self.user,
-                                                            granted_by_pt=self.pt)
+            pgt = ProxyGrantingTicket.objects.create_ticket('https://www.example.com', 'https://www.example.com/',
+                                                            user=self.user, granted_by_pt=self.pt)
         self.assertIsNone(pgt)
 
     def test_validate_callback(self):
         """
-        If a valid URL is provided, an exception should not be raised.
+        If a valid PGTURL is provided, an exception should not be raised.
         """
         with patch('requests.get') as mock:
             mock.return_value.status_code = 200
             try:
-                ProxyGrantingTicket.objects.validate_callback(self.pgturl, self.pgtid, self.pgtiou)
+                ProxyGrantingTicket.objects.validate_callback('https://www.example.com', 'https://www.example.com/',
+                                                              self.pgtid, self.pgtiou)
             except InvalidProxyCallback:
                 self.fail("Exception raised validating proxy callback URL")
 
+    def test_validate_callback_unauthorized_service(self):
+        """
+        If an unauthorized service is provided, `UnauthorizedServiceProxy`
+        should be raised.
+        """
+        with self.assertRaises(UnauthorizedServiceProxy):
+            ProxyGrantingTicket.objects.validate_callback('http://example.com/', 'http://www.example.com/',
+                                                          self.pgtid, self.pgtiou)
+
     def test_validate_callback_http_pgturl(self):
         """
-        If an HTTP URL is provided, InvalidProxyCallback should be raised.
+        If an HTTP PGTURL is provided, InvalidProxyCallback should be raised.
         """
         with self.assertRaises(InvalidProxyCallback):
-            ProxyGrantingTicket.objects.validate_callback('http://www.example.com/', self.pgtid, self.pgtiou)
+            ProxyGrantingTicket.objects.validate_callback('http://www.example.com/', 'http://www.example.com/',
+                                                          self.pgtid, self.pgtiou)
 
     def test_validate_callback_invalid_pgturl(self):
-        """If an invalid URL is provided, InvalidProxyCallback should be raised."""
+        """If an invalid PGTURL is provided, InvalidProxyCallback should be raised."""
         with self.assertRaises(InvalidProxyCallback):
-            ProxyGrantingTicket.objects.validate_callback('https://www.example.org/', self.pgtid, self.pgtiou)
+            ProxyGrantingTicket.objects.validate_callback('http://www.example.com/', 'https://www.example.org/',
+                                                          self.pgtid, self.pgtiou)
 
     def test_validate_callback_ssl_error(self):
         """
@@ -441,7 +449,8 @@ class ProxyGrantingTicketManager(TestCase):
         with patch('requests.get') as mock:
             mock.side_effect = requests.exceptions.SSLError
             with self.assertRaises(InvalidProxyCallback):
-                ProxyGrantingTicket.objects.validate_callback(self.pgturl, self.pgtid, self.pgtiou)
+                ProxyGrantingTicket.objects.validate_callback('http://www.example.com/', 'https://www.example.org/',
+                                                              self.pgtid, self.pgtiou)
 
     def test_validate_callback_connection_error(self):
         """
@@ -451,7 +460,8 @@ class ProxyGrantingTicketManager(TestCase):
         with patch('requests.get') as mock:
             mock.side_effect = requests.exceptions.ConnectionError
             with self.assertRaises(InvalidProxyCallback):
-                ProxyGrantingTicket.objects.validate_callback(self.pgturl, self.pgtid, self.pgtiou)
+                ProxyGrantingTicket.objects.validate_callback('http://www.example.com/', 'https://www.example.org/',
+                                                              self.pgtid, self.pgtiou)
 
     def test_validate_callback_timeout(self):
         """
@@ -461,7 +471,8 @@ class ProxyGrantingTicketManager(TestCase):
         with patch('requests.get') as mock:
             mock.side_effect = requests.exceptions.Timeout
             with self.assertRaises(InvalidProxyCallback):
-                ProxyGrantingTicket.objects.validate_callback(self.pgturl, self.pgtid, self.pgtiou)
+                ProxyGrantingTicket.objects.validate_callback('http://www.example.com/', 'https://www.example.org/',
+                                                              self.pgtid, self.pgtiou)
 
     def test_validate_callback_invalid_status(self):
         """
@@ -471,7 +482,8 @@ class ProxyGrantingTicketManager(TestCase):
         with patch('requests.get') as mock:
             mock.return_value.raise_for_status.side_effect = requests.exceptions.HTTPError
             with self.assertRaises(InvalidProxyCallback):
-                ProxyGrantingTicket.objects.validate_callback(self.pgturl, self.pgtid, self.pgtiou)
+                ProxyGrantingTicket.objects.validate_callback('http://www.example.com/', 'https://www.example.org/',
+                                                              self.pgtid, self.pgtiou)
 
     def test_validate_ticket(self):
         """
@@ -480,7 +492,7 @@ class ProxyGrantingTicketManager(TestCase):
         process.
         """
         pgt = ProxyGrantingTicketFactory()
-        ticket = ProxyGrantingTicket.objects.validate_ticket(pgt.ticket, self.url)
+        ticket = ProxyGrantingTicket.objects.validate_ticket(pgt.ticket, 'https://www.example.com')
         self.assertEqual(ticket, pgt)
         self.assertFalse(ticket.is_consumed())
 
@@ -490,7 +502,7 @@ class ProxyGrantingTicketManager(TestCase):
         provided.
         """
         with self.assertRaises(InvalidRequest):
-            ProxyGrantingTicket.objects.validate_ticket(None, self.url)
+            ProxyGrantingTicket.objects.validate_ticket(None, 'https://www.example.com')
 
     def test_validate_ticket_no_service(self):
         """
@@ -507,7 +519,7 @@ class ProxyGrantingTicketManager(TestCase):
         string is provided.
         """
         with self.assertRaises(InvalidTicket):
-            ProxyGrantingTicket.objects.validate_ticket('12345', self.url)
+            ProxyGrantingTicket.objects.validate_ticket('12345', 'https://www.example.com')
 
     def test_validate_ticket_does_not_exist(self):
         """
@@ -516,7 +528,7 @@ class ProxyGrantingTicketManager(TestCase):
         """
         ticket = 'PGT-0000000000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
         with self.assertRaises(InvalidTicket):
-            ProxyGrantingTicket.objects.validate_ticket(ticket, self.url)
+            ProxyGrantingTicket.objects.validate_ticket(ticket, 'https://www.example.com')
 
     def test_validate_ticket_consumed_ticket(self):
         """
@@ -525,7 +537,7 @@ class ProxyGrantingTicketManager(TestCase):
         """
         pgt = ConsumedProxyGrantingTicketFactory()
         with self.assertRaises(InvalidTicket):
-            ProxyGrantingTicket.objects.validate_ticket(pgt.ticket, self.url)
+            ProxyGrantingTicket.objects.validate_ticket(pgt.ticket, 'https://www.example.com')
 
     def test_validate_ticket_expired_ticket(self):
         """
@@ -534,17 +546,16 @@ class ProxyGrantingTicketManager(TestCase):
         """
         pgt = ExpiredProxyGrantingTicketFactory()
         with self.assertRaises(InvalidTicket):
-            ProxyGrantingTicket.objects.validate_ticket(pgt.ticket, self.url)
+            ProxyGrantingTicket.objects.validate_ticket(pgt.ticket, 'https://www.example.com')
 
     def test_validate_ticket_invalid_service(self):
         """
         The validation process ought to fail when an invalid service
         identifier is provided.
         """
-        service = 'http://www.example.org'
         pgt = ProxyGrantingTicketFactory()
         with self.assertRaises(InvalidService):
-            ProxyGrantingTicket.objects.validate_ticket(pgt.ticket, service)
+            ProxyGrantingTicket.objects.validate_ticket(pgt.ticket, 'http://www.example.org')
 
 
 class ProxyGrantingTicketTests(TestCase):

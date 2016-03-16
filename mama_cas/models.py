@@ -21,12 +21,15 @@ from mama_cas.exceptions import InvalidProxyCallback
 from mama_cas.exceptions import InvalidRequest
 from mama_cas.exceptions import InvalidService
 from mama_cas.exceptions import InvalidTicket
+from mama_cas.exceptions import UnauthorizedServiceProxy
+from mama_cas.exceptions import ValidationError
 from mama_cas.request import SingleSignOutRequest
 from mama_cas.utils import add_query_params
 from mama_cas.utils import is_scheme_https
 from mama_cas.utils import clean_service_url
 from mama_cas.utils import match_service
 from mama_cas.utils import is_valid_service_url
+from mama_cas.utils import can_proxy_authentication
 
 if gevent:
     from gevent.pool import Pool
@@ -293,55 +296,56 @@ class ProxyTicket(Ticket):
 
 
 class ProxyGrantingTicketManager(TicketManager):
-    def create_ticket(self, pgturl, **kwargs):
+    def create_ticket(self, service, pgturl, **kwargs):
         """
         When a ``pgtUrl`` parameter is provided to ``/serviceValidate`` or
         ``/proxyValidate``, attempt to create a new ``ProxyGrantingTicket``.
-        If PGT URL validation succeeds, create and return the
-        ``ProxyGrantingTicket``. If validation fails, return ``None``.
+        If validation succeeds, create and return the ``ProxyGrantingTicket``.
+        If validation fails, return ``None``.
         """
         pgtid = self.create_ticket_str()
         pgtiou = self.create_ticket_str(prefix=self.model.IOU_PREFIX)
         try:
-            self.validate_callback(pgturl, pgtid, pgtiou)
-        except InvalidProxyCallback as e:
+            self.validate_callback(service, pgturl, pgtid, pgtiou)
+        except ValidationError as e:
             logger.warning("%s %s" % (e.code, e))
             return None
         else:
             # pgtUrl validation succeeded, so create a new PGT with the
             # previously generated ticket strings
-            return super(ProxyGrantingTicketManager, self).create_ticket(ticket=pgtid,
-                                                                         iou=pgtiou,
-                                                                         **kwargs)
+            return super(ProxyGrantingTicketManager, self).create_ticket(ticket=pgtid, iou=pgtiou, **kwargs)
 
-    def validate_callback(self, url, pgtid, pgtiou):
+    def validate_callback(self, service, pgturl, pgtid, pgtiou):
         """Verify the provided proxy callback URL."""
-        if not is_scheme_https(url):
-            raise InvalidProxyCallback("Proxy callback %s is not HTTPS" % url)
+        if not can_proxy_authentication(service):
+            raise UnauthorizedServiceProxy("%s is not authorized to use proxy authentication" % service)
 
-        if not is_valid_service_url(url):
-            raise InvalidProxyCallback("%s is not a valid proxy callback URL" % url)
+        if not is_scheme_https(pgturl):
+            raise InvalidProxyCallback("Proxy callback %s is not HTTPS" % pgturl)
+
+        if not is_valid_service_url(pgturl):
+            raise InvalidProxyCallback("%s is not a valid proxy callback URL" % pgturl)
 
         # Check the proxy callback URL and SSL certificate
-        url_params = add_query_params(url, {'pgtId': pgtid, 'pgtIou': pgtiou})
+        pgturl_params = add_query_params(pgturl, {'pgtId': pgtid, 'pgtIou': pgtiou})
         verify = os.environ.get('REQUESTS_CA_BUNDLE', True)
         try:
-            r = requests.get(url_params, verify=verify, timeout=3.0)
+            r = requests.get(pgturl_params, verify=verify, timeout=3.0)
         except requests.exceptions.SSLError:
-            msg = "SSL cert validation failed for proxy callback %s" % url
+            msg = "SSL cert validation failed for proxy callback %s" % pgturl
             raise InvalidProxyCallback(msg)
         except requests.exceptions.ConnectionError:
-            msg = "Error connecting to proxy callback %s" % url
+            msg = "Error connecting to proxy callback %s" % pgturl
             raise InvalidProxyCallback(msg)
         except requests.exceptions.Timeout:
-            msg = "Timeout connecting to proxy callback %s" % url
+            msg = "Timeout connecting to proxy callback %s" % pgturl
             raise InvalidProxyCallback(msg)
 
         # Check the returned HTTP status code
         try:
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:
-            msg = "Proxy callback %s returned %s" % (url, e)
+            msg = "Proxy callback %s returned %s" % (pgturl, e)
             raise InvalidProxyCallback(msg)
 
 

@@ -20,6 +20,9 @@ from .compat import urlunparse
 logger = logging.getLogger(__name__)
 
 
+DEFAULT_ALLOW_PROXY = False
+
+
 class ServiceConfig(object):
     @cached_property
     def services(self):
@@ -42,6 +45,9 @@ class ServiceConfig(object):
                         'your MAMA_CAS_VALID_SERVICES setting.')
 
             service['MATCH'] = match
+            # TODO For transitional backwards compatibility, this defaults
+            # to True. Eventually, it should default to DEFAULT_ALLOW_PROXY.
+            service.setdefault('ALLOW_PROXY', True)
             services.append(service)
 
         return services
@@ -116,6 +122,17 @@ def is_valid_service_url(url):
     if not url:
         return False
     return services.is_valid_url(url)
+
+
+def can_proxy_authentication(url):
+    """
+    Return the configured proxy policy for the given service URL.
+    If no policy exists, return the default policy.
+    """
+    try:
+        return services.get_config(url)['ALLOW_PROXY']
+    except KeyError:
+        return DEFAULT_ALLOW_PROXY
 
 
 def redirect(to, *args, **kwargs):

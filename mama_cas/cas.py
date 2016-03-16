@@ -30,15 +30,14 @@ def validate_service_ticket(service, ticket, pgturl, renew=False, require_https=
         return None, None, e
 
     try:
-        st = ServiceTicket.objects.validate_ticket(ticket, service,
-                renew=renew, require_https=require_https)
+        st = ServiceTicket.objects.validate_ticket(ticket, service, renew=renew, require_https=require_https)
     except ValidationError as e:
         logger.warning("%s %s" % (e.code, e))
         return None, None, e
     else:
         if pgturl:
             logger.debug("Proxy-granting ticket request received for %s" % pgturl)
-            pgt = ProxyGrantingTicket.objects.create_ticket(pgturl, user=st.user, granted_by_st=st)
+            pgt = ProxyGrantingTicket.objects.create_ticket(service, pgturl, user=st.user, granted_by_st=st)
         else:
             pgt = None
         return st, pgt, None
@@ -69,7 +68,7 @@ def validate_proxy_ticket(service, ticket, pgturl):
         if pgturl:
             logger.debug("Proxy-granting ticket request received for %s" %
                          pgturl)
-            pgt = ProxyGrantingTicket.objects.create_ticket(pgturl, user=pt.user, granted_by_pt=pt)
+            pgt = ProxyGrantingTicket.objects.create_ticket(service, pgturl, user=pt.user, granted_by_pt=pt)
         else:
             pgt = None
         return pt, pgt, proxies, None

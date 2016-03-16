@@ -68,7 +68,7 @@ class ProxyGrantingTicketFactory(TicketFactory):
     @classmethod
     def _create(cls, target_class, *args, **kwargs):
         if not args:
-            args = ('https://www.example.com/',)
+            args = ('https://www.example.com/', 'https://www.example.com/callback')
         with patch('requests.get') as mock:
             mock.return_value.status_code = 200
             return super(ProxyGrantingTicketFactory, cls)._create(target_class,

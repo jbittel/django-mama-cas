@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from django.test import TestCase
+from django.test.utils import modify_settings
 from django.test.utils import override_settings
 from django.core.exceptions import ImproperlyConfigured
 
@@ -12,6 +13,7 @@ from mama_cas.utils import is_valid_service_url
 from mama_cas.utils import redirect
 from mama_cas.utils import to_bool
 from mama_cas.utils import services as service_config
+from mama_cas.utils import can_proxy_authentication
 
 
 class UtilsTests(TestCase):
@@ -120,6 +122,14 @@ class UtilsTests(TestCase):
         """
         with self.assertRaises(ImproperlyConfigured):
             is_valid_service_url('http://www.example.com')
+
+    @modify_settings(MAMA_CAS_VALID_SERVICES={'append': [{'URL': 'http://example\.com/proxy', 'ALLOW_PROXY': False}]})
+    def test_can_proxy_authentication(self):
+        """
+        """
+        self.assertTrue(can_proxy_authentication('http://www.example.com'))
+        self.assertFalse(can_proxy_authentication('http://example.com/proxy'))
+        self.assertFalse(can_proxy_authentication('http://example.org'))
 
     def test_redirect(self):
         """
