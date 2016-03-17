@@ -424,7 +424,7 @@ class ProxyGrantingTicketManager(TestCase):
         should be raised.
         """
         with self.assertRaises(UnauthorizedServiceProxy):
-            ProxyGrantingTicket.objects.validate_callback('http://example.com/', 'http://www.example.com/',
+            ProxyGrantingTicket.objects.validate_callback('http://example.com/', 'https://www.example.com/',
                                                           self.pgtid, self.pgtiou)
 
     def test_validate_callback_http_pgturl(self):

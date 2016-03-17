@@ -123,7 +123,9 @@ class UtilsTests(TestCase):
         with self.assertRaises(ImproperlyConfigured):
             is_valid_service('http://www.example.com')
 
-    @modify_settings(MAMA_CAS_VALID_SERVICES={'append': [{'URL': 'http://example\.com/proxy', 'ALLOW_PROXY': False}]})
+    @modify_settings(MAMA_CAS_VALID_SERVICES={
+        'append': [{'SERVICE': 'http://example\.com/proxy', 'PROXY_ALLOW': False}]
+    })
     def test_can_proxy_authentication(self):
         """
         """

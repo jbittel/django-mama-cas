@@ -37,11 +37,11 @@ INSTALLED_APPS = (
 
 MAMA_CAS_VALID_SERVICES = [
     {
-        'URL': 'https?://.*\.example\.com',
-        'ALLOW_PROXY': True,
+        'SERVICE': 'https?://.*\.example\.com',
+        'PROXY_ALLOW': True,
     },
     {
-        'URL': 'http://example.com',
-        'ALLOW_PROXY': False,
+        'SERVICE': 'http://example.com',
+        'PROXY_ALLOW': False,
     }
 ]

@@ -20,9 +20,6 @@ from .compat import urlunparse
 logger = logging.getLogger(__name__)
 
 
-DEFAULT_ALLOW_PROXY = False
-
-
 class ServiceConfig(object):
     @cached_property
     def services(self):
@@ -34,34 +31,33 @@ class ServiceConfig(object):
                     'Service URL configuration is changing. Check the documentation '
                     'for the MAMA_CAS_VALID_SERVICES setting.', DeprecationWarning)
                 match = re.compile(service)
-                service = {'URL': service}
+                service = {'SERVICE': service}
             else:
                 service = service.copy()
                 try:
-                    match = re.compile(service['URL'])
+                    match = re.compile(service['SERVICE'])
                 except KeyError:
                     raise ImproperlyConfigured(
-                        'Missing URL key for service configuration. Check '
-                        'your MAMA_CAS_VALID_SERVICES setting.')
+                        'Missing SERVICE key for service configuration. '
+                        'Check your MAMA_CAS_VALID_SERVICES setting.')
 
             service['MATCH'] = match
-            # TODO For transitional backwards compatibility, this defaults
-            # to True. Eventually, it should default to DEFAULT_ALLOW_PROXY.
-            service.setdefault('ALLOW_PROXY', True)
+            # TODO For transitional backwards compatibility, this defaults to True.
+            service.setdefault('PROXY_ALLOW', True)
             services.append(service)
 
         return services
 
-    def get_config(self, url):
+    def get_config(self, s):
         for service in self.services:
-            if service['MATCH'].match(url):
+            if service['MATCH'].match(s):
                 return service
         return {}
 
-    def is_valid_url(self, url):
+    def is_valid(self, s):
         if not self.services:
             return True
-        return bool(self.get_config(url))
+        return bool(self.get_config(s))
 
 
 services = ServiceConfig()
@@ -114,25 +110,25 @@ def match_service(service1, service2):
         return False
 
 
-def is_valid_service(url):
+def is_valid_service(service):
     """
-    Check the provided URL against the configured list of valid
+    Check the provided service against the configured list of valid
     services.
     """
-    if not url:
+    if not service:
         return False
-    return services.is_valid_url(url)
+    return services.is_valid(service)
 
 
-def can_proxy_authentication(url):
+def can_proxy_authentication(service):
     """
-    Return the configured proxy policy for the given service URL.
-    If no policy exists, return the default policy.
+    Return the configured proxy policy for the given service. If no
+    policy exists, return `False`.
     """
     try:
-        return services.get_config(url)['ALLOW_PROXY']
+        return services.get_config(service)['PROXY_ALLOW']
     except KeyError:
-        return DEFAULT_ALLOW_PROXY
+        return False
 
 
 def redirect(to, *args, **kwargs):
