@@ -45,6 +45,11 @@ class LoginView(CsrfProtectMixin, NeverCacheMixin, FormView):
     template_name = 'mama_cas/login.html'
     form_class = LoginForm
 
+    def get_context_data(self, **kwargs):
+        kwargs['next'] = self.request.REQUEST.get('next', '')
+
+        return super(LoginView, self).get_context_data(**kwargs)
+
     def get(self, request, *args, **kwargs):
         """
         (2.1) As a credential requestor, /login accepts three optional
@@ -131,7 +136,7 @@ class LoginView(CsrfProtectMixin, NeverCacheMixin, FormView):
                                                      user=self.request.user,
                                                      primary=True)
             return redirect(service, params={'ticket': st.ticket})
-        return redirect('cas_login')
+        return redirect(self.request.REQUEST.get('next', 'cas_login'))
 
 
 class WarnView(NeverCacheMixin, LoginRequiredMixin, TemplateView):
