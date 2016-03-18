@@ -1,19 +1,20 @@
 # -*- coding: utf-8 -*-
 
+from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase
 from django.test.utils import modify_settings
 from django.test.utils import override_settings
-from django.core.exceptions import ImproperlyConfigured
 
+from mama_cas.utils import services as service_config
 from mama_cas.utils import add_query_params
-from mama_cas.utils import is_scheme_https
+from mama_cas.utils import can_proxy_authentication
 from mama_cas.utils import clean_service_url
-from mama_cas.utils import match_service
+from mama_cas.utils import is_scheme_https
+from mama_cas.utils import is_valid_proxy_callback
 from mama_cas.utils import is_valid_service
+from mama_cas.utils import match_service
 from mama_cas.utils import redirect
 from mama_cas.utils import to_bool
-from mama_cas.utils import services as service_config
-from mama_cas.utils import can_proxy_authentication
 
 
 class UtilsTests(TestCase):
@@ -128,10 +129,22 @@ class UtilsTests(TestCase):
     })
     def test_can_proxy_authentication(self):
         """
+        When a service is configured to allow proxy authentication,
+        `can_proxy_authentication()` should return `True`. If proxy
+        authentication is disallowed, it should return `False`.
         """
         self.assertTrue(can_proxy_authentication('http://www.example.com'))
         self.assertFalse(can_proxy_authentication('http://example.com/proxy'))
         self.assertFalse(can_proxy_authentication('http://example.org'))
+
+    def test_is_valid_proxy_callback(self):
+        """
+        When a valid pgturl is provided, `is_valid_proxy_callback()`
+        should return `True`, otherwise it should return `False`.
+        """
+        self.assertTrue(is_valid_proxy_callback('https://www.example.com', 'https://www.example.com'))
+        self.assertTrue(is_valid_proxy_callback('http://example.org', 'https://www.example.com'))
+        self.assertFalse(is_valid_proxy_callback('http://example.org', 'http://example.org'))
 
     def test_redirect(self):
         """
