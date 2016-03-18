@@ -44,6 +44,10 @@ class ServiceConfig(object):
             service['MATCH'] = match
             # TODO For transitional backwards compatibility, this defaults to True.
             service.setdefault('PROXY_ALLOW', True)
+            try:
+                service['PROXY_PATTERN'] = re.compile(service['PROXY_PATTERN'])
+            except KeyError:
+                pass
             services.append(service)
 
         return services
@@ -128,6 +132,20 @@ def can_proxy_authentication(service):
     try:
         return services.get_config(service)['PROXY_ALLOW']
     except KeyError:
+        return False
+
+
+def is_valid_proxy_callback(service, pgturl):
+    """
+    Check the provided proxy callback against the configured allowable
+    callback pattern. If no pattern is configured, return `True`.
+    """
+    try:
+        return services.get_config(service)['PROXY_PATTERN'].match(pgturl)
+    except KeyError:
+        # TODO For transitional backwards compatibility, check against valid services
+        if is_valid_service(pgturl):
+            return True
         return False
 
 

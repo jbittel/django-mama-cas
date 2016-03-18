@@ -29,6 +29,7 @@ from mama_cas.utils import is_scheme_https
 from mama_cas.utils import clean_service_url
 from mama_cas.utils import match_service
 from mama_cas.utils import is_valid_service
+from mama_cas.utils import is_valid_proxy_callback
 from mama_cas.utils import can_proxy_authentication
 
 if gevent:
@@ -323,8 +324,8 @@ class ProxyGrantingTicketManager(TicketManager):
         if not is_scheme_https(pgturl):
             raise InvalidProxyCallback("Proxy callback %s is not HTTPS" % pgturl)
 
-        if not is_valid_service(pgturl):
-            raise InvalidProxyCallback("%s is not a valid proxy callback URL" % pgturl)
+        if not is_valid_proxy_callback(service, pgturl):
+            raise InvalidProxyCallback("%s is not an authorized proxy callback URL" % pgturl)
 
         # Check the proxy callback URL and SSL certificate
         pgturl_params = add_query_params(pgturl, {'pgtId': pgtid, 'pgtIou': pgtiou})
