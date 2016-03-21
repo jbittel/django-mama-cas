@@ -1,20 +1,16 @@
 {% if messages %}
-    <div class="alert alert-info"><ul>
-    {% for message in messages %}
-        <li>{{ message|urlize }}</li>
-    {% endfor %}
-    </ul></div>
+  {% for message in messages %}
+    <div class="alert alert-info">{{ message }}</div>
+  {% endfor %}
 {% endif %}
 
 {% if form.errors %}
-    <div class="alert alert-danger"><ul>
-    {% for error in form.non_field_errors %}
-        <li>{{ error }}</li>
+  {% for error in form.non_field_errors %}
+    <div class="alert alert-danger">{{ error }}</div>
+  {% endfor %}
+  {% for field in form %}
+    {% for error in field.errors %}
+      <div class="alert alert-danger">{{ error }}</div>
     {% endfor %}
-    {% for field in form %}
-        {% for error in field.errors %}
-            <li>{{ error }}</li>
-        {% endfor %}
-    {% endfor %}
-    </ul></div>
+  {% endfor %}
 {% endif %}
