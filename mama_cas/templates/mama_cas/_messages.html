@@ -1,6 +1,6 @@
 {% if messages %}
   {% for message in messages %}
-    <div class="alert alert-info">{{ message }}</div>
+    <div class="alert alert-info">{{ message|urlize }}</div>
   {% endfor %}
 {% endif %}
 
