@@ -1,4 +1,5 @@
 import logging
+import warnings
 
 from django.conf import settings
 from django.contrib import messages
@@ -11,6 +12,7 @@ from mama_cas.models import ProxyTicket
 from mama_cas.models import ProxyGrantingTicket
 from mama_cas.exceptions import InvalidTicketSpec
 from mama_cas.exceptions import ValidationError
+from mama_cas.utils import get_callbacks
 
 
 logger = logging.getLogger(__name__)
@@ -93,12 +95,18 @@ def validate_proxy_granting_ticket(pgt, target_service):
 
 def get_attributes(user, service):
     """
-    Return a dictionary of user attributes from the set of callbacks
-    specified with ``MAMA_CAS_ATTRIBUTE_CALLBACKS``.
+    Return a dictionary of user attributes from the set of configured
+    callback functions.
     """
     attributes = {}
 
-    callbacks = getattr(settings, 'MAMA_CAS_ATTRIBUTE_CALLBACKS', ())
+    callbacks = list(getattr(settings, 'MAMA_CAS_ATTRIBUTE_CALLBACKS', []))
+    if callbacks:
+        warnings.warn(
+            'The MAMA_CAS_ATTRIBUTE_CALLBACKS setting is deprecated. Service callbacks '
+            'should be configured using MAMA_CAS_VALID_SERVICES.', DeprecationWarning)
+    callbacks.extend(get_callbacks(service))
+
     for path in callbacks:
         callback = import_string(path)
         attributes.update(callback(user, service))

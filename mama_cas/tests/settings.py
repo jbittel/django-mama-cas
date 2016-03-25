@@ -40,6 +40,9 @@ MAMA_CAS_VALID_SERVICES = [
         'SERVICE': 'https?://.*\.example\.com',
         'PROXY_ALLOW': True,
         'PROXY_PATTERN': 'https://.+\.example\.com',
+        'CALLBACKS': [
+            'mama_cas.callbacks.user_name_attributes',
+        ],
     },
     {
         'SERVICE': 'http://example.com',
