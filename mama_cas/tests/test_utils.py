@@ -7,9 +7,8 @@ from django.test.utils import override_settings
 
 from mama_cas.utils import services as service_config
 from mama_cas.utils import add_query_params
-from mama_cas.utils import can_proxy_authentication
+from mama_cas.utils import get_config
 from mama_cas.utils import clean_service_url
-from mama_cas.utils import get_callbacks
 from mama_cas.utils import is_scheme_https
 from mama_cas.utils import is_valid_proxy_callback
 from mama_cas.utils import is_valid_service
@@ -128,15 +127,15 @@ class UtilsTests(TestCase):
     @modify_settings(MAMA_CAS_VALID_SERVICES={
         'append': [{'SERVICE': 'http://example\.com/proxy', 'PROXY_ALLOW': False}]
     })
-    def test_can_proxy_authentication(self):
+    def test_get_config(self):
         """
-        When a service is configured to allow proxy authentication,
-        `can_proxy_authentication()` should return `True`. If proxy
-        authentication is disallowed, it should return `False`.
         """
-        self.assertTrue(can_proxy_authentication('http://www.example.com'))
-        self.assertFalse(can_proxy_authentication('http://example.com/proxy'))
-        self.assertFalse(can_proxy_authentication('http://example.org'))
+        self.assertTrue(get_config('http://www.example.com', 'PROXY_ALLOW'))
+        self.assertFalse(get_config('http://example.com/proxy', 'PROXY_ALLOW'))
+        self.assertFalse(get_config('http://example.org', 'PROXY_ALLOW'))
+        self.assertEqual(get_config('http://www.example.com', 'CALLBACKS'),
+                         ['mama_cas.callbacks.user_name_attributes'])
+        self.assertEqual(get_config('http://example.org', 'CALLBACKS'), [])
 
     def test_is_valid_proxy_callback(self):
         """
@@ -146,17 +145,6 @@ class UtilsTests(TestCase):
         self.assertTrue(is_valid_proxy_callback('https://www.example.com', 'https://www.example.com'))
         self.assertTrue(is_valid_proxy_callback('http://example.org', 'https://www.example.com'))
         self.assertFalse(is_valid_proxy_callback('http://example.org', 'http://example.org'))
-
-    def test_get_callbacks(self):
-        """
-        When a valid service with a configured callbacks is provided,
-        `get_callbacks()` should return the configured callbacks. If
-        the service has no callbacks or an invalid service is provided,
-        an empty list should be returned.
-        """
-        self.assertEqual(get_callbacks('https://www.example.com'), ['mama_cas.callbacks.user_name_attributes'])
-        self.assertEqual(get_callbacks('http://example.com'), [])
-        self.assertEqual(get_callbacks('http://example.org'), [])
 
     def test_redirect(self):
         """

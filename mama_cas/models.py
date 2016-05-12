@@ -25,12 +25,12 @@ from mama_cas.exceptions import UnauthorizedServiceProxy
 from mama_cas.exceptions import ValidationError
 from mama_cas.request import SingleSignOutRequest
 from mama_cas.utils import add_query_params
-from mama_cas.utils import is_scheme_https
 from mama_cas.utils import clean_service_url
-from mama_cas.utils import match_service
+from mama_cas.utils import get_config
+from mama_cas.utils import is_scheme_https
 from mama_cas.utils import is_valid_service
 from mama_cas.utils import is_valid_proxy_callback
-from mama_cas.utils import can_proxy_authentication
+from mama_cas.utils import match_service
 
 if gevent:
     from gevent.pool import Pool
@@ -318,7 +318,7 @@ class ProxyGrantingTicketManager(TicketManager):
 
     def validate_callback(self, service, pgturl, pgtid, pgtiou):
         """Verify the provided proxy callback URL."""
-        if not can_proxy_authentication(service):
+        if not get_config(service, 'PROXY_ALLOW'):
             raise UnauthorizedServiceProxy("%s is not authorized to use proxy authentication" % service)
 
         if not is_scheme_https(pgturl):

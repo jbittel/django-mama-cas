@@ -12,7 +12,7 @@ from mama_cas.models import ProxyTicket
 from mama_cas.models import ProxyGrantingTicket
 from mama_cas.exceptions import InvalidTicketSpec
 from mama_cas.exceptions import ValidationError
-from mama_cas.utils import get_callbacks
+from mama_cas.utils import get_config
 
 
 logger = logging.getLogger(__name__)
@@ -105,7 +105,7 @@ def get_attributes(user, service):
         warnings.warn(
             'The MAMA_CAS_ATTRIBUTE_CALLBACKS setting is deprecated. Service callbacks '
             'should be configured using MAMA_CAS_VALID_SERVICES.', DeprecationWarning)
-    callbacks.extend(get_callbacks(service))
+    callbacks.extend(get_config(service, 'CALLBACKS'))
 
     for path in callbacks:
         callback = import_string(path)

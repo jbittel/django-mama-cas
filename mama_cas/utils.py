@@ -21,6 +21,9 @@ logger = logging.getLogger(__name__)
 
 
 class ServiceConfig(object):
+    PROXY_ALLOW_DEFAULT = False
+    CALLBACKS_DEFAULT = []
+
     @cached_property
     def services(self):
         services = []
@@ -44,7 +47,7 @@ class ServiceConfig(object):
             service['MATCH'] = match
             # TODO For transitional backwards compatibility, this defaults to True.
             service.setdefault('PROXY_ALLOW', True)
-            service.setdefault('CALLBACKS', [])
+            service.setdefault('CALLBACKS', self.CALLBACKS_DEFAULT)
             try:
                 service['PROXY_PATTERN'] = re.compile(service['PROXY_PATTERN'])
             except KeyError:
@@ -53,7 +56,7 @@ class ServiceConfig(object):
 
         return services
 
-    def get_config(self, s):
+    def get_service(self, s):
         for service in self.services:
             if service['MATCH'].match(s):
                 return service
@@ -62,10 +65,18 @@ class ServiceConfig(object):
     def is_valid(self, s):
         if not self.services:
             return True
-        return bool(self.get_config(s))
+        return bool(self.get_service(s))
 
 
 services = ServiceConfig()
+
+
+def get_config(service, setting):
+    """Access the configuration for a given service and setting."""
+    try:
+        return services.get_service(service)[setting]
+    except KeyError:
+        return getattr(services, setting + '_DEFAULT')
 
 
 def add_query_params(url, params):
@@ -125,39 +136,18 @@ def is_valid_service(service):
     return services.is_valid(service)
 
 
-def can_proxy_authentication(service):
-    """
-    Return the configured proxy policy for the given service. If no
-    policy exists, return `False`.
-    """
-    try:
-        return services.get_config(service)['PROXY_ALLOW']
-    except KeyError:
-        return False
-
-
 def is_valid_proxy_callback(service, pgturl):
     """
     Check the provided proxy callback against the configured allowable
     callback pattern. If no pattern is configured, return `True`.
     """
     try:
-        return services.get_config(service)['PROXY_PATTERN'].match(pgturl)
-    except KeyError:
+        return get_config(service, 'PROXY_PATTERN').match(pgturl)
+    except AttributeError:
         # TODO For transitional backwards compatibility, check against valid services
         if is_valid_service(pgturl):
             return True
         return False
-
-
-def get_callbacks(service):
-    """
-    Return the configured callback functions for the given service.
-    """
-    try:
-        return services.get_config(service)['CALLBACKS']
-    except KeyError:
-        return []
 
 
 def redirect(to, *args, **kwargs):
