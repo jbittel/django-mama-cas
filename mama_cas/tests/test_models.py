@@ -4,6 +4,7 @@ import re
 
 from django.core import management
 from django.test import TestCase
+from django.test.utils import modify_settings
 from django.test.utils import override_settings
 from django.utils.timezone import now
 
@@ -358,6 +359,17 @@ class ServiceTicketTests(TestCase):
         with patch('requests.post') as mock:
             mock.return_value.status_code = 500
             st.request_sign_out()
+
+    def test_request_sign_out_logout_allow_false(self):
+        """
+        If SLO requests are disabled for a service, the logout
+        request should not be sent.
+        """
+        st = ServiceTicketFactory(service='http://example.com')
+        with patch('requests.post') as mock:
+            mock.return_value.status_code = 500
+            st.request_sign_out()
+            self.assertEqual(mock.call_count, 0)
 
 
 class ProxyTicketTests(TestCase):

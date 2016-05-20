@@ -23,6 +23,8 @@ logger = logging.getLogger(__name__)
 class ServiceConfig(object):
     PROXY_ALLOW_DEFAULT = False
     CALLBACKS_DEFAULT = []
+    LOGOUT_ALLOW_DEFAULT = False
+    LOGOUT_URL_DEFAULT = None
 
     @cached_property
     def services(self):
@@ -48,6 +50,8 @@ class ServiceConfig(object):
             # TODO For transitional backwards compatibility, this defaults to True.
             service.setdefault('PROXY_ALLOW', True)
             service.setdefault('CALLBACKS', self.CALLBACKS_DEFAULT)
+            service.setdefault('LOGOUT_ALLOW', self.LOGOUT_ALLOW_DEFAULT)
+            service.setdefault('LOGOUT_URL', self.LOGOUT_URL_DEFAULT)
             try:
                 service['PROXY_PATTERN'] = re.compile(service['PROXY_PATTERN'])
             except KeyError:

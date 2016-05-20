@@ -122,7 +122,10 @@ def logout_user(request):
         ProxyTicket.objects.consume_tickets(request.user)
         ProxyGrantingTicket.objects.consume_tickets(request.user)
 
-        if getattr(settings, 'MAMA_CAS_ENABLE_SINGLE_SIGN_OUT', False):
+        if getattr(settings, 'MAMA_CAS_ENABLE_SINGLE_SIGN_OUT', True):
+            warnings.warn(
+                'The MAMA_CAS_ENABLE_SINGLE_SIGN_OUT setting is deprecated. SLO '
+                'should be configured using MAMA_CAS_VALID_SERVICES.', DeprecationWarning)
             ServiceTicket.objects.request_sign_out(request.user)
 
         logger.info("Single sign-on session ended for %s" % request.user)

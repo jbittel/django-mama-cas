@@ -43,9 +43,12 @@ MAMA_CAS_VALID_SERVICES = [
         'CALLBACKS': [
             'mama_cas.callbacks.user_name_attributes',
         ],
+        'LOGOUT_ALLOW': True,
+        'LOGOUT_URL': 'https://example.com/logout',
     },
     {
         'SERVICE': 'http://example.com',
         'PROXY_ALLOW': False,
+        'LOGOUT_ALLOW': False,
     }
 ]

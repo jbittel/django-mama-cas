@@ -263,19 +263,20 @@ class ServiceTicket(Ticket):
 
     def request_sign_out(self):
         """
-        Send a POST request to the ``ServiceTicket``s service URL to
-        request sign-out. The remote session is identified by the
-        service ticket string that instantiated the session.
+        Send a POST request to the ``ServiceTicket``s logout URL to
+        request sign-out.
         """
+        if not get_config(self.service, 'LOGOUT_ALLOW'):
+            return
         request = SingleSignOutRequest(context={'ticket': self})
+        url = get_config(self.service, 'LOGOUT_URL') or self.service
         try:
-            resp = requests.post(self.service, data={'logoutRequest': request.render_content()})
+            resp = requests.post(url, data={'logoutRequest': request.render_content()})
             resp.raise_for_status()
         except requests.exceptions.RequestException as e:
-            logger.warning("Single sign-out request to %s returned %s" %
-                           (self.service, e))
+            logger.warning("Single sign-out request to %s returned %s" % (url, e))
         else:
-            logger.debug("Single sign-out request sent to %s" % self.service)
+            logger.debug("Single sign-out request sent to %s" % url)
 
 
 class ProxyTicket(Ticket):
