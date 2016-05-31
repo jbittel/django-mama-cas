@@ -64,7 +64,7 @@ You can use `tox`_ to run the tests against all supported versions of
 Python and Django.
 
 .. _Central Authentication Service (CAS):
-.. _CAS: http://jasig.github.io/cas/
+.. _CAS: https://wiki.jasig.org/display/CAS/Home
 .. _github.com/jbittel/django-mama-cas: https://github.com/jbittel/django-mama-cas
 .. _django-mama-cas.readthedocs.org: http://django-mama-cas.readthedocs.org/
 .. _pip: https://pip.pypa.io/
