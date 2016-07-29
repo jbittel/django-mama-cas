@@ -1,7 +1,7 @@
 from datetime import timedelta
 from mock import patch
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model as User
 from django.utils.timezone import now
 
 import factory
