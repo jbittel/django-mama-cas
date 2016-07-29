@@ -1,7 +1,7 @@
 from datetime import timedelta
 from mock import patch
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.utils.timezone import now
 
 import factory
@@ -14,7 +14,7 @@ from mama_cas.models import Ticket
 
 class UserFactory(factory.django.DjangoModelFactory):
     class Meta:
-        model = User
+        model = get_user_model()
         django_get_or_create = ('username',)
 
     first_name = 'Ellen'
