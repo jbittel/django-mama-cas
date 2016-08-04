@@ -1,11 +1,11 @@
-from django.core.management.base import NoArgsCommand
+from django.core.management.base import BaseCommand
 
 from mama_cas.models import ServiceTicket
 from mama_cas.models import ProxyTicket
 from mama_cas.models import ProxyGrantingTicket
 
 
-class Command(NoArgsCommand):
+class Command(BaseCommand):
     """
     A management command for deleting invalid tickets from the
     database. A ticket is invalidated either by being consumed or
@@ -23,7 +23,7 @@ class Command(NoArgsCommand):
     """
     help = "Delete consumed or expired CAS tickets from the database"
 
-    def handle_noargs(self, **options):
+    def handle(self, **options):
         ProxyGrantingTicket.objects.delete_invalid_tickets()
         ProxyTicket.objects.delete_invalid_tickets()
         ServiceTicket.objects.delete_invalid_tickets()

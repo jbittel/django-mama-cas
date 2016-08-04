@@ -71,7 +71,7 @@ class LoginViewTests(TestCase):
         ``ServiceTicket`` and redirect to the supplied service URL
         with the ticket included.
         """
-        response = self.client.post(reverse('cas_login'), self.user_info)
+        self.client.login(**self.user_info)
         response = self.client.get(reverse('cas_login'), {'service': self.service_url})
         self.assertEqual(ServiceTicket.objects.count(), 1)
         st = ServiceTicket.objects.latest('id')
@@ -108,7 +108,7 @@ class LoginViewTests(TestCase):
         When called with a logged in user, a ``GET`` request to the
         view with the ``renew`` parameter should display the login page.
         """
-        response = self.client.post(reverse('cas_login'), self.user_info)
+        self.client.login(**self.user_info)
         response = self.client.get(reverse('cas_login'), {'service': self.service_url, 'renew': 'true'})
         self.assertTemplateUsed(response, 'mama_cas/login.html')
 
@@ -129,7 +129,7 @@ class LoginViewTests(TestCase):
         should create a ``ServiceTicket`` and redirect to the supplied
         service URL with the ticket included.
         """
-        response = self.client.post(reverse('cas_login'), self.user_info)
+        self.client.login(**self.user_info)
         response = self.client.get(reverse('cas_login'), {'service': self.service_url, 'gateway': 'true'})
         self.assertEqual(ServiceTicket.objects.count(), 1)
         st = ServiceTicket.objects.latest('id')
@@ -175,9 +175,7 @@ class LoginViewTests(TestCase):
 
 @override_settings(MAMA_CAS_ALLOW_AUTH_WARN=True)
 class WarnViewTests(TestCase):
-    user_info = {'username': 'ellen',
-                 'password': 'mamas&papas'}
-    url = 'http://www.example.com'
+    user_info = {'username': 'ellen', 'password': 'mamas&papas'}
 
     def setUp(self):
         self.user = UserFactory()
@@ -188,11 +186,10 @@ class WarnViewTests(TestCase):
         should display the correct template containing the provided
         service string.
         """
-        self.client.login(username=self.user_info['username'],
-                          password=self.user_info['password'])
         st = ServiceTicketFactory()
-        response = self.client.get(reverse('cas_warn'), {'service': self.url, 'ticket': st.ticket})
-        self.assertContains(response, self.url, count=3)
+        self.client.login(**self.user_info)
+        response = self.client.get(reverse('cas_warn'), {'service': 'http://www.example.com', 'ticket': st.ticket})
+        self.assertContains(response, 'http://www.example.com', count=3)
         self.assertContains(response, st.ticket)
         self.assertTemplateUsed(response, 'mama_cas/warn.html')
 
@@ -209,8 +206,7 @@ class WarnViewTests(TestCase):
         Whan in invalid service is provided, a request to the view
         should redirect to the login view.
         """
-        self.client.login(username=self.user_info['username'],
-                          password=self.user_info['password'])
+        self.client.login(**self.user_info)
         response = self.client.get(reverse('cas_warn'), {'service': 'http://example.org'})
         self.assertRedirects(response, reverse('cas_login'))
 
@@ -240,7 +236,7 @@ class LogoutViewTests(TestCase):
         When called with a logged in user, a ``GET`` request to the
         view should log the user out and display the correct template.
         """
-        response = self.client.post(reverse('cas_login'), self.user_info)
+        self.client.login(**self.user_info)
         response = self.client.get(reverse('cas_logout'))
         self.assertRedirects(response, reverse('cas_login'))
         self.assertFalse('_auth_user_id' in self.client.session)
@@ -252,7 +248,7 @@ class LogoutViewTests(TestCase):
         is set to ``True``, a ``GET`` request containing ``service``
         should log the user out and redirect to the supplied URL.
         """
-        response = self.client.post(reverse('cas_login'), self.user_info)
+        self.client.login(**self.user_info)
         response = self.client.get(reverse('cas_logout'), {'service': self.url})
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response['Location'], self.url)
@@ -267,7 +263,7 @@ class LogoutViewTests(TestCase):
         """
         ConsumedServiceTicketFactory()
         ConsumedServiceTicketFactory()
-        self.client.post(reverse('cas_login'), self.user_info)
+        self.client.login(**self.user_info)
         with patch('requests.post') as mock:
             self.client.get(reverse('cas_logout'))
             self.assertEqual(mock.call_count, 2)

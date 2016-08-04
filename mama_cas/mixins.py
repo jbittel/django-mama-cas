@@ -1,8 +1,8 @@
-from django.contrib.auth.decorators import login_required
-from django.core.urlresolvers import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
+
+from mama_cas.utils import redirect
 
 
 class NeverCacheMixin(object):
@@ -14,9 +14,9 @@ class NeverCacheMixin(object):
 
 class LoginRequiredMixin(object):
     """View mixin to require a logged in user."""
-    @method_decorator(login_required(login_url=reverse_lazy('cas_login'),
-                                     redirect_field_name=None))
     def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated():
+            return redirect('cas_login')
         return super(LoginRequiredMixin, self).dispatch(request, *args, **kwargs)
 
 
