@@ -9,7 +9,6 @@ import factory
 from mama_cas.models import ProxyGrantingTicket
 from mama_cas.models import ProxyTicket
 from mama_cas.models import ServiceTicket
-from mama_cas.models import Ticket
 
 
 class UserFactory(factory.django.DjangoModelFactory):
@@ -19,10 +18,10 @@ class UserFactory(factory.django.DjangoModelFactory):
 
     first_name = 'Ellen'
     last_name = 'Cohen'
-    username = factory.LazyAttribute(lambda o: o.first_name.lower())
-    email = factory.LazyAttribute(lambda o: '%s@example.com' % o.username)
+    username = factory.LazyAttribute(lambda obj: obj.first_name.lower())
+    email = factory.LazyAttribute(lambda obj: '%s@example.com' % obj.username)
     password = factory.PostGenerationMethodCall('set_password', 'mamas&papas')
-    last_login = now()
+    last_login = factory.LazyFunction(now)
 
 
 class InactiveUserFactory(UserFactory):
@@ -33,8 +32,15 @@ class InactiveUserFactory(UserFactory):
 
 class TicketFactory(factory.django.DjangoModelFactory):
     class Meta:
-        model = Ticket
         abstract = True
+
+    class Params:
+        expire = factory.Trait(
+            expires=factory.LazyAttribute(lambda obj: now() - timedelta(seconds=5))
+        )
+        consume = factory.Trait(
+            consumed=factory.LazyFunction(now)
+        )
 
     user = factory.SubFactory(UserFactory)
 
@@ -51,14 +57,6 @@ class ServiceTicketFactory(TicketFactory):
     service = 'http://www.example.com/'
 
 
-class ExpiredServiceTicketFactory(ServiceTicketFactory):
-    expires = now() - timedelta(seconds=1)
-
-
-class ConsumedServiceTicketFactory(ServiceTicketFactory):
-    consumed = now() + timedelta(seconds=30)
-
-
 class ProxyGrantingTicketFactory(TicketFactory):
     class Meta:
         model = ProxyGrantingTicket
@@ -71,16 +69,7 @@ class ProxyGrantingTicketFactory(TicketFactory):
             args = ('https://www.example.com/', 'https://www.example.com/callback')
         with patch('requests.get') as mock:
             mock.return_value.status_code = 200
-            return super(ProxyGrantingTicketFactory, cls)._create(target_class,
-                                                                  *args, **kwargs)
-
-
-class ExpiredProxyGrantingTicketFactory(ProxyGrantingTicketFactory):
-    expires = now() - timedelta(seconds=1)
-
-
-class ConsumedProxyGrantingTicketFactory(ProxyGrantingTicketFactory):
-    consumed = now()
+            return super(ProxyGrantingTicketFactory, cls)._create(target_class, *args, **kwargs)
 
 
 class ProxyTicketFactory(TicketFactory):
@@ -89,11 +78,3 @@ class ProxyTicketFactory(TicketFactory):
 
     service = 'http://www.example.com/'
     granted_by_pgt = factory.SubFactory(ProxyGrantingTicketFactory)
-
-
-class ExpiredProxyTicketFactory(ProxyTicketFactory):
-    expires = now() - timedelta(seconds=1)
-
-
-class ConsumedProxyTicketFactory(ProxyTicketFactory):
-    consumed = now()

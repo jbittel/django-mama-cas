@@ -7,7 +7,6 @@ from django.test import TestCase
 from .factories import ProxyGrantingTicketFactory
 from .factories import ProxyTicketFactory
 from .factories import ServiceTicketFactory
-from .factories import ConsumedServiceTicketFactory
 from .utils import parse
 from mama_cas.exceptions import InvalidTicket
 from mama_cas.response import ValidationResponse
@@ -172,7 +171,7 @@ class ProxyResponseTests(TestCase):
 
 class SamlValidationResponseTests(TestCase):
     def setUp(self):
-        self.st = ConsumedServiceTicketFactory()
+        self.st = ServiceTicketFactory(consume=True)
 
     def test_saml_validation_response_ticket(self):
         """

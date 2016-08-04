@@ -9,11 +9,6 @@ from django.utils.timezone import now
 
 import requests
 
-from .factories import ConsumedProxyGrantingTicketFactory
-from .factories import ConsumedProxyTicketFactory
-from .factories import ConsumedServiceTicketFactory
-from .factories import ExpiredProxyGrantingTicketFactory
-from .factories import ExpiredServiceTicketFactory
 from .factories import ProxyGrantingTicketFactory
 from .factories import ProxyTicketFactory
 from .factories import ServiceTicketFactory
@@ -133,7 +128,7 @@ class TicketManagerTests(TestCase):
         The validation process ought to fail when a consumed ticket
         is provided.
         """
-        st = ConsumedServiceTicketFactory()
+        st = ServiceTicketFactory(consume=True)
         with self.assertRaises(InvalidTicket):
             ServiceTicket.objects.validate_ticket(st.ticket, self.url)
 
@@ -142,7 +137,7 @@ class TicketManagerTests(TestCase):
         The validation process ought to fail when an expired ticket
         is provided.
         """
-        st = ExpiredServiceTicketFactory()
+        st = ServiceTicketFactory(expire=True)
         with self.assertRaises(InvalidTicket):
             ServiceTicket.objects.validate_ticket(st.ticket, self.url)
 
@@ -205,9 +200,9 @@ class TicketManagerTests(TestCase):
         referenced by other tickets should not be deleted.
         """
         ServiceTicketFactory()  # Should not be deleted
-        expired = ExpiredServiceTicketFactory()
-        consumed = ConsumedServiceTicketFactory()
-        referenced = ConsumedServiceTicketFactory()  # Should not be deleted
+        expired = ServiceTicketFactory(expire=True)
+        consumed = ServiceTicketFactory(consume=True)
+        referenced = ServiceTicketFactory(consume=True)  # Should not be deleted
         ProxyGrantingTicketFactory(granted_by_st=referenced)
         ServiceTicket.objects.delete_invalid_tickets()
 
@@ -254,7 +249,7 @@ class TicketTests(TestCase):
         """
         ``is_expired()`` should return ``True`` for an expired ticket.
         """
-        st = ExpiredServiceTicketFactory()
+        st = ServiceTicketFactory(expire=True)
         self.assertTrue(st.is_expired())
 
     def test_ticket_not_expired(self):
@@ -279,8 +274,8 @@ class ServiceTicketManagerTests(TestCase):
         issue a POST request for each consumed ticket for the
         provided user.
         """
-        ConsumedServiceTicketFactory()
-        ConsumedServiceTicketFactory()
+        ServiceTicketFactory(consume=True)
+        ServiceTicketFactory(consume=True)
         with patch('requests.post') as mock:
             mock.return_value.status_code = 200
             ServiceTicket.objects.request_sign_out(self.user)
@@ -293,8 +288,8 @@ class ServiceTicketManagerTests(TestCase):
         concurrency disabled should issue a POST request for each
         consumed ticket for the provided user.
         """
-        ConsumedServiceTicketFactory()
-        ConsumedServiceTicketFactory()
+        ServiceTicketFactory(consume=True)
+        ServiceTicketFactory(consume=True)
         with patch('requests.post') as mock:
             mock.return_value.status_code = 200
             ServiceTicket.objects.request_sign_out(self.user)
@@ -546,7 +541,7 @@ class ProxyGrantingTicketManager(TestCase):
         The validation process ought to fail when a consumed ticket
         is provided.
         """
-        pgt = ConsumedProxyGrantingTicketFactory()
+        pgt = ProxyGrantingTicketFactory(consume=True)
         with self.assertRaises(InvalidTicket):
             ProxyGrantingTicket.objects.validate_ticket(pgt.ticket, 'https://www.example.com')
 
@@ -555,7 +550,7 @@ class ProxyGrantingTicketManager(TestCase):
         The validation process ought to fail when an expired ticket
         is provided.
         """
-        pgt = ExpiredProxyGrantingTicketFactory()
+        pgt = ProxyGrantingTicketFactory(expire=True)
         with self.assertRaises(InvalidTicket):
             ProxyGrantingTicket.objects.validate_ticket(pgt.ticket, 'https://www.example.com')
 
@@ -591,9 +586,9 @@ class ManagementCommandTests(TestCase):
         The ``cleanupcas`` management command should delete tickets
         that are expired or consumed.
         """
-        st = ConsumedServiceTicketFactory()
-        pgt = ExpiredProxyGrantingTicketFactory(granted_by_st=st)
-        ConsumedProxyTicketFactory(granted_by_pgt=pgt)
+        st = ServiceTicketFactory(consume=True)
+        pgt = ProxyGrantingTicketFactory(expire=True, granted_by_st=st)
+        ProxyTicketFactory(consume=True, granted_by_pgt=pgt)
         management.call_command('cleanupcas')
 
         self.assertEqual(ServiceTicket.objects.count(), 0)
@@ -605,13 +600,11 @@ class ManagementCommandTests(TestCase):
         The ``cleanupcas`` management command should delete chains of
         invalid tickets.
         """
-        st = ConsumedServiceTicketFactory()
-        pgt = ExpiredProxyGrantingTicketFactory(expires=now() - timedelta(seconds=5),
-                                                granted_by_st=st)
-        pt = ConsumedProxyTicketFactory(granted_by_pgt=pgt)
-        pgt2 = ExpiredProxyGrantingTicketFactory(granted_by_st=None,
-                                                 granted_by_pt=pt)
-        ConsumedProxyTicketFactory(granted_by_pgt=pgt2)
+        st = ServiceTicketFactory(consume=True)
+        pgt = ProxyGrantingTicketFactory(expire=True, granted_by_st=st)
+        pt = ProxyTicketFactory(consume=True, granted_by_pgt=pgt)
+        pgt2 = ProxyGrantingTicketFactory(expire=True, granted_by_st=None, granted_by_pt=pt)
+        ProxyTicketFactory(consume=True, granted_by_pgt=pgt2)
         management.call_command('cleanupcas')
 
         self.assertEqual(ServiceTicket.objects.count(), 0)

@@ -11,7 +11,6 @@ from .factories import UserFactory
 from .factories import ProxyGrantingTicketFactory
 from .factories import ProxyTicketFactory
 from .factories import ServiceTicketFactory
-from .factories import ConsumedServiceTicketFactory
 from .utils import build_url
 from mama_cas.forms import LoginForm
 from mama_cas.models import ProxyTicket
@@ -261,8 +260,8 @@ class LogoutViewTests(TestCase):
         is set to ``True``, a ``GET`` request to the view should issue
         a POST request for each service accessed by the user.
         """
-        ConsumedServiceTicketFactory()
-        ConsumedServiceTicketFactory()
+        ServiceTicketFactory()
+        ServiceTicketFactory()
         self.client.login(**self.user_info)
         with patch('requests.post') as mock:
             self.client.get(reverse('cas_logout'))
