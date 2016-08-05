@@ -25,9 +25,9 @@ from mama_cas.models import ServiceTicket
 from mama_cas.response import ValidationResponse
 from mama_cas.response import ProxyResponse
 from mama_cas.response import SamlValidationResponse
+from mama_cas.services import service_allowed
 from mama_cas.utils import add_query_params
 from mama_cas.utils import clean_service_url
-from mama_cas.utils import is_valid_service
 from mama_cas.utils import redirect
 from mama_cas.utils import to_bool
 
@@ -146,7 +146,7 @@ class WarnView(NeverCacheMixin, LoginRequiredMixin, TemplateView):
         service = request.GET.get('service')
         ticket = request.GET.get('ticket')
 
-        if not is_valid_service(service):
+        if not service_allowed(service):
             return redirect('cas_login')
 
         msg = _("Do you want to access %(service)s as %(user)s?") % {

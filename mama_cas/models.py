@@ -24,12 +24,14 @@ from mama_cas.exceptions import InvalidTicket
 from mama_cas.exceptions import UnauthorizedServiceProxy
 from mama_cas.exceptions import ValidationError
 from mama_cas.request import SingleSignOutRequest
+from mama_cas.services import get_logout_url
+from mama_cas.services import logout_allowed
+from mama_cas.services import service_allowed
+from mama_cas.services import proxy_allowed
+from mama_cas.services import proxy_callback_allowed
 from mama_cas.utils import add_query_params
 from mama_cas.utils import clean_service_url
-from mama_cas.utils import get_config
 from mama_cas.utils import is_scheme_https
-from mama_cas.utils import is_valid_service
-from mama_cas.utils import is_valid_proxy_callback
 from mama_cas.utils import match_service
 
 if gevent:
@@ -104,7 +106,7 @@ class TicketManager(models.Manager):
         if require_https and not is_scheme_https(service):
             raise InvalidService("Service %s is not HTTPS" % service)
 
-        if not is_valid_service(service):
+        if not service_allowed(service):
             raise InvalidService("Service %s is not a valid %s URL" %
                                  (service, t.name))
 
@@ -266,10 +268,10 @@ class ServiceTicket(Ticket):
         Send a POST request to the ``ServiceTicket``s logout URL to
         request sign-out.
         """
-        if not get_config(self.service, 'LOGOUT_ALLOW'):
+        if not logout_allowed(self.service):
             return
         request = SingleSignOutRequest(context={'ticket': self})
-        url = get_config(self.service, 'LOGOUT_URL') or self.service
+        url = get_logout_url(self.service) or self.service
         try:
             resp = requests.post(url, data={'logoutRequest': request.render_content()})
             resp.raise_for_status()
@@ -319,13 +321,13 @@ class ProxyGrantingTicketManager(TicketManager):
 
     def validate_callback(self, service, pgturl, pgtid, pgtiou):
         """Verify the provided proxy callback URL."""
-        if not get_config(service, 'PROXY_ALLOW'):
+        if not proxy_allowed(service):
             raise UnauthorizedServiceProxy("%s is not authorized to use proxy authentication" % service)
 
         if not is_scheme_https(pgturl):
             raise InvalidProxyCallback("Proxy callback %s is not HTTPS" % pgturl)
 
-        if not is_valid_proxy_callback(service, pgturl):
+        if not proxy_callback_allowed(service, pgturl):
             raise InvalidProxyCallback("%s is not an authorized proxy callback URL" % pgturl)
 
         # Check the proxy callback URL and SSL certificate

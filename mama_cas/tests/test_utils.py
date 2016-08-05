@@ -1,31 +1,16 @@
 # -*- coding: utf-8 -*-
 
-from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase
-from django.test.utils import modify_settings
-from django.test.utils import override_settings
 
-from mama_cas.utils import services as service_config
 from mama_cas.utils import add_query_params
-from mama_cas.utils import get_config
 from mama_cas.utils import clean_service_url
 from mama_cas.utils import is_scheme_https
-from mama_cas.utils import is_valid_proxy_callback
-from mama_cas.utils import is_valid_service
 from mama_cas.utils import match_service
 from mama_cas.utils import redirect
 from mama_cas.utils import to_bool
 
 
 class UtilsTests(TestCase):
-    def tearDown(self):
-        try:
-            # Remove cached property so the valid services
-            # setting can be changed per-test
-            del service_config.services
-        except AttributeError:
-            pass
-
     def test_add_query_params(self):
         """
         When called with a URL and a dict of parameters,
@@ -79,72 +64,6 @@ class UtilsTests(TestCase):
         self.assertTrue(match_service('https://www.example.com:80/', 'https://www.example.com:80/'))
         self.assertFalse(match_service('https://www.example.com:80/', 'https://www.example.com/'))
         self.assertFalse(match_service('https://www.example.com', 'https://www.example.com/'))
-
-    @override_settings(MAMA_CAS_VALID_SERVICES=('http://.*\.example\.com',))
-    def test_is_valid_service_tuple(self):
-        """
-        When valid services are configured, ``is_valid_service()``
-        should return ``True`` if the provided URL matches, and
-        ``False`` otherwise.
-        """
-        self.assertTrue(is_valid_service('http://www.example.com'))
-        self.assertFalse(is_valid_service('http://www.example.org'))
-
-    def test_is_valid_service(self):
-        """
-        When valid services are configured, ``is_valid_service()``
-        should return ``True`` if the provided URL matches, and
-        ``False`` otherwise.
-        """
-        self.assertTrue(is_valid_service('http://www.example.com'))
-        self.assertFalse(is_valid_service('http://www.example.org'))
-
-    @override_settings(MAMA_CAS_VALID_SERVICES=())
-    def test_empty_valid_services_tuple(self):
-        """
-        When no valid services are configured,
-        ``is_valid_service()`` should return ``True``.
-        """
-        self.assertTrue(is_valid_service('http://www.example.com'))
-
-    @override_settings(MAMA_CAS_VALID_SERVICES=[])
-    def test_empty_valid_services(self):
-        """
-        When no valid services are configured,
-        ``is_valid_service()`` should return ``True``.
-        """
-        self.assertTrue(is_valid_service('http://www.example.com'))
-
-    @override_settings(MAMA_CAS_VALID_SERVICES=[{}])
-    def test_invalid_valid_services(self):
-        """
-        When invalid services are configured, ``is_valid_service``
-        should raise ``ImproperlyConfigured``.
-        """
-        with self.assertRaises(ImproperlyConfigured):
-            is_valid_service('http://www.example.com')
-
-    @modify_settings(MAMA_CAS_VALID_SERVICES={
-        'append': [{'SERVICE': 'http://example\.com/proxy', 'PROXY_ALLOW': False}]
-    })
-    def test_get_config(self):
-        """
-        """
-        self.assertTrue(get_config('http://www.example.com', 'PROXY_ALLOW'))
-        self.assertFalse(get_config('http://example.com/proxy', 'PROXY_ALLOW'))
-        self.assertFalse(get_config('http://example.org', 'PROXY_ALLOW'))
-        self.assertEqual(get_config('http://www.example.com', 'CALLBACKS'),
-                         ['mama_cas.callbacks.user_name_attributes'])
-        self.assertEqual(get_config('http://example.org', 'CALLBACKS'), [])
-
-    def test_is_valid_proxy_callback(self):
-        """
-        When a valid pgturl is provided, `is_valid_proxy_callback()`
-        should return `True`, otherwise it should return `False`.
-        """
-        self.assertTrue(is_valid_proxy_callback('https://www.example.com', 'https://www.example.com'))
-        self.assertTrue(is_valid_proxy_callback('http://example.org', 'https://www.example.com'))
-        self.assertFalse(is_valid_proxy_callback('http://example.org', 'http://example.org'))
 
     def test_redirect(self):
         """

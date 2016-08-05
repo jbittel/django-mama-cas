@@ -7,13 +7,12 @@ from django.contrib.auth import logout
 from django.utils.module_loading import import_string
 from django.utils.translation import ugettext_lazy as _
 
+from mama_cas.exceptions import InvalidTicketSpec
+from mama_cas.exceptions import ValidationError
 from mama_cas.models import ServiceTicket
 from mama_cas.models import ProxyTicket
 from mama_cas.models import ProxyGrantingTicket
-from mama_cas.exceptions import InvalidTicketSpec
-from mama_cas.exceptions import ValidationError
-from mama_cas.utils import get_config
-
+from mama_cas.services import get_callbacks
 
 logger = logging.getLogger(__name__)
 
@@ -105,7 +104,7 @@ def get_attributes(user, service):
         warnings.warn(
             'The MAMA_CAS_ATTRIBUTE_CALLBACKS setting is deprecated. Service callbacks '
             'should be configured using MAMA_CAS_VALID_SERVICES.', DeprecationWarning)
-    callbacks.extend(get_config(service, 'CALLBACKS'))
+    callbacks.extend(get_callbacks(service))
 
     for path in callbacks:
         callback = import_string(path)
