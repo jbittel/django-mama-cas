@@ -2,7 +2,6 @@ from datetime import timedelta
 from mock import patch
 import re
 
-from django.core import management
 from django.test import TestCase
 from django.test.utils import override_settings
 from django.utils.timezone import now
@@ -14,7 +13,6 @@ from .factories import ProxyTicketFactory
 from .factories import ServiceTicketFactory
 from .factories import UserFactory
 from mama_cas.models import ProxyGrantingTicket
-from mama_cas.models import ProxyTicket
 from mama_cas.models import ServiceTicket
 from mama_cas.exceptions import InvalidProxyCallback
 from mama_cas.exceptions import InvalidRequest
@@ -575,38 +573,3 @@ class ProxyGrantingTicketTests(TestCase):
         """
         pgt = ProxyGrantingTicketFactory()
         self.assertTrue(pgt.ticket.startswith(pgt.TICKET_PREFIX))
-
-
-class ManagementCommandTests(TestCase):
-    """
-    Test management commands that operate on tickets.
-    """
-    def test_cleanupcas_management_command(self):
-        """
-        The ``cleanupcas`` management command should delete tickets
-        that are expired or consumed.
-        """
-        st = ServiceTicketFactory(consume=True)
-        pgt = ProxyGrantingTicketFactory(expire=True, granted_by_st=st)
-        ProxyTicketFactory(consume=True, granted_by_pgt=pgt)
-        management.call_command('cleanupcas')
-
-        self.assertEqual(ServiceTicket.objects.count(), 0)
-        self.assertEqual(ProxyGrantingTicket.objects.count(), 0)
-        self.assertEqual(ProxyTicket.objects.count(), 0)
-
-    def test_cleanupcas_management_command_chain(self):
-        """
-        The ``cleanupcas`` management command should delete chains of
-        invalid tickets.
-        """
-        st = ServiceTicketFactory(consume=True)
-        pgt = ProxyGrantingTicketFactory(expire=True, granted_by_st=st)
-        pt = ProxyTicketFactory(consume=True, granted_by_pgt=pgt)
-        pgt2 = ProxyGrantingTicketFactory(expire=True, granted_by_st=None, granted_by_pt=pt)
-        ProxyTicketFactory(consume=True, granted_by_pgt=pgt2)
-        management.call_command('cleanupcas')
-
-        self.assertEqual(ServiceTicket.objects.count(), 0)
-        self.assertEqual(ProxyGrantingTicket.objects.count(), 0)
-        self.assertEqual(ProxyTicket.objects.count(), 0)
