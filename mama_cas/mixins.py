@@ -2,6 +2,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 
+from mama_cas.compat import is_authenticated
 from mama_cas.utils import redirect
 
 
@@ -15,7 +16,7 @@ class NeverCacheMixin(object):
 class LoginRequiredMixin(object):
     """View mixin to require a logged in user."""
     def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_authenticated():
+        if not is_authenticated(request.user):
             return redirect('cas_login')
         return super(LoginRequiredMixin, self).dispatch(request, *args, **kwargs)
 

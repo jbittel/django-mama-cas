@@ -1,3 +1,6 @@
+import django
+
+
 # Prefer cElementTree for performance, but fall back to the Python
 # implementation in case C extensions are not available.
 try:
@@ -28,3 +31,9 @@ try:
 except ImportError:  # pragma: no cover
     from urllib import urlencode
     from urlparse import parse_qsl, urlparse, urlunparse
+
+
+def is_authenticated(user):
+    if django.VERSION < (1, 10):
+        return user.is_authenticated()
+    return user.is_authenticated
