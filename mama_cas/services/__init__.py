@@ -15,13 +15,16 @@ def _is_allowed(attr, *args):
             if getattr(backend, attr)(*args):
                 return True
         except AttributeError:
-            continue
+            raise NotImplementedError("%s does not implement %s()" % (backend, attr))
     return False
 
 
 def get_callbacks(service):
     for backend in _get_backends():
-        callbacks = backend.get_callbacks(service)
+        try:
+            callbacks = backend.get_callbacks(service)
+        except AttributeError:
+            raise NotImplementedError("%s does not implement get_callbacks()" % backend)
         if callbacks:
             # TODO merge callback dicts?
             return callbacks
@@ -30,7 +33,10 @@ def get_callbacks(service):
 
 def get_logout_url(service):
     for backend in _get_backends():
-        logout_url = backend.get_logout_url(service)
+        try:
+            logout_url = backend.get_logout_url(service)
+        except AttributeError:
+            raise NotImplementedError("%s does not implement get_logout_url()" % backend)
         if logout_url:
             return logout_url
     return None
