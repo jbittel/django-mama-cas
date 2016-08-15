@@ -253,6 +253,19 @@ class LogoutViewTests(TestCase):
         self.assertEqual(response['Location'], self.url)
         self.assertFalse('_auth_user_id' in self.client.session)
 
+    @override_settings(MAMA_CAS_FOLLOW_LOGOUT_URL=True)
+    def test_logout_view_follow_url(self):
+        """
+        When called with a logged in user and MAMA_CAS_FOLLOW_LOGOUT_URL
+        is set to ``True``, a ``GET`` request containing ``url``
+        should log the user out and redirect to the supplied URL.
+        """
+        self.client.login(**self.user_info)
+        response = self.client.get(reverse('cas_logout'), {'url': self.url})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['Location'], self.url)
+        self.assertFalse('_auth_user_id' in self.client.session)
+
     @override_settings(MAMA_CAS_ENABLE_SINGLE_SIGN_OUT=True)
     def test_logout_single_sign_out(self):
         """

@@ -175,6 +175,8 @@ class LogoutView(NeverCacheMixin, View):
     """
     def get(self, request, *args, **kwargs):
         service = request.GET.get('service')
+        if not service:
+            service = request.GET.get('url')
         follow_url = getattr(settings, 'MAMA_CAS_FOLLOW_LOGOUT_URL', True)
         logout_user(request)
         if service and follow_url:
