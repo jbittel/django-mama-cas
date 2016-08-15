@@ -1,7 +1,5 @@
 import logging
-import warnings
 
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.utils.module_loading import import_string
@@ -98,18 +96,9 @@ def get_attributes(user, service):
     callback functions.
     """
     attributes = {}
-
-    callbacks = list(getattr(settings, 'MAMA_CAS_ATTRIBUTE_CALLBACKS', []))
-    if callbacks:
-        warnings.warn(
-            'The MAMA_CAS_ATTRIBUTE_CALLBACKS setting is deprecated. Service callbacks '
-            'should be configured using MAMA_CAS_VALID_SERVICES.', DeprecationWarning)
-    callbacks.extend(get_callbacks(service))
-
-    for path in callbacks:
+    for path in get_callbacks(service):
         callback = import_string(path)
         attributes.update(callback(user, service))
-
     return attributes
 
 
@@ -121,11 +110,7 @@ def logout_user(request):
         ProxyTicket.objects.consume_tickets(request.user)
         ProxyGrantingTicket.objects.consume_tickets(request.user)
 
-        if getattr(settings, 'MAMA_CAS_ENABLE_SINGLE_SIGN_OUT', True):
-            warnings.warn(
-                'The MAMA_CAS_ENABLE_SINGLE_SIGN_OUT setting is deprecated. SLO '
-                'should be configured using MAMA_CAS_VALID_SERVICES.', DeprecationWarning)
-            ServiceTicket.objects.request_sign_out(request.user)
+        ServiceTicket.objects.request_sign_out(request.user)
 
         logger.info("Single sign-on session ended for %s" % request.user)
         logout(request)

@@ -50,7 +50,7 @@ INSTALLED_APPS = (
     'mama_cas',
 )
 
-MAMA_CAS_VALID_SERVICES = [
+MAMA_CAS_SERVICES = [
     {
         'SERVICE': 'https?://.+\.example\.com',
         'PROXY_ALLOW': True,

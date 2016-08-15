@@ -1,9 +1,7 @@
 import re
-import warnings
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
-from django.utils import six
 from django.utils.functional import cached_property
 
 
@@ -17,21 +15,14 @@ class ServiceConfig(object):
     def services(self):
         services = []
 
-        for service in getattr(settings, 'MAMA_CAS_VALID_SERVICES', []):
-            if isinstance(service, six.string_types):
-                warnings.warn(
-                    'Service URL configuration is changing. Check the documentation '
-                    'for the MAMA_CAS_VALID_SERVICES setting.', DeprecationWarning)
-                match = re.compile(service)
-                service = {'SERVICE': service}
-            else:
-                service = service.copy()
-                try:
-                    match = re.compile(service['SERVICE'])
-                except KeyError:
-                    raise ImproperlyConfigured(
-                        'Missing SERVICE key for service configuration. '
-                        'Check your MAMA_CAS_VALID_SERVICES setting.')
+        for service in getattr(settings, 'MAMA_CAS_SERVICES', []):
+            service = service.copy()
+            try:
+                match = re.compile(service['SERVICE'])
+            except KeyError:
+                raise ImproperlyConfigured(
+                    'Missing SERVICE key for service configuration. '
+                    'Check your MAMA_CAS_VALID_SERVICES setting.')
 
             service['MATCH'] = match
             # TODO For transitional backwards compatibility, this defaults to True.
@@ -54,7 +45,10 @@ class ServiceConfig(object):
         return {}
 
     def get_config(self, service, setting):
-        """Access the configuration for a given service and setting."""
+        """
+        Access the configuration for a given service and setting. If the
+        service is not found, return a default value.
+        """
         try:
             return self.get_service(service)[setting]
         except KeyError:
@@ -83,8 +77,6 @@ class SettingsBackend(object):
         return services.get_config(service, 'PROXY_ALLOW')
 
     def proxy_callback_allowed(self, service, pgturl):
-        """
-        """
         try:
             return services.get_config(service, 'PROXY_PATTERN').match(pgturl)
         except AttributeError:
@@ -92,8 +84,6 @@ class SettingsBackend(object):
             return self.service_allowed(pgturl)
 
     def service_allowed(self, service):
-        """
-        """
         if not service:
             return False
         return services.is_valid(service)

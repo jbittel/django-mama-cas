@@ -1,3 +1,7 @@
+import re
+import warnings
+
+from django.conf import settings
 from django.utils.module_loading import import_string
 
 
@@ -20,10 +24,15 @@ def _is_allowed(attr, *args):
 
 
 def get_callbacks(service):
-    callbacks = []
+    callbacks = list(getattr(settings, 'MAMA_CAS_ATTRIBUTE_CALLBACKS', []))
+    if callbacks:
+        warnings.warn(
+            'The MAMA_CAS_ATTRIBUTE_CALLBACKS setting is deprecated. Service callbacks '
+            'should be configured using MAMA_CAS_SERVICES.', DeprecationWarning)
+
     for backend in _get_backends():
         try:
-            callbacks = callbacks + backend.get_callbacks(service)
+            callbacks.extend(backend.get_callbacks(service))
         except AttributeError:
             raise NotImplementedError("%s does not implement get_callbacks()" % backend)
     return callbacks
@@ -39,7 +48,14 @@ def get_logout_url(service):
 
 
 def logout_allowed(service):
-    return _is_allowed('logout_allowed', service)
+    if getattr(settings, 'MAMA_CAS_SERVICES', {}):
+        return _is_allowed('logout_allowed', service)
+
+    if getattr(settings, 'MAMA_CAS_ENABLE_SINGLE_SIGN_OUT', False):
+        warnings.warn(
+            'The MAMA_CAS_ENABLE_SINGLE_SIGN_OUT setting is deprecated. SLO '
+            'should be configured using MAMA_CAS_SERVICES.', DeprecationWarning)
+        return True
 
 
 def proxy_allowed(service):
@@ -51,4 +67,16 @@ def proxy_callback_allowed(service, pgturl):
 
 
 def service_allowed(service):
-    return _is_allowed('service_allowed', service)
+    if getattr(settings, 'MAMA_CAS_SERVICES', {}):
+        return _is_allowed('service_allowed', service)
+
+    valid_services = getattr(settings, 'MAMA_CAS_VALID_SERVICES', ())
+    if not valid_services:
+        return True
+    warnings.warn(
+        'The MAMA_CAS_VALID_SERVICES setting is deprecated. Services '
+        'should be configured using MAMA_CAS_SERVICES.', DeprecationWarning)
+    for identifier in [re.compile(s) for s in valid_services]:
+        if identifier.match(service):
+            return True
+    return False

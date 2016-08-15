@@ -46,7 +46,7 @@ class UtilsTests(TestCase):
         self.assertFalse(logout_allowed('http://example.com'))
         self.assertFalse(logout_allowed('http://www.example.org'))
 
-    @modify_settings(MAMA_CAS_VALID_SERVICES={
+    @modify_settings(MAMA_CAS_SERVICES={
         'append': [{'SERVICE': 'http://example\.org/proxy'}]
     })
     def test_proxy_allowed(self):
@@ -71,6 +71,7 @@ class UtilsTests(TestCase):
         self.assertFalse(proxy_callback_allowed('http://example.org', 'http://example.org'))
 
     @override_settings(MAMA_CAS_VALID_SERVICES=('http://.*\.example\.com',))
+    @override_settings(MAMA_CAS_SERVICES=[])
     def test_service_allowed_tuple(self):
         """
         When valid services are configured, ``service_allowed()``
@@ -90,6 +91,7 @@ class UtilsTests(TestCase):
         self.assertFalse(service_allowed('http://www.example.org'))
 
     @override_settings(MAMA_CAS_VALID_SERVICES=())
+    @override_settings(MAMA_CAS_SERVICES=[])
     def test_empty_valid_services_tuple(self):
         """
         When no valid services are configured,
@@ -97,16 +99,16 @@ class UtilsTests(TestCase):
         """
         self.assertTrue(service_allowed('http://www.example.com'))
 
-    @override_settings(MAMA_CAS_VALID_SERVICES=[])
-    def test_empty_valid_services(self):
+    @override_settings(MAMA_CAS_SERVICES=[])
+    def test_empty_services(self):
         """
         When no valid services are configured,
         ``service_allowed()`` should return ``True``.
         """
         self.assertTrue(service_allowed('http://www.example.com'))
 
-    @override_settings(MAMA_CAS_VALID_SERVICES=[{}])
-    def test_invalid_valid_services(self):
+    @override_settings(MAMA_CAS_SERVICES=[{}])
+    def test_invalid_services(self):
         """
         When invalid services are configured, ``service_allowed()``
         should raise ``ImproperlyConfigured``.
