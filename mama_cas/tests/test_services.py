@@ -12,7 +12,7 @@ from mama_cas.services import service_allowed
 from mama_cas.services.backends import services as cached_services
 
 
-class UtilsTests(TestCase):
+class ServicesTests(TestCase):
     def tearDown(self):
         try:
             # Remove cached property so the valid services
