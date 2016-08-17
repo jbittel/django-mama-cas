@@ -52,6 +52,11 @@ customize behavior and improve security.
       Returns all fields on the user object, except for ``id`` and
       ``password``.
 
+   .. warning::
+
+      This setting has been deprecated in favor of per-service configuration
+      with MAMA_CAS_SERVICES.
+
 .. attribute:: MAMA_CAS_ENABLE_SINGLE_SIGN_OUT
 
    :default: ``False``
@@ -65,6 +70,11 @@ customize behavior and improve security.
       By default, the single logout requests are sent synchronously. If
       `gevent`_ is installed, they are sent asynchronously.
 
+   .. warning::
+
+      This setting has been deprecated in favor of per-service configuration
+      with MAMA_CAS_SERVICES.
+
 .. attribute:: MAMA_CAS_FOLLOW_LOGOUT_URL
 
    :default: ``True``
@@ -74,6 +84,71 @@ customize behavior and improve security.
    is present, the client will be redirected to the specified URL. When
    this setting is ``False`` or the parameter is not provided, the client
    is redirected to the login page.
+
+.. attribute:: MAMA_CAS_SERVICES
+
+   :default: ``[]``
+
+   A list containing all allowed services for the server. Each list item is
+   a dictionary containing the configuration for each service. For example::
+
+      MAMA_CAS_SERVICES = [
+          {
+              'SERVICE': '^https://[^\.]+\.example\.com',
+              'CALLBACKS': [
+                  'mama_cas.callbacks.user_name_attributes',
+              ],
+              'LOGOUT_ALLOW': True,
+              'LOGOUT_URL': 'https://www.example.com/logout',
+              'PROXY_ALLOW': True,
+              'PROXY_PATTERN': '^https://proxy\.example\.com',
+          }
+      ]
+
+   The following configuration options are available for each service:
+
+   **SERVICE**
+
+   A Python regular expression that is tested against to match a given
+   service identifier. This option is required.
+
+   **CALLBACKS**
+
+   A list of dotted paths to callables that each provide a dictionary of
+   name and attribute values. These values are merged together and included
+   with a service or proxy validation success. Each callable is provided the
+   authenticated ``User`` and the service URL as arguments. Defaults to ``[]``.
+
+   Two callbacks are provided to cover basic use cases and serve as
+   examples for custom callbacks:
+
+   ``mama_cas.callbacks.user_name_attributes``
+      Returns name-related fields using get_username(), get_full_name() and
+      get_short_name().
+
+   ``mama_cas.callbacks.user_model_attributes``
+      Returns all fields on the user object, except for ``id`` and
+      ``password``.
+
+   **LOGOUT_ALLOW**
+
+   A boolean setting to determine whether single log-out requests are sent
+   for this service. Defaults to ``False``.
+
+   **LOGOUT_URL**
+
+   A URL that will be used for a single log-out request for the service. If
+   not specified, the service URL will be used instead. Defaults to ``''``.
+
+   **PROXY_ALLOW**
+
+   A boolean setting to determine whether proxy requests are allowed for this
+   service. Defaults to ``True``.
+
+   **PROXY_PATTERN**
+
+   A Python regular expression that is tested against to determine if the
+   provided pgtUrl is allowed to make proxy requests. Defaults to ``''``.
 
 .. attribute:: MAMA_CAS_TICKET_EXPIRE
 
@@ -107,5 +182,9 @@ customize behavior and improve security.
           '^https?://www\.example\.edu/secure',
           '^https://[^\.]+\.example\.com',
       )
+
+   .. warning::
+
+      This setting has been deprecated in favor of MAMA_CAS_SERVICES.
 
 .. _gevent: http://www.gevent.org/
