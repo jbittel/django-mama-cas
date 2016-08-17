@@ -67,7 +67,7 @@ class ServicesTests(TestCase):
         ``False`` otherwise.
         """
         self.assertTrue(proxy_callback_allowed('https://www.example.com', 'https://www.example.com'))
-        self.assertTrue(proxy_callback_allowed('http://example.org', 'https://www.example.com'))
+        self.assertFalse(proxy_callback_allowed('https://www.example.com', 'https://www.example.org'))
         self.assertFalse(proxy_callback_allowed('http://example.org', 'http://example.org'))
 
     @override_settings(MAMA_CAS_VALID_SERVICES=('http://.*\.example\.com',))

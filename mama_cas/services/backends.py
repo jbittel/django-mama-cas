@@ -80,8 +80,7 @@ class SettingsBackend(object):
         try:
             return services.get_config(service, 'PROXY_PATTERN').match(pgturl)
         except AttributeError:
-            # TODO For transitional backwards compatibility, check against valid services
-            return self.service_allowed(pgturl)
+            return False
 
     def service_allowed(self, service):
         if not service:
