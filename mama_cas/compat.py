@@ -33,6 +33,8 @@ except ImportError:  # pragma: no cover
     from urlparse import parse_qsl, urlparse, urlunparse
 
 
+# Django >= 1.10 accesses is_authenticated as a property instead of
+# a method.
 def is_authenticated(user):
     if django.VERSION < (1, 10):
         return user.is_authenticated()

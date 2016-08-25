@@ -6,6 +6,7 @@ from django.utils.module_loading import import_string
 
 
 def _get_backends():
+    """Retrieve the list of configured service backends."""
     backends = []
     for backend_path in ['mama_cas.services.backends.SettingsBackend']:
         backend = import_string(backend_path)()
@@ -14,6 +15,10 @@ def _get_backends():
 
 
 def _is_allowed(attr, *args):
+    """
+    Test if a given attribute is allowed according to the
+    current set of configured service backends.
+    """
     for backend in _get_backends():
         try:
             if getattr(backend, attr)(*args):
@@ -24,6 +29,7 @@ def _is_allowed(attr, *args):
 
 
 def _is_valid_service_url(url):
+    """Access services list from ``MAMA_CAS_VALID_SERVICES``."""
     valid_services = getattr(settings, 'MAMA_CAS_VALID_SERVICES', ())
     if not valid_services:
         return True
@@ -37,6 +43,7 @@ def _is_valid_service_url(url):
 
 
 def get_callbacks(service):
+    """Get configured callbacks list for a given service identifier."""
     callbacks = list(getattr(settings, 'MAMA_CAS_ATTRIBUTE_CALLBACKS', []))
     if callbacks:
         warnings.warn(
@@ -52,6 +59,7 @@ def get_callbacks(service):
 
 
 def get_logout_url(service):
+    """Get the configured logout URL for a given service identifier, if any."""
     for backend in _get_backends():
         try:
             return backend.get_logout_url(service)
@@ -61,6 +69,7 @@ def get_logout_url(service):
 
 
 def logout_allowed(service):
+    """Check if a given service identifier should be sent a logout request."""
     if getattr(settings, 'MAMA_CAS_SERVICES', {}):
         return _is_allowed('logout_allowed', service)
 
@@ -72,16 +81,19 @@ def logout_allowed(service):
 
 
 def proxy_allowed(service):
+    """Check if a given service identifier is allowed to proxy requests."""
     return _is_allowed('proxy_allowed', service)
 
 
 def proxy_callback_allowed(service, pgturl):
+    """Check if a given proxy callback is allowed for the given service identifier."""
     if getattr(settings, 'MAMA_CAS_SERVICES', {}):
         return _is_allowed('proxy_callback_allowed', service, pgturl)
     return _is_valid_service_url(service)
 
 
 def service_allowed(service):
+    """Check if a given service identifier is authorized."""
     if getattr(settings, 'MAMA_CAS_SERVICES', {}):
         return _is_allowed('service_allowed', service)
     return _is_valid_service_url(service)
