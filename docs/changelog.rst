@@ -9,6 +9,22 @@ here. For additional detail, read the complete `commit history`_. From
 version 0.4.0 and following, version numbers follow the `semantic
 versioning`_ scheme.
 
+**django-mama-cas 2.1.0** ``[2016-09-02]``
+   * Add Django 1.10 compatibility
+   * Add per-service configuration with ``MAMA_CAS_SERVICES``
+   * Add allowing/disallowing proxying for each service
+   * Add pgtUrl identifier pattern validation
+   * Add configurable logout URL for each service
+   * Add ``checkservice`` management command for testing service identifiers
+   * Reverted logout ``url`` parameter removal for older client compatibility
+   * Fix direct access of ``User`` model in test suite
+
+   .. warning::
+
+      ``MAMA_CAS_VALID_SERVICES``, ``MAMA_CAS_ATTRIBUTE_CALLBACKS``,
+      and ``MAMA_CAS_ENABLE_SINGLE_SIGN_OUT`` have been deprecated in
+      favor of per-service configuration with ``MAMA_CAS_SERVICES``.
+
 **django-mama-cas 2.0.1** ``[2016-01-04]``
    * Fix SLO request encoding
 
@@ -23,10 +39,6 @@ versioning`_ scheme.
 
       Support has been dropped for Django 1.4, 1.6 and 1.7, matching Django's
       supported versions policy.
-
-   .. warning::
-
-      The ``url`` parameter is no longer accepted by ``/logout``, per CAS 3.0.
 
 **django-mama-cas 1.2.0** ``[2015-08-21]``
    * Add new CAS 3 endpoints as aliases
