@@ -47,9 +47,9 @@ class ManagementCommandTests(TestCase):
     def test_checkservice_management_command(self):
         output = six.StringIO()
         management.call_command('checkservice', 'https://www.example.com', no_color=True, stdout=output)
-        self.assertIn('Valid Service', output.getvalue())
+        self.assertIn('Valid service', output.getvalue())
 
     def test_checkservice_management_command_invalid(self):
         output = six.StringIO()
         management.call_command('checkservice', 'https://example.org', no_color=True, stdout=output)
-        self.assertIn('Invalid Service', output.getvalue())
+        self.assertIn('Invalid service', output.getvalue())
