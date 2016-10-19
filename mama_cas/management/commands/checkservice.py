@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 
+from mama_cas.services import get_backend_path
 from mama_cas.services import get_callbacks
 from mama_cas.services import get_logout_url
 from mama_cas.services import logout_allowed
@@ -39,6 +40,8 @@ class Command(BaseCommand):
                 self.format_output('Logout allowed', logout_allowed(self.service))
                 self.format_output('Logout URL', get_logout_url(self.service))
                 self.format_output('Callbacks', ', '.join(get_callbacks(self.service)))
+            if self.verbosity >= 2:
+                self.format_output('Backend', get_backend_path(self.service))
         else:
             self.stdout.write(self.style.ERROR("Invalid service: %s" % self.service))
 

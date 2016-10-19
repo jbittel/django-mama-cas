@@ -24,7 +24,9 @@ def _is_allowed(attr, *args):
             if getattr(backend, attr)(*args):
                 return True
         except AttributeError:
-            raise NotImplementedError("%s does not implement %s()" % (backend, attr))
+            raise NotImplementedError("%s.%s.%s() not implemented" % (
+                backend.__class__.__module__, backend.__class__.__name__, attr)
+            )
     return False
 
 
@@ -42,6 +44,19 @@ def _is_valid_service_url(url):
     return False
 
 
+def get_backend_path(service):
+    """Return the dotted path of the matching backend."""
+    for backend in _get_backends():
+        try:
+            if backend.service_allowed(service):
+                return "%s.%s" % (backend.__class__.__module__, backend.__class__.__name__)
+        except AttributeError:
+            raise NotImplementedError("%s.%s.service_allowed() not implemented" % (
+                backend.__class__.__module__, backend.__class__.__name__)
+            )
+    return None
+
+
 def get_callbacks(service):
     """Get configured callbacks list for a given service identifier."""
     callbacks = list(getattr(settings, 'MAMA_CAS_ATTRIBUTE_CALLBACKS', []))
@@ -54,7 +69,9 @@ def get_callbacks(service):
         try:
             callbacks.extend(backend.get_callbacks(service))
         except AttributeError:
-            raise NotImplementedError("%s does not implement get_callbacks()" % backend)
+            raise NotImplementedError("%s.%s.get_callbacks() not implemented" % (
+                backend.__class__.__module__, backend.__class__.__name__)
+            )
     return callbacks
 
 
@@ -64,7 +81,9 @@ def get_logout_url(service):
         try:
             return backend.get_logout_url(service)
         except AttributeError:
-            raise NotImplementedError("%s does not implement get_logout_url()" % backend)
+            raise NotImplementedError("%s.%s.get_logout_url() not implemented" % (
+                backend.__class__.__module__, backend.__class__.__name__)
+            )
     return None
 
 
