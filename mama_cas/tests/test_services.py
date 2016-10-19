@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase
 from django.test.utils import modify_settings
@@ -71,13 +72,13 @@ class ServicesTests(TestCase):
         self.assertFalse(proxy_callback_allowed('http://example.org', 'http://example.org'))
 
     @override_settings(MAMA_CAS_VALID_SERVICES=('http://.*\.example\.com',))
-    @override_settings(MAMA_CAS_SERVICES=[])
     def test_service_allowed_tuple(self):
         """
         When valid services are configured, ``service_allowed()``
         should return ``True`` if the provided URL matches, and
         ``False`` otherwise.
         """
+        del settings.MAMA_CAS_SERVICES
         self.assertTrue(service_allowed('http://www.example.com'))
         self.assertFalse(service_allowed('http://www.example.org'))
 
@@ -91,12 +92,12 @@ class ServicesTests(TestCase):
         self.assertFalse(service_allowed('http://www.example.org'))
 
     @override_settings(MAMA_CAS_VALID_SERVICES=())
-    @override_settings(MAMA_CAS_SERVICES=[])
     def test_empty_valid_services_tuple(self):
         """
         When no valid services are configured,
         ``service_allowed()`` should return ``True``.
         """
+        del settings.MAMA_CAS_SERVICES
         self.assertTrue(service_allowed('http://www.example.com'))
 
     @override_settings(MAMA_CAS_SERVICES=[])

@@ -70,14 +70,14 @@ def get_logout_url(service):
 
 def logout_allowed(service):
     """Check if a given service identifier should be sent a logout request."""
-    if getattr(settings, 'MAMA_CAS_SERVICES', {}):
+    if hasattr(settings, 'MAMA_CAS_SERVICES'):
         return _is_allowed('logout_allowed', service)
 
-    if getattr(settings, 'MAMA_CAS_ENABLE_SINGLE_SIGN_OUT', False):
+    if hasattr(settings, 'MAMA_CAS_ENABLE_SINGLE_SIGN_OUT'):
         warnings.warn(
             'The MAMA_CAS_ENABLE_SINGLE_SIGN_OUT setting is deprecated. SLO '
             'should be configured using MAMA_CAS_SERVICES.', DeprecationWarning)
-        return True
+    return getattr(settings, 'MAMA_CAS_ENABLE_SINGLE_SIGN_OUT', False)
 
 
 def proxy_allowed(service):
@@ -87,13 +87,13 @@ def proxy_allowed(service):
 
 def proxy_callback_allowed(service, pgturl):
     """Check if a given proxy callback is allowed for the given service identifier."""
-    if getattr(settings, 'MAMA_CAS_SERVICES', {}):
+    if hasattr(settings, 'MAMA_CAS_SERVICES'):
         return _is_allowed('proxy_callback_allowed', service, pgturl)
     return _is_valid_service_url(service)
 
 
 def service_allowed(service):
     """Check if a given service identifier is authorized."""
-    if getattr(settings, 'MAMA_CAS_SERVICES', {}):
+    if hasattr(settings, 'MAMA_CAS_SERVICES'):
         return _is_allowed('service_allowed', service)
     return _is_valid_service_url(service)
