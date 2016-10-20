@@ -408,6 +408,7 @@ class ProxyGrantingTicketManager(TestCase):
             mock.side_effect = requests.exceptions.ConnectionError
             pgt = ProxyGrantingTicket.objects.create_ticket('https://www.example.com', 'https://www.example.com/',
                                                             user=self.user, granted_by_pt=self.pt)
+            self.assertEqual(mock.call_count, 1)
         self.assertIsNone(pgt)
 
     def test_validate_callback(self):
@@ -421,6 +422,7 @@ class ProxyGrantingTicketManager(TestCase):
                                                               self.pgtid, self.pgtiou)
             except InvalidProxyCallback:
                 self.fail("Exception raised validating proxy callback URL")
+            self.assertEqual(mock.call_count, 2)
 
     def test_validate_callback_unauthorized_service(self):
         """
@@ -458,22 +460,11 @@ class ProxyGrantingTicketManager(TestCase):
 
     def test_validate_callback_connection_error(self):
         """
-        If the validation request encounters a connection error, an
+        If the validation request encounters an exception, an
         InvalidProxyCallback should be raised.
         """
         with patch('requests.get') as mock:
             mock.side_effect = requests.exceptions.ConnectionError
-            with self.assertRaises(InvalidProxyCallback):
-                ProxyGrantingTicket.objects.validate_callback('http://www.example.com/', 'https://www.example.org/',
-                                                              self.pgtid, self.pgtiou)
-
-    def test_validate_callback_timeout(self):
-        """
-        If the validation request times out, an InvalidProxyCallback
-        should be raised.
-        """
-        with patch('requests.get') as mock:
-            mock.side_effect = requests.exceptions.Timeout
             with self.assertRaises(InvalidProxyCallback):
                 ProxyGrantingTicket.objects.validate_callback('http://www.example.com/', 'https://www.example.org/',
                                                               self.pgtid, self.pgtiou)

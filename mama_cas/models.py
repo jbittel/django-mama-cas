@@ -330,27 +330,26 @@ class ProxyGrantingTicketManager(TicketManager):
         if not proxy_callback_allowed(service, pgturl):
             raise InvalidProxyCallback("%s is not an authorized proxy callback URL" % pgturl)
 
-        # Check the proxy callback URL and SSL certificate
-        pgturl_params = add_query_params(pgturl, {'pgtId': pgtid, 'pgtIou': pgtiou})
+        # Verify that the SSL certificate is valid
         verify = os.environ.get('REQUESTS_CA_BUNDLE', True)
         try:
-            r = requests.get(pgturl_params, verify=verify, timeout=3.0)
+            requests.get(pgturl, verify=verify, timeout=5)
         except requests.exceptions.SSLError:
-            msg = "SSL cert validation failed for proxy callback %s" % pgturl
-            raise InvalidProxyCallback(msg)
-        except requests.exceptions.ConnectionError:
-            msg = "Error connecting to proxy callback %s" % pgturl
-            raise InvalidProxyCallback(msg)
-        except requests.exceptions.Timeout:
-            msg = "Timeout connecting to proxy callback %s" % pgturl
-            raise InvalidProxyCallback(msg)
+            raise InvalidProxyCallback("SSL certificate validation failed for proxy callback %s" % pgturl)
+        except requests.exceptions.RequestException as e:
+            raise InvalidProxyCallback(e)
 
-        # Check the returned HTTP status code
+        # Callback certificate appears valid, so send the ticket strings
+        pgturl = add_query_params(pgturl, {'pgtId': pgtid, 'pgtIou': pgtiou})
         try:
-            r.raise_for_status()
+            response = requests.get(pgturl, verify=verify, timeout=5)
+        except requests.exceptions.RequestException as e:
+            raise InvalidProxyCallback(e)
+
+        try:
+            response.raise_for_status()
         except requests.exceptions.HTTPError as e:
-            msg = "Proxy callback %s returned %s" % (pgturl, e)
-            raise InvalidProxyCallback(msg)
+            raise InvalidProxyCallback("Proxy callback %s returned %s" % (pgturl, e))
 
 
 class ProxyGrantingTicket(Ticket):
