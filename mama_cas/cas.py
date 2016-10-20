@@ -7,7 +7,6 @@ from django.utils.translation import ugettext_lazy as _
 
 from mama_cas.compat import is_authenticated
 from mama_cas.exceptions import InvalidTicketSpec
-from mama_cas.exceptions import ValidationError
 from mama_cas.models import ServiceTicket
 from mama_cas.models import ProxyTicket
 from mama_cas.models import ProxyGrantingTicket
@@ -16,34 +15,30 @@ from mama_cas.services import get_callbacks
 logger = logging.getLogger(__name__)
 
 
-def validate_service_ticket(service, ticket, pgturl, renew=False, require_https=False):
+def validate_service_ticket(service, ticket, pgturl=None, renew=False, require_https=False):
     """
     Validate a service ticket string. Return a triplet containing a
     ``ServiceTicket`` and an optional ``ProxyGrantingTicket``, or a
     ``ValidationError`` if ticket validation failed.
     """
     logger.debug("Service validation request received for %s" % ticket)
+
     # Check for proxy tickets passed to /serviceValidate
     if ticket and ticket.startswith(ProxyTicket.TICKET_PREFIX):
-        e = InvalidTicketSpec('Proxy tickets cannot be validated with /serviceValidate')
-        logger.warning("%s %s" % (e.code, e))
-        return None, None, e
+        raise InvalidTicketSpec('Proxy tickets cannot be validated with /serviceValidate')
 
-    try:
-        st = ServiceTicket.objects.validate_ticket(ticket, service, renew=renew, require_https=require_https)
-    except ValidationError as e:
-        logger.warning("%s %s" % (e.code, e))
-        return None, None, e
+    st = ServiceTicket.objects.validate_ticket(ticket, service, renew=renew, require_https=require_https)
+    attributes = get_attributes(st.user, st.service)
+
+    if pgturl is not None:
+        logger.debug("Proxy-granting ticket request received for %s" % pgturl)
+        pgt = ProxyGrantingTicket.objects.create_ticket(service, pgturl, user=st.user, granted_by_st=st)
     else:
-        if pgturl:
-            logger.debug("Proxy-granting ticket request received for %s" % pgturl)
-            pgt = ProxyGrantingTicket.objects.create_ticket(service, pgturl, user=st.user, granted_by_st=st)
-        else:
-            pgt = None
-        return st, pgt, None
+        pgt = None
+    return st, attributes, pgt
 
 
-def validate_proxy_ticket(service, ticket, pgturl):
+def validate_proxy_ticket(service, ticket, pgturl=None):
     """
     Validate a proxy ticket string. Return a 4-tuple containing a
     ``ProxyTicket``, an optional ``ProxyGrantingTicket`` and a list
@@ -51,27 +46,24 @@ def validate_proxy_ticket(service, ticket, pgturl):
     ``ValidationError`` if ticket validation failed.
     """
     logger.debug("Proxy validation request received for %s" % ticket)
-    try:
-        pt = ProxyTicket.objects.validate_ticket(ticket, service)
-    except ValidationError as e:
-        logger.warning("%s %s" % (e.code, e))
-        return None, None, None, e
-    else:
-        # Build a list of all services that proxied authentication,
-        # in reverse order of which they were traversed
-        proxies = [pt.service]
-        prior_pt = pt.granted_by_pgt.granted_by_pt
-        while prior_pt:
-            proxies.append(prior_pt.service)
-            prior_pt = prior_pt.granted_by_pgt.granted_by_pt
 
-        if pgturl:
-            logger.debug("Proxy-granting ticket request received for %s" %
-                         pgturl)
-            pgt = ProxyGrantingTicket.objects.create_ticket(service, pgturl, user=pt.user, granted_by_pt=pt)
-        else:
-            pgt = None
-        return pt, pgt, proxies, None
+    pt = ProxyTicket.objects.validate_ticket(ticket, service)
+    attributes = get_attributes(pt.user, pt.service)
+
+    # Build a list of all services that proxied authentication,
+    # in reverse order of which they were traversed
+    proxies = [pt.service]
+    prior_pt = pt.granted_by_pgt.granted_by_pt
+    while prior_pt:
+        proxies.append(prior_pt.service)
+        prior_pt = prior_pt.granted_by_pgt.granted_by_pt
+
+    if pgturl is not None:
+        logger.debug("Proxy-granting ticket request received for %s" % pgturl)
+        pgt = ProxyGrantingTicket.objects.create_ticket(service, pgturl, user=pt.user, granted_by_pt=pt)
+    else:
+        pgt = None
+    return pt, attributes, pgt, proxies
 
 
 def validate_proxy_granting_ticket(pgt, target_service):
@@ -81,14 +73,10 @@ def validate_proxy_granting_ticket(pgt, target_service):
     validation failed.
     """
     logger.debug("Proxy ticket request received for %s using %s" % (target_service, pgt))
-    try:
-        pgt = ProxyGrantingTicket.objects.validate_ticket(pgt, target_service)
-    except ValidationError as e:
-        logger.warning("%s %s" % (e.code, e))
-        return None, e
-    else:
-        pt = ProxyTicket.objects.create_ticket(service=target_service, user=pgt.user, granted_by_pgt=pgt)
-        return pt, None
+
+    pgt = ProxyGrantingTicket.objects.validate_ticket(pgt, target_service)
+    pt = ProxyTicket.objects.create_ticket(service=target_service, user=pgt.user, granted_by_pgt=pgt)
+    return pt
 
 
 def get_attributes(user, service):

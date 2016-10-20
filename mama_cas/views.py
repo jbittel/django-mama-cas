@@ -11,11 +11,11 @@ from django.views.generic import View
 
 from mama_cas.compat import defused_etree
 from mama_cas.compat import is_authenticated
+from mama_cas.exceptions import ValidationError
 from mama_cas.forms import LoginForm
 from mama_cas.mixins import CasResponseMixin
 from mama_cas.mixins import CsrfProtectMixin
 from mama_cas.mixins import LoginRequiredMixin
-from mama_cas.cas import get_attributes
 from mama_cas.cas import logout_user
 from mama_cas.cas import validate_service_ticket
 from mama_cas.cas import validate_proxy_ticket
@@ -72,8 +72,7 @@ class LoginView(CsrfProtectMixin, NeverCacheMixin, FormView):
             if is_authenticated(request.user):
                 st = ServiceTicket.objects.create_ticket(service=service, user=request.user)
                 if self.warn_user():
-                    return redirect('cas_warn', params={'service': service,
-                                                        'ticket': st.ticket})
+                    return redirect('cas_warn', params={'service': service, 'ticket': st.ticket})
                 return redirect(service, params={'ticket': st.ticket})
             else:
                 return redirect(service)
@@ -82,8 +81,7 @@ class LoginView(CsrfProtectMixin, NeverCacheMixin, FormView):
                 logger.debug("Service ticket request received by credential requestor")
                 st = ServiceTicket.objects.create_ticket(service=service, user=request.user)
                 if self.warn_user():
-                    return redirect('cas_warn', params={'service': service,
-                                                        'ticket': st.ticket})
+                    return redirect('cas_warn', params={'service': service, 'ticket': st.ticket})
                 return redirect(service, params={'ticket': st.ticket})
             else:
                 msg = _("You are logged in as %s") % request.user
@@ -128,9 +126,7 @@ class LoginView(CsrfProtectMixin, NeverCacheMixin, FormView):
 
         service = self.request.GET.get('service')
         if service:
-            st = ServiceTicket.objects.create_ticket(service=service,
-                                                     user=self.request.user,
-                                                     primary=True)
+            st = ServiceTicket.objects.create_ticket(service=service, user=self.request.user, primary=True)
             return redirect(service, params={'ticket': st.ticket})
         return redirect('cas_login')
 
@@ -203,10 +199,10 @@ class ValidateView(NeverCacheMixin, View):
         ticket = request.GET.get('ticket')
         renew = to_bool(request.GET.get('renew'))
 
-        st, pgt, error = validate_service_ticket(service, ticket, None, renew)
-        if st:
+        try:
+            st, attributes, pgt = validate_service_ticket(service, ticket, renew=renew)
             content = "yes\n%s\n" % st.user.get_username()
-        else:
+        except ValidationError:
             content = "no\n\n"
         return HttpResponse(content=content, content_type='text/plain')
 
@@ -237,9 +233,12 @@ class ServiceValidateView(NeverCacheMixin, CasResponseMixin, View):
         pgturl = self.request.GET.get('pgtUrl')
         renew = to_bool(self.request.GET.get('renew'))
 
-        st, pgt, error = validate_service_ticket(service, ticket, pgturl, renew)
-        attributes = get_attributes(st.user, st.service) if st else None
-        return {'ticket': st, 'pgt': pgt, 'error': error, 'attributes': attributes}
+        try:
+            st, attributes, pgt = validate_service_ticket(service, ticket, pgturl=pgturl, renew=renew)
+            return {'ticket': st, 'pgt': pgt, 'attributes': attributes, 'error': None}
+        except ValidationError as e:
+            logger.warning("%s %s" % (e.code, e))
+            return {'ticket': None, 'error': e}
 
 
 class ProxyValidateView(NeverCacheMixin, CasResponseMixin, View):
@@ -269,16 +268,18 @@ class ProxyValidateView(NeverCacheMixin, CasResponseMixin, View):
         pgturl = self.request.GET.get('pgtUrl')
         renew = to_bool(self.request.GET.get('renew'))
 
-        if not ticket or ticket.startswith(ProxyTicket.TICKET_PREFIX):
-            # If no ticket parameter is present, attempt to validate it
-            # anyway so the appropriate error is raised
-            t, pgt, proxies, error = validate_proxy_ticket(service, ticket, pgturl)
-        else:
-            t, pgt, error = validate_service_ticket(service, ticket, pgturl, renew)
-            proxies = None
-        attributes = get_attributes(t.user, t.service) if t else None
-        return {'ticket': t, 'pgt': pgt, 'proxies': proxies,
-                'error': error, 'attributes': attributes}
+        try:
+            if not ticket or ticket.startswith(ProxyTicket.TICKET_PREFIX):
+                # If no ticket parameter is present, attempt to validate it
+                # anyway so the appropriate error is raised
+                pt, attributes, pgt, proxies = validate_proxy_ticket(service, ticket, pgturl=pgturl)
+                return {'ticket': pt, 'pgt': pgt, 'attributes': attributes, 'proxies': proxies, 'error': None}
+            else:
+                st, attributes, pgt = validate_service_ticket(service, ticket, pgturl=pgturl, renew=renew)
+                return {'ticket': st, 'pgt': pgt, 'attributes': attributes, 'proxies': None, 'error': None}
+        except ValidationError as e:
+            logger.warning("%s %s" % (e.code, e))
+            return {'ticket': None, 'error': e}
 
 
 class ProxyView(NeverCacheMixin, CasResponseMixin, View):
@@ -298,8 +299,12 @@ class ProxyView(NeverCacheMixin, CasResponseMixin, View):
         pgt = self.request.GET.get('pgt')
         target_service = self.request.GET.get('targetService')
 
-        pt, error = validate_proxy_granting_ticket(pgt, target_service)
-        return {'ticket': pt, 'error': error}
+        try:
+            pt = validate_proxy_granting_ticket(pgt, target_service)
+            return {'ticket': pt, 'error': None}
+        except ValidationError as e:
+            logger.warning("%s %s" % (e.code, e))
+            return {'ticket': None, 'error': e}
 
 
 class SamlValidateView(NeverCacheMixin, View):
@@ -328,6 +333,9 @@ class SamlValidateView(NeverCacheMixin, View):
         except (defused_etree.ParseError, ValueError, AttributeError):
             ticket = None
 
-        st, pgt, error = validate_service_ticket(target, ticket, None, require_https=True)
-        attributes = get_attributes(st.user, st.service) if st else None
-        return {'ticket': st, 'pgt': pgt, 'error': error, 'attributes': attributes}
+        try:
+            st, attributes, pgt = validate_service_ticket(target, ticket, require_https=True)
+            return {'ticket': st, 'pgt': pgt, 'attributes': attributes, 'error': None}
+        except ValidationError as e:
+            logger.warning("%s %s" % (e.code, e))
+            return {'ticket': None, 'error': e}

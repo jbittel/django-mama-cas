@@ -65,5 +65,11 @@ MAMA_CAS_SERVICES = [
         'SERVICE': 'http://example.com',
         'PROXY_ALLOW': False,
         'LOGOUT_ALLOW': False,
-    }
+    },
+    {
+        'SERVICE': 'exception',
+        'CALLBACKS': [
+            'mama_cas.tests.callbacks.raise_exception',
+        ],
+    },
 ]

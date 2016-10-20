@@ -441,6 +441,17 @@ class ServiceValidateViewTests(TestCase):
         self.assertContains(response, 'attributes')
         self.assertContains(response, '<cas:username>ellen</cas:username>')
 
+    def test_service_validate_view_exception_callbacks(self):
+        """
+        When an attribute callback raises a ValidationError, the exception
+        should be handled and cause an authentication failure.
+        """
+        st = ServiceTicketFactory(service='exception')
+        request = self.rf.get(reverse('cas_service_validate'), {'service': 'exception', 'ticket': st.ticket})
+        response = ServiceValidateView.as_view()(request)
+        self.assertContains(response, 'INTERNAL_ERROR')
+        self.assertContains(response, 'Error in attribute callback')
+
 
 class ProxyValidateViewTests(TestCase):
     url = 'http://www.example.com/'
