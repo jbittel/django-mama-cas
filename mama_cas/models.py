@@ -332,7 +332,9 @@ class ProxyGrantingTicketManager(TicketManager):
 
         # Check the proxy callback URL and SSL certificate
         pgturl_params = add_query_params(pgturl, {'pgtId': pgtid, 'pgtIou': pgtiou})
-        verify = os.environ.get('REQUESTS_CA_BUNDLE', "true").lower() in ("true", "1")
+        verify = os.environ.get('REQUESTS_CA_BUNDLE', True)
+        if verify.lower() in ("false", "0"):
+            verify = False
         try:
             r = requests.get(pgturl_params, verify=verify, timeout=3.0)
         except requests.exceptions.SSLError:
