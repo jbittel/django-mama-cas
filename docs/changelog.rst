@@ -9,6 +9,11 @@ here. For additional detail, read the complete `commit history`_. From
 version 0.4.0 and following, version numbers follow the `semantic
 versioning`_ scheme.
 
+**django-mama-cas 2.2.0** ``[2016-12-20]``
+   * Improve output of ``checkservice`` management command
+   * Validate proxy endpoint prior to executing callback
+   * Handle exceptions in attribute callbacks
+
 **django-mama-cas 2.1.0** ``[2016-09-02]``
    * Add Django 1.10 compatibility
    * Add per-service configuration with ``MAMA_CAS_SERVICES``
