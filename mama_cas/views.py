@@ -35,6 +35,7 @@ from mama_cas.utils import to_bool
 
 logger = logging.getLogger(__name__)
 
+
 login_view_template_name = getattr(settings,
                                    'MAMA_CAS_LOGIN_TEMPLATE',
                                    'mama_cas/login.html')
@@ -42,6 +43,7 @@ login_view_template_name = getattr(settings,
 warn_view_template_name = getattr(settings,
                                   'MAMA_CAS_WARN_TEMPLATE',
                                   'mama_cas/warn.html')
+
 
 class LoginView(CsrfProtectMixin, NeverCacheMixin, FormView):
     """
