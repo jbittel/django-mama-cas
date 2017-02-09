@@ -35,6 +35,13 @@ from mama_cas.utils import to_bool
 
 logger = logging.getLogger(__name__)
 
+login_view_template_name = getattr(settings,
+                                   'MAMA_CAS_LOGIN_TEMPLATE',
+                                   'mama_cas/login.html')
+
+warn_view_template_name = getattr(settings,
+                                  'MAMA_CAS_WARN_TEMPLATE',
+                                  'mama_cas/warn.html')
 
 class LoginView(CsrfProtectMixin, NeverCacheMixin, FormView):
     """
@@ -43,7 +50,7 @@ class LoginView(CsrfProtectMixin, NeverCacheMixin, FormView):
     This view operates as a credential requestor when a GET request
     is received, and a credential acceptor for POST requests.
     """
-    template_name = 'mama_cas/login.html'
+    template_name = login_view_template_name
     form_class = LoginForm
 
     def get(self, request, *args, **kwargs):
@@ -137,7 +144,7 @@ class WarnView(NeverCacheMixin, LoginRequiredMixin, TemplateView):
     that service authentication is taking place. The user can choose
     to continue or cancel the authentication attempt.
     """
-    template_name = 'mama_cas/warn.html'
+    template_name = warn_view_template_name
 
     def get(self, request, *args, **kwargs):
         service = request.GET.get('service')
