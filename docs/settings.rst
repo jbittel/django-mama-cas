@@ -187,4 +187,18 @@ customize behavior and improve security.
 
       This setting has been deprecated in favor of MAMA_CAS_SERVICES.
 
+.. attribute:: MAMA_CAS_LOGIN_TEMPLATE
+
+   :default: ``'mama_cas/login.html'``
+
+   A path to the login template to use. Make sure Django can find this template
+   using normal Django template discovery rules.
+
+.. attribute:: MAMA_CAS_WARN_TEMPLATE
+
+   :default: ``'mama_cas/warn.html'``
+
+   A path to the warning template to use. Make sure Django can find this
+   template using normal Django template discovery rules.
+
 .. _gevent: http://www.gevent.org/
