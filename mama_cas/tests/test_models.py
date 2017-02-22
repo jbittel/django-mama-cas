@@ -274,21 +274,7 @@ class ServiceTicketManagerTests(TestCase):
         """
         ServiceTicketFactory(consume=True)
         ServiceTicketFactory(consume=True)
-        with patch('requests.post') as mock:
-            mock.return_value.status_code = 200
-            ServiceTicket.objects.request_sign_out(self.user)
-            self.assertEqual(mock.call_count, 2)
-
-    @override_settings(MAMA_CAS_ASYNC_CONCURRENCY=0)
-    def test_request_sign_out_no_pool(self):
-        """
-        Calling the ``request_sign_out()`` manager method with
-        concurrency disabled should issue a POST request for each
-        consumed ticket for the provided user.
-        """
-        ServiceTicketFactory(consume=True)
-        ServiceTicketFactory(consume=True)
-        with patch('requests.post') as mock:
+        with patch('requests.Session.post') as mock:
             mock.return_value.status_code = 200
             ServiceTicket.objects.request_sign_out(self.user)
             self.assertEqual(mock.call_count, 2)
@@ -328,7 +314,7 @@ class ServiceTicketTests(TestCase):
         cause any side-effects.
         """
         st = ServiceTicketFactory()
-        with patch('requests.post') as mock:
+        with patch('requests.Session.post') as mock:
             mock.return_value.status_code = 200
             st.request_sign_out()
 
@@ -338,7 +324,7 @@ class ServiceTicketTests(TestCase):
         it should be handled.
         """
         st = ServiceTicketFactory()
-        with patch('requests.post') as mock:
+        with patch('requests.Session.post') as mock:
             mock.side_effect = requests.exceptions.RequestException
             st.request_sign_out()
 
@@ -348,7 +334,7 @@ class ServiceTicketTests(TestCase):
         status code, the resulting exception should be handled.
         """
         st = ServiceTicketFactory()
-        with patch('requests.post') as mock:
+        with patch('requests.Session.post') as mock:
             mock.return_value.status_code = 500
             st.request_sign_out()
 
@@ -358,7 +344,7 @@ class ServiceTicketTests(TestCase):
         request should not be sent.
         """
         st = ServiceTicketFactory(service='http://example.com')
-        with patch('requests.post') as mock:
+        with patch('requests.Session.post') as mock:
             mock.return_value.status_code = 500
             st.request_sign_out()
             self.assertEqual(mock.call_count, 0)

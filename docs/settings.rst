@@ -16,15 +16,6 @@ customize behavior and improve security.
    process. When enabled, an additional checkbox will be displayed on the
    login form.
 
-.. attribute:: MAMA_CAS_ASYNC_CONCURRENCY
-
-   :default: ``2``
-
-   If single logout is enabled and `gevent`_ is installed, this setting
-   limits the concurrency of requests sent for a logout event. If the number
-   of requests reaches this limit, additional requests block until there is
-   room. Setting this value to zero disables this limiting.
-
 .. attribute:: MAMA_CAS_ATTRIBUTE_CALLBACKS
 
    :default: ``()``
@@ -68,7 +59,7 @@ customize behavior and improve security.
    .. note::
 
       By default, the single logout requests are sent synchronously. If
-      `gevent`_ is installed, they are sent asynchronously.
+      `requests-futures`_ is installed, they are sent asynchronously.
 
    .. warning::
 
@@ -201,4 +192,4 @@ customize behavior and improve security.
    A path to the warning template to use. Make sure Django can find this
    template using normal Django template discovery rules.
 
-.. _gevent: http://www.gevent.org/
+.. _requests-futures: https://github.com/ross/requests-futures

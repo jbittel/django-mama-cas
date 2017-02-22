@@ -16,7 +16,7 @@ from django.utils.translation import ugettext_lazy as _
 
 import requests
 
-from mama_cas.compat import gevent
+from mama_cas.compat import Session
 from mama_cas.exceptions import InvalidProxyCallback
 from mama_cas.exceptions import InvalidRequest
 from mama_cas.exceptions import InvalidService
@@ -33,11 +33,6 @@ from mama_cas.utils import add_query_params
 from mama_cas.utils import clean_service_url
 from mama_cas.utils import is_scheme_https
 from mama_cas.utils import match_service
-
-if gevent:
-    from gevent.pool import Pool
-    from gevent import monkey
-    monkey.patch_all(thread=False, select=False)
 
 
 logger = logging.getLogger(__name__)
@@ -214,26 +209,12 @@ class ServiceTicketManager(TicketManager):
         specified user. This is called at logout when single logout
         is enabled.
 
-        If gevent is installed, asynchronous requests will be sent.
-        Otherwise, synchronous requests will be sent. Setting
-        ``MAMA_CAS_ASYNC_CONCURRENCY`` limits concurrent requests for
-        a logout event to the specified value.
+        If requests-futures is installed, asynchronous requests will
+        be sent. Otherwise, synchronous requests will be sent.
         """
-        def spawn(ticket, pool=None):
-            if pool is not None:
-                return pool.spawn(ticket.request_sign_out)
-            return gevent.spawn(ticket.request_sign_out)
-
-        tickets = list(self.filter(user=user, consumed__gte=user.last_login))
-
-        if gevent:
-            size = getattr(settings, 'MAMA_CAS_ASYNC_CONCURRENCY', 2)
-            pool = Pool(size) if size else None
-            sign_out_requests = [spawn(t, pool=pool) for t in tickets]
-            gevent.joinall(sign_out_requests)
-        else:
-            for ticket in tickets:
-                ticket.request_sign_out()
+        session = Session()
+        for ticket in self.filter(user=user, consumed__gte=user.last_login):
+            ticket.request_sign_out(session=session)
 
 
 class ServiceTicket(Ticket):
@@ -263,22 +244,16 @@ class ServiceTicket(Ticket):
             return True
         return False
 
-    def request_sign_out(self):
+    def request_sign_out(self, session=requests):
         """
         Send a POST request to the ``ServiceTicket``s logout URL to
         request sign-out.
         """
-        if not logout_allowed(self.service):
-            return
-        request = SingleSignOutRequest(context={'ticket': self})
-        url = get_logout_url(self.service) or self.service
-        try:
-            resp = requests.post(url, data={'logoutRequest': request.render_content()})
-            resp.raise_for_status()
-        except requests.exceptions.RequestException as e:
-            logger.warning("Single sign-out request to %s returned %s" % (url, e))
-        else:
-            logger.debug("Single sign-out request sent to %s" % url)
+        if logout_allowed(self.service):
+            request = SingleSignOutRequest(context={'ticket': self})
+            url = get_logout_url(self.service) or self.service
+            session.post(url, data={'logoutRequest': request.render_content()})
+            logger.info("Single sign-out request sent to %s" % url)
 
 
 class ProxyTicket(Ticket):

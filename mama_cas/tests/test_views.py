@@ -276,7 +276,7 @@ class LogoutViewTests(TestCase):
         ServiceTicketFactory()
         ServiceTicketFactory()
         self.client.login(**self.user_info)
-        with patch('requests.post') as mock:
+        with patch('requests.Session.post') as mock:
             self.client.get(reverse('cas_logout'))
             self.assertEqual(mock.call_count, 2)
 
