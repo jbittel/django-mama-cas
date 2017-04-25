@@ -230,8 +230,13 @@ class SamlValidationResponse(CasResponseBase):
             attribute = etree.SubElement(attribute_statement, 'Attribute')
             attribute.set('AttributeName', name)
             attribute.set('AttributeNamespace', self.namespace)
-            attribute_value = etree.SubElement(attribute, 'AttributeValue')
-            attribute_value.text = value
+            if isinstance(value, list):
+                for v in value:
+                    attribute_value = etree.SubElement(attribute, 'AttributeValue')
+                    attribute_value.text = v
+            else:
+                attribute_value = etree.SubElement(attribute, 'AttributeValue')
+                attribute_value.text = value
         return attribute_statement
 
     def get_authentication_statement(self, subject, ticket):
