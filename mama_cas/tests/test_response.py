@@ -222,3 +222,32 @@ class SamlValidationResponseTests(TestCase):
             # dict is empty to see if all attributes were matched.
             del attrs[attr_name]
         self.assertEqual(len(attrs), 0)
+
+    def test_saml_validation_response_attributes_multiple_values(self):
+        """
+        When given a custom user attribute with a list, a
+        ``SamlValidationResponse`` authentication success should include all
+        the list items as values in the resposne.
+        """
+        attrs = {'givenName': 'Ellen', 'sn': 'Cohen', 'groups': ['group1', 'group2', 'group3']}
+        resp = SamlValidationResponse(context={'ticket': self.st, 'error': None,
+                                               'attributes': attrs},
+                                      content_type='text/xml')
+        attribute_statement = parse(resp.content).find('./Body/Response/Assertion/AttributeStatement')
+        self.assertIsNotNone(attribute_statement)
+        for attr in attribute_statement.findall('Attribute'):
+            attr_name = attr.get('AttributeName')
+            attr_values = attr.findall('AttributeValue')
+            if(len(attr_values) > 1):
+                self.assertEqual(len(attr_values), len(attrs[attr_name]))
+                for attr_value in attr_values:
+                    self.assertTrue(attr_value.text in attrs[attr_name])
+            else:
+                attr_value = attr_values[0]
+                self.assertTrue(attr_name in attrs)
+                self.assertEqual(attr_value.text, attrs[attr_name])
+            # Ordering is not guaranteed, so remove attributes from
+            # the dict as they are validated. When done, check if the
+            # dict is empty to see if all attributes were matched.
+            del attrs[attr_name]
+        self.assertEqual(len(attrs), 0)
