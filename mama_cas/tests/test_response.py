@@ -239,7 +239,6 @@ class SamlValidationResponseTests(TestCase):
             attr_name = attr.get('AttributeName')
             attr_values = attr.findall('AttributeValue')
             if(len(attr_values) > 1):
-                import sys
                 self.assertEqual(len(attr_values), len(attrs[attr_name]))
                 for attr_value in attr_values:
                     self.assertTrue(attr_value.text in attrs[attr_name])
