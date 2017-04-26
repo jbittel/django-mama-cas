@@ -1,5 +1,12 @@
 language: python
 
+python:
+  - "2.7"
+  - "3.3"
+  - "3.4"
+  - "3.5"
+  - "3.6"
+
 env:
   - TOX_ENV=py36-django111
   - TOX_ENV=py35-django111
@@ -18,12 +25,6 @@ env:
   - TOX_ENV=flake8
   - TOX_ENV=docs
 
-install:
-  - "travis_retry pip install setuptools --upgrade"
-  - "pip install tox"
+install: pip install tox-travis
 
-script:
-  - tox -e $TOX_ENV
-
-after_script:
-  - cat .tox/$TOX_ENV/log/*.log
+script: tox
