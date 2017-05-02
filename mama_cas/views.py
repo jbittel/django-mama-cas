@@ -56,6 +56,14 @@ class LoginView(CsrfProtectMixin, NeverCacheMixin, FormView):
     form_class = LoginForm
 
     def get_form_kwargs(self):
+        """
+        Django >= 1.11 supports a request sent to the authenticator
+        so we grab that here and pass it along to the form so it can be
+        handed off to the authenticators.
+        """
+        """
+        :return: 
+        """
         kwargs = super(LoginView, self).get_form_kwargs()
         kwargs['request'] = self.request
         return kwargs

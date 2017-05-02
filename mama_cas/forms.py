@@ -39,7 +39,7 @@ class LoginForm(forms.Form):
 
         if username and password:
             try:
-                self.user = authenticate(self.request, username=username, password=password)
+                self.user = authenticate(request=self.request, username=username, password=password)
             except Exception:
                 logger.exception("Error authenticating %s" % username)
                 error_msg = _('Internal error while authenticating user')
