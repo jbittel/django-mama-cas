@@ -4,13 +4,13 @@ from django.contrib.auth.backends import ModelBackend
 
 class ExceptionBackend(ModelBackend):
     """Raise an exception on authentication for testing purposes."""
-    def authenticate(self, username=None, password=None):
+    def authenticate(self, request, username=None, password=None):
         raise Exception
 
 
 class CaseInsensitiveBackend(ModelBackend):
     """A case-insenstitive authentication backend."""
-    def authenticate(self, username=None, password=None):
+    def authenticate(self, request, username=None, password=None):
         user_model = get_user_model()
         try:
             user = user_model.objects.get(username__iexact=username)

@@ -19,6 +19,7 @@ class LoginForm(forms.Form):
                                                _("Please enter your password")})
 
     def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
         super(LoginForm, self).__init__(*args, **kwargs)
         if getattr(settings, 'MAMA_CAS_ALLOW_AUTH_WARN', False):
             self.fields['warn'] = forms.BooleanField(
@@ -38,7 +39,7 @@ class LoginForm(forms.Form):
 
         if username and password:
             try:
-                self.user = authenticate(username=username, password=password)
+                self.user = authenticate(request=self.request, username=username, password=password)
             except Exception:
                 logger.exception("Error authenticating %s" % username)
                 error_msg = _('Internal error while authenticating user')
