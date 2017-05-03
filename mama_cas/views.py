@@ -61,9 +61,6 @@ class LoginView(CsrfProtectMixin, NeverCacheMixin, FormView):
         so we grab that here and pass it along to the form so it can be
         handed off to the authenticators.
         """
-        """
-        :return: 
-        """
         kwargs = super(LoginView, self).get_form_kwargs()
         kwargs['request'] = self.request
         return kwargs
