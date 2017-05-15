@@ -9,6 +9,12 @@ here. For additional detail, read the complete `commit history`_. From
 version 0.4.0 and following, version numbers follow the `semantic
 versioning`_ scheme.
 
+**django-mama-cas 2.3.0** ``[2017-05-15]``
+   * Official Django 1.11 support (thanks @pbaehr!)
+   * Allow multiple attribute values in SAML responses (thanks @richardjs!)
+   * Replace gevent with requests-futures to eliminate monkeypatching
+   * Add settings to completely switch out templates (thanks @lorenmh!)
+
 **django-mama-cas 2.2.0** ``[2016-12-20]``
    * Improve output of ``checkservice`` management command
    * Validate proxy endpoint prior to executing callback
