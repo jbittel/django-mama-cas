@@ -307,6 +307,8 @@ class ProxyGrantingTicketManager(TicketManager):
 
         # Verify that the SSL certificate is valid
         verify = os.environ.get('REQUESTS_CA_BUNDLE', True)
+        if str(verify).lower() in ("false", "0"):
+            verify = False
         try:
             requests.get(pgturl, verify=verify, timeout=5)
         except requests.exceptions.SSLError:
