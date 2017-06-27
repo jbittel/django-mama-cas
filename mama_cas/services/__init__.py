@@ -8,7 +8,11 @@ from django.utils.module_loading import import_string
 def _get_backends():
     """Retrieve the list of configured service backends."""
     backends = []
-    for backend_path in ['mama_cas.services.backends.SettingsBackend']:
+    backend_paths = getattr(
+        settings, 'MAMA_CAS_SERVICE_BACKENDS',
+        ['mama_cas.services.backends.SettingsBackend']
+    )
+    for backend_path in backend_paths:
         backend = import_string(backend_path)()
         backends.append(backend)
     return backends

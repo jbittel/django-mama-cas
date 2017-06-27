@@ -116,3 +116,44 @@ class ServicesTests(TestCase):
         """
         with self.assertRaises(ImproperlyConfigured):
             service_allowed('http://www.example.com')
+
+    @override_settings(
+        MAMA_CAS_SERVICE_BACKENDS=[
+            'mama_cas.tests.backends.CustomTestServiceBackend'
+        ]
+    )
+    def test_custom_backend(self):
+        """
+        Test that a custom service backend can be used
+        """
+        # CustomTestServiceBackend allows any service with 'test.com' in
+        # addition to defined services
+        self.assertFalse(service_allowed('http://www.foo.com'))
+        self.assertTrue(service_allowed('http://www.example.com'))
+        self.assertTrue(service_allowed('http://www.test.com'))
+
+    @override_settings(
+        MAMA_CAS_SERVICE_BACKENDS=[
+            'mama_cas.tests.backends.CustomTestInvalidServiceBackend'
+        ]
+    )
+    def test_invalid_custom_backend(self):
+        """
+        Test that a custom service backend without properly defined
+        attributes raises ``NotImplementedError``
+        """
+
+        with self.assertRaises(NotImplementedError):
+            service_allowed('http://www.example.com')
+
+        with self.assertRaises(NotImplementedError):
+            get_callbacks('http://www.example.com')
+
+        with self.assertRaises(NotImplementedError):
+            get_logout_url('http://www.example.com')
+
+        with self.assertRaises(NotImplementedError):
+            logout_allowed('http://www.example.com')
+
+        with self.assertRaises(NotImplementedError):
+            proxy_allowed('http://www.example.com')

@@ -76,6 +76,12 @@ customize behavior and improve security.
    this setting is ``False`` or the parameter is not provided, the client
    is redirected to the login page.
 
+.. attribute:: MAMA_CAS_SERVICE_BACKENDS
+
+   :default: ``['mama_cas.services.backends.SettingsBackend']``
+
+   A list of paths to service backends.
+
 .. attribute:: MAMA_CAS_SERVICES
 
    :default: ``[]``
