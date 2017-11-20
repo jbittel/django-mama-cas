@@ -233,10 +233,10 @@ class SamlValidationResponse(CasResponseBase):
             if isinstance(value, list):
                 for v in value:
                     attribute_value = etree.SubElement(attribute, 'AttributeValue')
-                    attribute_value.text = v
+                    attribute_value.text = force_text(v)
             else:
                 attribute_value = etree.SubElement(attribute, 'AttributeValue')
-                attribute_value.text = value
+                attribute_value.text = force_text(value)
         return attribute_statement
 
     def get_authentication_statement(self, subject, ticket):
