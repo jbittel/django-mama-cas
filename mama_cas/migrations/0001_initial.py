@@ -36,8 +36,8 @@ class Migration(migrations.Migration):
                 ('expires', models.DateTimeField(verbose_name='expires')),
                 ('consumed', models.DateTimeField(null=True, verbose_name='consumed')),
                 ('service', models.CharField(max_length=255, verbose_name='service')),
-                ('granted_by_pgt', models.ForeignKey(verbose_name='granted by proxy-granting ticket', to='mama_cas.ProxyGrantingTicket')),
-                ('user', models.ForeignKey(verbose_name='user', to=settings.AUTH_USER_MODEL)),
+                ('granted_by_pgt', models.ForeignKey(verbose_name='granted by proxy-granting ticket', to='mama_cas.ProxyGrantingTicket', on_delete=models.CASCADE)),
+                ('user', models.ForeignKey(verbose_name='user', to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
             ],
             options={
                 'verbose_name': 'proxy ticket',
@@ -54,7 +54,7 @@ class Migration(migrations.Migration):
                 ('consumed', models.DateTimeField(null=True, verbose_name='consumed')),
                 ('service', models.CharField(max_length=255, verbose_name='service')),
                 ('primary', models.BooleanField(default=False, verbose_name='primary')),
-                ('user', models.ForeignKey(verbose_name='user', to=settings.AUTH_USER_MODEL)),
+                ('user', models.ForeignKey(verbose_name='user', to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
             ],
             options={
                 'verbose_name': 'service ticket',
@@ -77,7 +77,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='proxygrantingticket',
             name='user',
-            field=models.ForeignKey(verbose_name='user', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(verbose_name='user', to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE),
             preserve_default=True,
         ),
     ]

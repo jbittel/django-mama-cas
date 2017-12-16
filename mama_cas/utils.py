@@ -2,7 +2,11 @@ import logging
 
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
-from django.core import urlresolvers
+try:
+    from django.urls import reverse, NoReverseMatch
+except ImportError:  # Django<2.0
+    from django.core.urlresolvers import reverse, NoReverseMatch
+
 from django.http import HttpResponseRedirect
 from django.utils.encoding import force_bytes
 
@@ -73,10 +77,10 @@ def redirect(to, *args, **kwargs):
     params = kwargs.pop('params', {})
 
     try:
-        to = urlresolvers.reverse(to, args=args, kwargs=kwargs)
-    except urlresolvers.NoReverseMatch:
+        to = reverse(to, args=args, kwargs=kwargs)
+    except NoReverseMatch:
         if '/' not in to and '.' not in to:
-            to = urlresolvers.reverse('cas_login')
+            to = reverse('cas_login')
         elif not service_allowed(to):
             raise PermissionDenied()
 
