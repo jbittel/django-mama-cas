@@ -4,7 +4,7 @@ CAS Protocol
 ============
 
 The official CAS protocol specification can be found at
-http://jasig.github.io/cas/. Where appropriate, docstrings and other
+http://apereo.github.io/cas/. Where appropriate, docstrings and other
 documentation include numbers in parenthesis (e.g. ``(2.3)``) corresponding
 to the section number within the CAS protocol documentation where that
 functionality is described. Additionally, views are labeled with a CAS version
@@ -45,8 +45,8 @@ contract between the client, service and CAS server.
    uses Django sessions to determine if a single sign-on session has been
    established.
 
-.. _CAS Protocol: http://jasig.github.io/cas/4.0.x/protocol/CAS-Protocol.html
-.. _CAS User Manual: http://jasig.github.io/cas/
+.. _CAS Protocol: http://apereo.github.io/cas/4.0.x/protocol/CAS-Protocol.html
+.. _CAS User Manual: http://apereo.github.io/cas/
 .. _CAS 1 Architecture: https://www.apereo.org/projects/cas/cas-1-architecture
 .. _CAS 2 Architecture: https://www.apereo.org/content/cas-2-architecture
 .. _Proxy Authentication: https://www.apereo.org/content/why-do-we-need-proxy-authentication

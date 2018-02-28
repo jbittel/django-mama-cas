@@ -35,5 +35,5 @@ Contents
    changelog
 
 .. _Central Authentication Service (CAS):
-.. _CAS: http://jasig.github.io/cas/
+.. _CAS: http://apereo.github.io/cas/
 .. _github.com/jbittel/django-mama-cas: https://github.com/jbittel/django-mama-cas
