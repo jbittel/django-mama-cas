@@ -21,9 +21,6 @@ response endpoint.
 
    * `CAS Protocol`_
    * `CAS User Manual`_
-   * `CAS 1 Architecture`_
-   * `CAS 2 Architecture`_
-   * `Proxy Authentication`_
 
 Protocol Deviations
 -------------------
