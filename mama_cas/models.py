@@ -160,7 +160,8 @@ class Ticket(models.Model):
     TICKET_RE = re.compile("^[A-Z]{2,3}-[0-9]{10,}-[a-zA-Z0-9]{%d}$" % TICKET_RAND_LEN)
 
     ticket = models.CharField(_('ticket'), max_length=255, unique=True)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('user'))
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('user'),
+                             on_delete=models.CASCADE)
     expires = models.DateTimeField(_('expires'))
     consumed = models.DateTimeField(_('consumed'), null=True)
 
@@ -267,7 +268,8 @@ class ProxyTicket(Ticket):
 
     service = models.CharField(_('service'), max_length=255)
     granted_by_pgt = models.ForeignKey('ProxyGrantingTicket',
-                                       verbose_name=_('granted by proxy-granting ticket'))
+                                       verbose_name=_('granted by proxy-granting ticket'),
+                                       on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = _('proxy ticket')
