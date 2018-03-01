@@ -42,5 +42,5 @@ contract between the client, service and CAS server.
    uses Django sessions to determine if a single sign-on session has been
    established.
 
-.. _CAS Protocol: http://apereo.github.io/cas/4.0.x/protocol/CAS-Protocol.html
+.. _CAS Protocol: https://apereo.github.io/cas/5.2.x/protocol/CAS-Protocol.html
 .. _CAS User Manual: http://apereo.github.io/cas/
