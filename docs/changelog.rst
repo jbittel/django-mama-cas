@@ -9,6 +9,11 @@ here. For additional detail, read the complete `commit history`_. From
 version 0.4.0 and following, version numbers follow the `semantic
 versioning`_ scheme.
 
+**django-mama-cas 2.4.0** ``[2018-08-14]``
+   * Official Django 2.0+ support (thanks @manelclos!)
+   * Add setting to enable custom service backends (thanks @rebkwok!)
+   * Fix XML encoding for SAML responses (thanks @ljupchokotev!)
+
 **django-mama-cas 2.3.0** ``[2017-05-15]``
    * Official Django 1.11 support (thanks @pbaehr!)
    * Allow multiple attribute values in SAML responses (thanks @richardjs!)
