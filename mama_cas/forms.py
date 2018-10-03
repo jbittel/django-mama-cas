@@ -1,5 +1,6 @@
 import logging
 
+import django
 from django import forms
 from django.conf import settings
 from django.contrib.auth import authenticate
@@ -17,6 +18,9 @@ class LoginForm(forms.Form):
     password = forms.CharField(label=_("Password"), widget=forms.PasswordInput,
                                error_messages={'required':
                                                _("Please enter your password")})
+
+    if django.VERSION >= (1, 9):
+        password.strip = False
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
