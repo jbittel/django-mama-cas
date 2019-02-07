@@ -100,6 +100,33 @@ class ValidationResponseTests(TestCase):
             del attrs[child.tag]
         self.assertEqual(len(attrs), 0)
 
+    def test_validation_response_list_type_attributes(self):
+        """
+        When given a custom user attribute of type list, a ``ValidationResponse``
+        should include all the list items as values in the resposne.
+        """
+        attrs = {'givenName': 'Ellen', 'sn': 'Cohen', 'email': 'ellen@example.com',
+                 'groups': ['group1', 'group2', 'group3']}
+        resp = ValidationResponse(context={'ticket': self.st, 'error': None,
+                                           'attributes': attrs},
+                                  content_type='text/xml')
+        attributes = parse(resp.content).find('./authenticationSuccess/attributes')
+        self.assertIsNotNone(attributes)
+        total_attributes = 0
+        for attr_key in attrs.keys():
+            attr_values = attributes.findall(attr_key)
+            if(len(attr_values) > 1):
+                self.assertEqual(len(attr_values), len(attrs[attr_key]))
+                for attr_value in attr_values:
+                    self.assertTrue(attr_value.text in attrs[attr_key])
+                total_attributes += len(attrs[attr_key])
+            else:
+                attr_value = attr_values[0]
+                self.assertTrue(attr_value.tag in attrs)
+                self.assertEqual(attr_value.text, attrs[attr_value.tag])
+                total_attributes += 1
+        self.assertEqual(len(attributes), total_attributes)
+
     def test_validation_response_nonstring_attributes(self):
         """
         When given non-string attributes, the values should be
