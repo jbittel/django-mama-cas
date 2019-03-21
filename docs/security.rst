@@ -18,7 +18,7 @@ Open vs. Closed
 
 By default, MamaCAS operates in an "open" mode that authenticates or redirects
 any service URL. It is recommended that a production server be configured as
-"closed" by specifying approved services with ``MAMA_CAS_VALID_SERVICES``.
+"closed" by specifying approved services with ``MAMA_CAS_SERVICES``.
 Services not matching one of these patterns will be unable to validate tickets
 or redirect clients.
 
