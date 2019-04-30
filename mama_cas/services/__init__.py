@@ -117,6 +117,6 @@ def proxy_callback_allowed(service, pgturl):
 
 def service_allowed(service):
     """Check if a given service identifier is authorized."""
-    if hasattr(settings, 'MAMA_CAS_SERVICES'):
+    if hasattr(settings, 'MAMA_CAS_SERVICES') or hasattr(settings, 'MAMA_CAS_SERVICE_BACKENDS'):
         return _is_allowed('service_allowed', service)
     return _is_valid_service_url(service)
