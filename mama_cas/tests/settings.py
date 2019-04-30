@@ -54,9 +54,9 @@ INSTALLED_APPS = (
 
 MAMA_CAS_SERVICES = [
     {
-        'SERVICE': 'https?://.+\.example\.com',
+        'SERVICE': r'https?://.+\.example\.com',
         'PROXY_ALLOW': True,
-        'PROXY_PATTERN': 'https://.+\.example\.com',
+        'PROXY_PATTERN': r'https://.+\.example\.com',
         'CALLBACKS': [
             'mama_cas.callbacks.user_name_attributes',
         ],
