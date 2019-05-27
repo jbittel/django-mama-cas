@@ -31,9 +31,7 @@ class ValidationResponse(CasResponseBase):
     """
     (2.6.2) Render an XML format CAS service response for a
     ticket validation success or failure.
-
     On validation success:
-
     <cas:serviceResponse xmlns:cas='http://www.yale.edu/tp/cas'>
         <cas:authenticationSuccess>
             <cas:user>username</cas:user>
@@ -44,9 +42,7 @@ class ValidationResponse(CasResponseBase):
             </cas:proxies>
         </cas:authenticationSuccess>
     </cas:serviceResponse>
-
     On validation failure:
-
     <cas:serviceResponse xmlns:cas='http://www.yale.edu/tp/cas'>
         <cas:authenticationFailure code="INVALID_TICKET">
             ticket PT-1856376-1HMgO86Z2ZKeByc5XdYD not recognized
@@ -65,6 +61,11 @@ class ValidationResponse(CasResponseBase):
             auth_success = etree.SubElement(service_response, self.ns('authenticationSuccess'))
             user = etree.SubElement(auth_success, self.ns('user'))
             user.text = ticket.user.get_username()
+            if 'username' in attributes:
+                user.text = attributes['username']
+            else:
+                user.text = ticket.user.get_username()
+
             if attributes:
                 attribute_set = etree.SubElement(auth_success, self.ns('attributes'))
                 for name, value in attributes.items():
@@ -95,17 +96,13 @@ class ProxyResponse(CasResponseBase):
     """
     (2.7.2) Render an XML format CAS service response for a proxy
     request success or failure.
-
     On request success:
-
     <cas:serviceResponse xmlns:cas='http://www.yale.edu/tp/cas'>
         <cas:proxySuccess>
             <cas:proxyTicket>PT-1856392-b98xZrQN4p90ASrw96c8</cas:proxyTicket>
         </cas:proxySuccess>
     </cas:serviceResponse>
-
     On request failure:
-
     <cas:serviceResponse xmlns:cas='http://www.yale.edu/tp/cas'>
         <cas:proxyFailure code="INVALID_REQUEST">
             'pgt' and 'targetService' parameters are both required
@@ -207,6 +204,10 @@ class SamlValidationResponse(CasResponseBase):
         assertion.set('MinorVersion', '1')
         assertion.append(self.get_conditions(ticket.service))
         subject = self.get_subject(ticket.user.get_username())
+        if 'username' in attributes:
+            user.text = attributes['username']
+        else:
+            user.text = ticket.user.get_username()
         if attributes:
             assertion.append(self.get_attribute_statement(subject, attributes))
         assertion.append(self.get_authentication_statement(subject, ticket))
@@ -269,3 +270,4 @@ class SamlValidationResponse(CasResponseBase):
         method = etree.SubElement(subject_confirmation, 'ConfirmationMethod')
         method.text = self.confirmation_method
         return subject
+
