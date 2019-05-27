@@ -68,11 +68,17 @@ class ValidationResponse(CasResponseBase):
                 user.text = attributes['username']
             else:
                 user.text = ticket.user.get_username()
+
             if attributes:
                 attribute_set = etree.SubElement(auth_success, self.ns('attributes'))
                 for name, value in attributes.items():
-                    attr = etree.SubElement(attribute_set, self.ns(name))
-                    attr.text = force_text(value)
+                    if isinstance(value, list):
+                        for v in value:
+                            attr = etree.SubElement(attribute_set, self.ns(name))
+                            attr.text = force_text(v)
+                    else:
+                        attr = etree.SubElement(attribute_set, self.ns(name))
+                        attr.text = force_text(value)
             if pgt:
                 proxy_granting_ticket = etree.SubElement(auth_success, self.ns('proxyGrantingTicket'))
                 proxy_granting_ticket.text = pgt.iou
