@@ -64,7 +64,10 @@ class ValidationResponse(CasResponseBase):
         if ticket:
             auth_success = etree.SubElement(service_response, self.ns('authenticationSuccess'))
             user = etree.SubElement(auth_success, self.ns('user'))
-            user.text = ticket.user.get_username()
+            if 'username' in attributes:
+                user.text = attributes['username']
+            else:
+                user.text = ticket.user.get_username()
             if attributes:
                 attribute_set = etree.SubElement(auth_success, self.ns('attributes'))
                 for name, value in attributes.items():
