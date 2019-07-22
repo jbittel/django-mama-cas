@@ -30,5 +30,13 @@ class CustomTestServiceBackend(SettingsBackend):
         return super(CustomTestServiceBackend, self).service_allowed(service)
 
 
+class CustomTestServiceBackendNoSettings(SettingsBackend):
+    """Service backend that only allows any service containing 'test.com'"""
+    def service_allowed(self, service):
+        if service and "test.com" in service:
+            return True
+        return False
+
+
 class CustomTestInvalidServiceBackend(object):
     pass
