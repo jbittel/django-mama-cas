@@ -83,16 +83,21 @@ class LoginView(CsrfProtectMixin, NeverCacheMixin, FormView):
         service = request.GET.get('service')
         renew = to_bool(request.GET.get('renew'))
         gateway = to_bool(request.GET.get('gateway'))
+        ticket = request.GET.get('ticket', 'True') != 'false'
 
         if renew:
             logger.debug("Renew request received by credential requestor")
         elif is_authenticated(request.user):
             if service:
                 logger.debug("Service ticket request received by credential requestor")
-                st = ServiceTicket.objects.create_ticket(service=service, user=request.user)
+                params = {}
+                if ticket:
+                    st = ServiceTicket.objects.create_ticket(service=service, user=request.user)
+                    params['ticket'] = st.ticket
                 if self.warn_user():
-                    return redirect('cas_warn', params={'service': service, 'ticket': st.ticket})
-                return redirect(service, params={'ticket': st.ticket})
+                    params['service'] = service
+                    return redirect('cas_warn', params=params)
+                return redirect(service, params=params)
             else:
                 msg = _("You are logged in as %s") % request.user
                 messages.success(request, msg)
@@ -138,9 +143,13 @@ class LoginView(CsrfProtectMixin, NeverCacheMixin, FormView):
             self.request.session['warn'] = True
 
         service = self.request.GET.get('service')
+        ticket = self.request.GET.get('ticket', 'True') != 'false'
         if service:
-            st = ServiceTicket.objects.create_ticket(service=service, user=self.request.user, primary=True)
-            return redirect(service, params={'ticket': st.ticket})
+            params = {}
+            if ticket:
+                st = ServiceTicket.objects.create_ticket(service=service, user=self.request.user, primary=True)
+                params['ticket'] = st.ticket
+            return redirect(service, params=params)
         return redirect('cas_login')
 
 
