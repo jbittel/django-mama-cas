@@ -86,15 +86,6 @@ class LoginView(CsrfProtectMixin, NeverCacheMixin, FormView):
 
         if renew:
             logger.debug("Renew request received by credential requestor")
-        elif gateway and service:
-            logger.debug("Gateway request received by credential requestor")
-            if is_authenticated(request.user):
-                st = ServiceTicket.objects.create_ticket(service=service, user=request.user)
-                if self.warn_user():
-                    return redirect('cas_warn', params={'service': service, 'ticket': st.ticket})
-                return redirect(service, params={'ticket': st.ticket})
-            else:
-                return redirect(service)
         elif is_authenticated(request.user):
             if service:
                 logger.debug("Service ticket request received by credential requestor")
@@ -105,6 +96,9 @@ class LoginView(CsrfProtectMixin, NeverCacheMixin, FormView):
             else:
                 msg = _("You are logged in as %s") % request.user
                 messages.success(request, msg)
+        elif gateway and service:
+            logger.debug("Gateway request received by credential requestor")
+            return redirect(service)
         return super(LoginView, self).get(request, *args, **kwargs)
 
     def warn_user(self):
