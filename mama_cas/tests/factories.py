@@ -1,5 +1,5 @@
 from datetime import timedelta
-from mock import patch
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.utils.timezone import now
