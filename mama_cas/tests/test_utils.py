@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from django.test import TestCase
 
 from mama_cas.utils import add_query_params

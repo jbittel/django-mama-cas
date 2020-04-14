@@ -1,12 +1,9 @@
 import re
+from urllib.parse import urlencode
 
-try:
-    from django.urls import reverse
-except ImportError:  # Django<2.0
-    from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from mama_cas.compat import etree
-from mama_cas.compat import urlencode
 
 
 def parse(s):

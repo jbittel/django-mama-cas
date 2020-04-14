@@ -10,7 +10,6 @@ from django.views.generic import TemplateView
 from django.views.generic import View
 
 from mama_cas.compat import defused_etree
-from mama_cas.compat import is_authenticated
 from mama_cas.exceptions import ValidationError
 from mama_cas.forms import LoginForm
 from mama_cas.mixins import CasResponseMixin
@@ -88,14 +87,14 @@ class LoginView(CsrfProtectMixin, NeverCacheMixin, FormView):
             logger.debug("Renew request received by credential requestor")
         elif gateway and service:
             logger.debug("Gateway request received by credential requestor")
-            if is_authenticated(request.user):
+            if request.user.is_authenticated:
                 st = ServiceTicket.objects.create_ticket(service=service, user=request.user)
                 if self.warn_user():
                     return redirect('cas_warn', params={'service': service, 'ticket': st.ticket})
                 return redirect(service, params={'ticket': st.ticket})
             else:
                 return redirect(service)
-        elif is_authenticated(request.user):
+        elif request.user.is_authenticated:
             if service:
                 logger.debug("Service ticket request received by credential requestor")
                 st = ServiceTicket.objects.create_ticket(service=service, user=request.user)
