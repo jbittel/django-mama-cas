@@ -131,8 +131,11 @@ class TicketManager(models.Manager):
         A custom management command is provided that executes this method
         on all applicable models by running ``manage.py cleanupcas``.
         """
-        for ticket in self.filter(Q(consumed__isnull=False) |
-                                  Q(expires__lte=now())).order_by('-expires'):
+        tickets = (
+            self.filter(Q(consumed__isnull=False) | Q(expires__lte=now()))
+            .order_by('-expires')
+        )
+        for ticket in tickets:
             try:
                 ticket.delete()
             except models.ProtectedError:

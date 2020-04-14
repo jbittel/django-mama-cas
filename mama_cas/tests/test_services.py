@@ -48,7 +48,7 @@ class ServicesTests(TestCase):
         self.assertFalse(logout_allowed('http://www.example.org'))
 
     @modify_settings(MAMA_CAS_SERVICES={
-        'append': [{'SERVICE': 'http://example\.org/proxy'}]
+        'append': [{'SERVICE': r'http://example\.org/proxy'}]
     })
     def test_proxy_allowed(self):
         """
@@ -71,7 +71,7 @@ class ServicesTests(TestCase):
         self.assertFalse(proxy_callback_allowed('https://www.example.com', 'https://www.example.org'))
         self.assertFalse(proxy_callback_allowed('http://example.org', 'http://example.org'))
 
-    @override_settings(MAMA_CAS_VALID_SERVICES=('http://.*\.example\.com',))
+    @override_settings(MAMA_CAS_VALID_SERVICES=(r'http://.*\.example\.com',))
     def test_service_allowed_tuple(self):
         """
         When valid services are configured, ``service_allowed()``
