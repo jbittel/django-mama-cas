@@ -1,6 +1,7 @@
+from io import StringIO
+
 from django.core import management
 from django.test import TestCase
-from django.utils import six
 
 from .factories import ProxyGrantingTicketFactory
 from .factories import ProxyTicketFactory
@@ -45,11 +46,11 @@ class ManagementCommandTests(TestCase):
         self.assertEqual(ProxyTicket.objects.count(), 0)
 
     def test_checkservice_management_command(self):
-        output = six.StringIO()
+        output = StringIO()
         management.call_command('checkservice', 'https://www.example.com', no_color=True, stdout=output)
         self.assertIn('Valid service', output.getvalue())
 
     def test_checkservice_management_command_invalid(self):
-        output = six.StringIO()
+        output = StringIO()
         management.call_command('checkservice', 'https://example.org', no_color=True, stdout=output)
         self.assertIn('Invalid service', output.getvalue())
