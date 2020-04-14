@@ -215,7 +215,13 @@ class ServiceTicketManager(TicketManager):
         """
         session = Session()
         for ticket in self.filter(user=user, consumed__gte=user.last_login):
-            ticket.request_sign_out(session=session)
+            try:
+                ticket.request_sign_out(session=session)
+            except Exception:
+                logger.exception(
+                    "Error sending the logout request for %s",
+                    ticket.service,
+                )
 
 
 class ServiceTicket(Ticket):
