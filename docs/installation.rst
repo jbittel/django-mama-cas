@@ -51,11 +51,13 @@ URL paths
 ~~~~~~~~~
 
 Include the required CAS URL endpoints in your project's root ``URLconf``
-with the following::
+in ``urls.py`` with the following::
 
+   from django.urls import include, re_path
+   
    urlpatterns = [
        # ...existing urls...
-       url(r'', include('mama_cas.urls')),
+       re_path(r'', include('mama_cas.urls')),
    ]
 
 This makes the CAS server available at the top level of your project's
@@ -63,6 +65,8 @@ URL (e.g. ``http://example.com/login``). To add a path to the CAS root
 (e.g. ``http://example.com/cas/login``) include the path in the URL regular
 expression::
 
+   from django.urls import include, re_path
+   
    urlpatterns = [
        # ...existing urls...
        url(r'^cas/', include('mama_cas.urls')),
