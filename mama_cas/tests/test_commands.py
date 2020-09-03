@@ -1,6 +1,6 @@
 from django.core import management
 from django.test import TestCase
-from django.utils import six
+import six
 
 from .factories import ProxyGrantingTicketFactory
 from .factories import ProxyTicketFactory
