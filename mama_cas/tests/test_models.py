@@ -279,6 +279,18 @@ class ServiceTicketManagerTests(TestCase):
             ServiceTicket.objects.request_sign_out(self.user)
             self.assertEqual(mock.call_count, 2)
 
+    def test_request_sign_out_exception(self):
+        """
+        If a sign-out request to a service raises an exception,
+        it shouldn't stop the rest.
+        """
+        ServiceTicketFactory(consume=True)
+        ServiceTicketFactory(consume=True)
+        with patch('requests.Session.post') as mock:
+            mock.side_effect = requests.exceptions.RequestException
+            ServiceTicket.objects.request_sign_out(self.user)
+            self.assertEqual(mock.call_count, 2)
+
 
 class ServiceTicketTests(TestCase):
     """
