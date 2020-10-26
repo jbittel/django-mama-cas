@@ -79,32 +79,36 @@ class LoginView(CsrfProtectMixin, NeverCacheMixin, FormView):
            will be logged in and forwarded to the specified service.
            Otherwise, the user remains logged out and is forwarded to
            the specified service.
+        4. ''ticket'': If set to 'false', prevents the creation of
+           tickets. The user can still login and the client will still
+           be redirected back to service, but without a ticket. Use for
+           logging on to an application hosted in the same django
+           instance as mama_cas
         """
         service = request.GET.get('service')
         renew = to_bool(request.GET.get('renew'))
         gateway = to_bool(request.GET.get('gateway'))
+        ticket = request.GET.get('ticket', 'True') != 'false'
 
         if renew:
             logger.debug("Renew request received by credential requestor")
-        elif gateway and service:
-            logger.debug("Gateway request received by credential requestor")
-            if is_authenticated(request.user):
-                st = ServiceTicket.objects.create_ticket(service=service, user=request.user)
-                if self.warn_user():
-                    return redirect('cas_warn', params={'service': service, 'ticket': st.ticket})
-                return redirect(service, params={'ticket': st.ticket})
-            else:
-                return redirect(service)
         elif is_authenticated(request.user):
             if service:
                 logger.debug("Service ticket request received by credential requestor")
-                st = ServiceTicket.objects.create_ticket(service=service, user=request.user)
+                params = {}
+                if ticket:
+                    st = ServiceTicket.objects.create_ticket(service=service, user=request.user)
+                    params['ticket'] = st.ticket
                 if self.warn_user():
-                    return redirect('cas_warn', params={'service': service, 'ticket': st.ticket})
-                return redirect(service, params={'ticket': st.ticket})
+                    params['service'] = service
+                    return redirect('cas_warn', params=params)
+                return redirect(service, params=params)
             else:
                 msg = _("You are logged in as %s") % request.user
                 messages.success(request, msg)
+        elif gateway and service:
+            logger.debug("Gateway request received by credential requestor")
+            return redirect(service)
         return super(LoginView, self).get(request, *args, **kwargs)
 
     def warn_user(self):
@@ -122,9 +126,10 @@ class LoginView(CsrfProtectMixin, NeverCacheMixin, FormView):
         2. ``password``: the password provided by the client
 
         If authentication is successful, the single sign-on session is
-        created. If a service is provided, a ``ServiceTicket`` is
-        created and the client is redirected to the service URL with
-        the ``ServiceTicket`` included. If no service is provided, the
+        created. If a service is provided the client is redirected to
+        the service URL. Unless the ticket parameter is set to false,
+        a ``ServiceTicket`` is created and the ``ServiceTicket`` is
+        included with the redirect. If no service is provided, the
         login page is redisplayed with a message indicating a
         successful login.
 
@@ -144,9 +149,13 @@ class LoginView(CsrfProtectMixin, NeverCacheMixin, FormView):
             self.request.session['warn'] = True
 
         service = self.request.GET.get('service')
+        ticket = self.request.GET.get('ticket', 'True') != 'false'
         if service:
-            st = ServiceTicket.objects.create_ticket(service=service, user=self.request.user, primary=True)
-            return redirect(service, params={'ticket': st.ticket})
+            params = {}
+            if ticket:
+                st = ServiceTicket.objects.create_ticket(service=service, user=self.request.user, primary=True)
+                params['ticket'] = st.ticket
+            return redirect(service, params=params)
         return redirect('cas_login')
 
 
