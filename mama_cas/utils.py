@@ -1,19 +1,13 @@
 import logging
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
-try:
-    from django.urls import reverse, NoReverseMatch
-except ImportError:  # Django<2.0
-    from django.core.urlresolvers import reverse, NoReverseMatch
+from django.urls import reverse, NoReverseMatch
 
 from django.http import HttpResponseRedirect
 from django.utils.encoding import force_bytes
 
-from mama_cas.compat import parse_qsl
-from mama_cas.compat import urlencode
-from mama_cas.compat import urlparse
-from mama_cas.compat import urlunparse
 from mama_cas.services import service_allowed
 
 

@@ -1,11 +1,6 @@
-from __future__ import unicode_literals
+from unittest.mock import patch
 
-from mock import patch
-
-try:
-    from django.urls import reverse
-except ImportError:  # Django<2.0
-    from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.test import TestCase
 from django.test.client import RequestFactory
 from django.test.utils import override_settings

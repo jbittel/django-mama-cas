@@ -6,40 +6,14 @@ matrix:
       python: 3.7
     - env: TOX_ENV=py36-djangomaster
       python: 3.6
-    - env: TOX_ENV=py35-djangomaster
-      python: 3.5
-    - env: TOX_ENV=py36-django20
+    - env: TOX_ENV=py37-django30
+      python: 3.7
+    - env: TOX_ENV=py36-django30
       python: 3.6
-    - env: TOX_ENV=py35-django20
-      python: 3.5
-    - env: TOX_ENV=py34-django20
-      python: 3.4
-    - env: TOX_ENV=py36-django111
+    - env: TOX_ENV=py37-django22
+      python: 3.7
+    - env: TOX_ENV=py36-django22
       python: 3.6
-    - env: TOX_ENV=py35-django111
-      python: 3.5
-    - env: TOX_ENV=py34-django111
-      python: 3.4
-    - env: TOX_ENV=py27-django111
-      python: 2.7
-    - env: TOX_ENV=py35-django110
-      python: 3.5
-    - env: TOX_ENV=py34-django110
-      python: 3.4
-    - env: TOX_ENV=py27-django110
-      python: 2.7
-    - env: TOX_ENV=py35-django19
-      python: 3.5
-    - env: TOX_ENV=py34-django19
-      python: 3.4
-    - env: TOX_ENV=py27-django19
-      python: 2.7
-    - env: TOX_ENV=py35-django18
-      python: 3.5
-    - env: TOX_ENV=py34-django18
-      python: 3.4
-    - env: TOX_ENV=py27-django18
-      python: 2.7
     - env: TOX_ENV=flake8
     - env: TOX_ENV=docs
   allow_failures:
@@ -47,8 +21,6 @@ matrix:
       python: 3.7
     - env: TOX_ENV=py36-djangomaster
       python: 3.6
-    - env: TOX_ENV=py35-djangomaster
-      python: 3.5
 install: pip install tox
 
 script: tox -e $TOX_ENV

@@ -5,7 +5,6 @@ from django.contrib.auth import logout
 from django.utils.module_loading import import_string
 from django.utils.translation import ugettext_lazy as _
 
-from mama_cas.compat import is_authenticated
 from mama_cas.exceptions import InvalidTicketSpec
 from mama_cas.models import ServiceTicket
 from mama_cas.models import ProxyTicket
@@ -94,7 +93,7 @@ def get_attributes(user, service):
 def logout_user(request):
     """End a single sign-on session for the current user."""
     logger.debug("Logout request received for %s" % request.user)
-    if is_authenticated(request.user):
+    if request.user.is_authenticated:
         ServiceTicket.objects.consume_tickets(request.user)
         ProxyTicket.objects.consume_tickets(request.user)
         ProxyGrantingTicket.objects.consume_tickets(request.user)
