@@ -1,4 +1,4 @@
-defusedxml==0.5.0
+defusedxml==0.7.0
 factory-boy==2.8.1
 faker==0.7.8
 pytest==5.4.1 

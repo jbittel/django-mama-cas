@@ -2,25 +2,61 @@ language: python
 
 matrix:
   include:
-    - env: TOX_ENV=py37-djangomaster
+    - env: TOX_ENV=py39-djangomain
+      python: 3.9
+    - env: TOX_ENV=py38-djangomain
+      python: 3.8
+    - env: TOX_ENV=py39-django31
+      python: 3.9
+    - env: TOX_ENV=py38-django31
+      python: 3.8
+    - env: TOX_ENV=py37-django31
       python: 3.7
-    - env: TOX_ENV=py36-djangomaster
+    - env: TOX_ENV=py36-django31
       python: 3.6
+    - env: TOX_ENV=py39-django30
+      python: 3.9
+    - env: TOX_ENV=py38-django30
+      python: 3.8
     - env: TOX_ENV=py37-django30
       python: 3.7
     - env: TOX_ENV=py36-django30
       python: 3.6
+    - env: TOX_ENV=py39-django22
+      python: 3.9
+    - env: TOX_ENV=py38-django22
+      python: 3.8
     - env: TOX_ENV=py37-django22
       python: 3.7
     - env: TOX_ENV=py36-django22
       python: 3.6
     - env: TOX_ENV=flake8
     - env: TOX_ENV=docs
-  allow_failures:
-    - env: TOX_ENV=py37-djangomaster
+
+    # unsupported Django versions, included in allow_failures
+    - env: TOX_ENV=py37-django21
       python: 3.7
-    - env: TOX_ENV=py36-djangomaster
+    - env: TOX_ENV=py36-django21
       python: 3.6
+    - env: TOX_ENV=py37-django20
+      python: 3.7
+    - env: TOX_ENV=py36-django20
+      python: 3.6
+
+  allow_failures:
+    - env: TOX_ENV=py39-djangomain
+      python: 3.9
+    - env: TOX_ENV=py38-djangomain
+      python: 3.8
+    - env: TOX_ENV=py37-django21
+      python: 3.7
+    - env: TOX_ENV=py36-django21
+      python: 3.6
+    - env: TOX_ENV=py37-django20
+      python: 3.7
+    - env: TOX_ENV=py36-django20
+      python: 3.6
+
 install: pip install tox
 
 script: tox -e $TOX_ENV

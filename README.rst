@@ -21,6 +21,8 @@ Documentation is available at `django-mama-cas.readthedocs.org`_.
 Quickstart
 ----------
 
+Django versions 2.2 to 3.1 are supported. It should work with Django >= 2.0 though.
+
 Install with `pip`_::
 
    $ pip install django-mama-cas
