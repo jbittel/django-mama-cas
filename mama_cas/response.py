@@ -2,7 +2,7 @@ import datetime
 
 from django.http import HttpResponse
 from django.utils.crypto import get_random_string
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 
 from .compat import etree
 
@@ -71,10 +71,10 @@ class ValidationResponse(CasResponseBase):
                     if isinstance(value, list):
                         for v in value:
                             attr = etree.SubElement(attribute_set, self.ns(name))
-                            attr.text = force_text(v)
+                            attr.text = force_str(v)
                     else:
                         attr = etree.SubElement(attribute_set, self.ns(name))
-                        attr.text = force_text(value)
+                        attr.text = force_str(value)
             if pgt:
                 proxy_granting_ticket = etree.SubElement(auth_success, self.ns('proxyGrantingTicket'))
                 proxy_granting_ticket.text = pgt.iou
@@ -238,10 +238,10 @@ class SamlValidationResponse(CasResponseBase):
             if isinstance(value, list):
                 for v in value:
                     attribute_value = etree.SubElement(attribute, 'AttributeValue')
-                    attribute_value.text = force_text(v)
+                    attribute_value.text = force_str(v)
             else:
                 attribute_value = etree.SubElement(attribute, 'AttributeValue')
-                attribute_value.text = force_text(value)
+                attribute_value.text = force_str(value)
         return attribute_statement
 
     def get_authentication_statement(self, subject, ticket):

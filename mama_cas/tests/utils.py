@@ -13,7 +13,7 @@ def parse(s):
     """
     ns = re.compile(r'^{.*?}')
     et = etree.fromstring(s)
-    for elem in et.getiterator():
+    for elem in et.iter():
         elem.tag = ns.sub('', elem.tag)
     return et
 
