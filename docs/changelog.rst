@@ -9,6 +9,25 @@ here. For additional detail, read the complete `commit history`_. From
 version 0.4.0 and following, version numbers follow the `semantic
 versioning`_ scheme.
 
+**django-mama-cas 2.5.0** ``[2021-04-03]``
+   * Drop support for unsupported Python versions (thanks @stsewd!)
+   * In the ValidationResponse, add support to serialize values of type list (thanks @tarunpaul!)
+   * Don't stop the rest of sign out requests if one fails (thanks @stsewd!)
+   * Changed password field to not strip its data (thanks @pmayer!)
+   * Other minor fixes (thanks @enewhuis!)
+
+   * Added Portuguese translation (thanks @vitorcarareto!)
+   * Added Icelandic translation (thanks @barnabywalters!)
+   * Updated Chinese translation (thanks @overcat!)
+
+
+   .. warning::
+
+      Support has been dropped for Python 2.
+
+      Support has been dropped for Django 1.8, 1.9, 1.10, 1.11 and 2.0, matching Django's
+      supported versions policy.
+
 **django-mama-cas 2.4.0** ``[2018-08-14]``
    * Official Django 2.0+ support (thanks @manelclos!)
    * Add setting to enable custom service backends (thanks @rebkwok!)
