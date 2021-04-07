@@ -6,6 +6,14 @@ matrix:
       python: 3.9
     - env: TOX_ENV=py38-djangomain
       python: 3.8
+    - env: TOX_ENV=py39-django32
+      python: 3.9
+    - env: TOX_ENV=py38-django32
+      python: 3.8
+    - env: TOX_ENV=py37-django32
+      python: 3.7
+    - env: TOX_ENV=py36-django32
+      python: 3.6
     - env: TOX_ENV=py39-django31
       python: 3.9
     - env: TOX_ENV=py38-django31
