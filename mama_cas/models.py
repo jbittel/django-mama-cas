@@ -210,6 +210,7 @@ class ServiceTicketManager(TicketManager):
         be sent. Otherwise, synchronous requests will be sent.
         """
         session = Session()
+        session.verify = getattr(settings, 'MAMA_CAS_VERIFY_SSL_CERTIFICATE', True)
         for ticket in self.filter(user=user, consumed__gte=user.last_login):
             try:
                 ticket.request_sign_out(session=session)
