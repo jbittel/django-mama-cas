@@ -134,6 +134,22 @@ class ServicesTests(TestCase):
 
     @override_settings(
         MAMA_CAS_SERVICE_BACKENDS=[
+            'mama_cas.tests.backends.CustomTestServiceBackendNoSettings'
+        ]
+    )
+    def test_custom_backend_security(self):
+        """
+        Test that a custom service backend can be used and it's service_allowed function is respected, also when the
+        `MAMA_CAS_SERVICES` setting isn't present in the django settings.py
+        """
+        del settings.MAMA_CAS_SERVICES
+        # CustomTestServiceBackendNoSettings allows only services containing 'test.com'
+        self.assertFalse(service_allowed('http://www.foo.com'))
+        self.assertFalse(service_allowed('http://www.example.com'))
+        self.assertTrue(service_allowed('http://www.test.com'))
+
+    @override_settings(
+        MAMA_CAS_SERVICE_BACKENDS=[
             'mama_cas.tests.backends.CustomTestInvalidServiceBackend'
         ]
     )
