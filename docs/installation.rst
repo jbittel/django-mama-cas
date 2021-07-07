@@ -51,7 +51,7 @@ URL paths
 ~~~~~~~~~
 
 Include the required CAS URL endpoints in your project's root ``URLconf``
-in ``urls.py`` with the following::
+(usually ``urls.py``) with the following::
 
    from django.urls import include, re_path
    
