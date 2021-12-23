@@ -186,8 +186,8 @@ class Ticket(models.Model):
         """
         Check a ``Ticket``s consumed state, consuming it in the process.
         """
-        if self.consumed is None:
-            self.consume()
+        self.consume()
+        if self.consumed < self.expires:
             return False
         return True
 
