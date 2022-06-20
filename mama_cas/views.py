@@ -146,7 +146,8 @@ class LoginView(CsrfProtectMixin, NeverCacheMixin, FormView):
         if service:
             st = ServiceTicket.objects.create_ticket(service=service, user=self.request.user, primary=True)
             return redirect(service, params={'ticket': st.ticket})
-        return redirect('cas_login')
+        no_service_redirect_url = getattr(settings, 'MAMA_CAS_INTERNAL_LOGIN_REDIRECT', 'cas_login')
+        return redirect(no_service_redirect_url)
 
 
 class WarnView(NeverCacheMixin, LoginRequiredMixin, TemplateView):
