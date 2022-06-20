@@ -21,6 +21,7 @@ from mama_cas.views import ValidateView
 from mama_cas.views import SamlValidateView
 
 
+@override_settings(ROOT_URLCONF='mama_cas.tests.urls')
 class LoginViewTests(TestCase):
     user_info = {'username': 'ellen',
                  'password': 'mamas&papas'}
@@ -51,15 +52,28 @@ class LoginViewTests(TestCase):
         self.assertTrue('Cache-Control' in response)
         self.assertTrue('max-age=0' in response['Cache-Control'])
 
-    def test_login_view_login(self):
+    def test_login_view_no_service_default(self):
         """
         When called with a valid username and password and no service,
-        a ``POST`` request to the view should authenticate and login
-        the user, and redirect to the correct view.
+        and MAMA_CAS_INTERNAL_LOGIN_REDIRECT is not set, a ``POST``
+        request to the view should authenticate and login the user,
+        and redirect to the cas_login view.
         """
         response = self.client.post(reverse('cas_login'), self.user_info)
         self.assertEqual(int(self.client.session['_auth_user_id']), self.user.pk)
         self.assertRedirects(response, reverse('cas_login'))
+    
+    @override_settings(MAMA_CAS_INTERNAL_LOGIN_REDIRECT='custom_internal_login_redirect')
+    def test_login_view_no_service_custom(self):
+        """
+        When called with a valid username and password and no service,
+        and MAMA_CAS_INTERNAL_LOGIN_REDIRECT is set, a ``POST`` request
+        to the view should authenticate and login the user, and redirect
+        to the MAMA_CAS_INTERNAL_LOGIN_REDIRECT view.
+        """
+        response = self.client.post(reverse('cas_login'), self.user_info)
+        self.assertEqual(int(self.client.session['_auth_user_id']), self.user.pk)
+        self.assertRedirects(response, reverse('custom_internal_login_redirect'))
 
     def test_login_view_login_service(self):
         """
