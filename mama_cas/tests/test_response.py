@@ -111,7 +111,7 @@ class ValidationResponseTests(TestCase):
         total_attributes = 0
         for attr_key in attrs.keys():
             attr_values = attributes.findall(attr_key)
-            if(len(attr_values) > 1):
+            if len(attr_values) > 1:
                 self.assertEqual(len(attr_values), len(attrs[attr_key]))
                 for attr_value in attr_values:
                     self.assertTrue(attr_value.text in attrs[attr_key])
@@ -261,7 +261,7 @@ class SamlValidationResponseTests(TestCase):
         for attr in attribute_statement.findall('Attribute'):
             attr_name = attr.get('AttributeName')
             attr_values = attr.findall('AttributeValue')
-            if(len(attr_values) > 1):
+            if len(attr_values) > 1:
                 self.assertEqual(len(attr_values), len(attrs[attr_name]))
                 for attr_value in attr_values:
                     self.assertTrue(attr_value.text in attrs[attr_name])

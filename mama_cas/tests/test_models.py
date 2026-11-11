@@ -326,19 +326,20 @@ class ServiceTicketTests(TestCase):
         cause any side-effects.
         """
         st = ServiceTicketFactory()
-        with patch('requests.Session.post') as mock:
+        with patch('requests.post') as mock:
             mock.return_value.status_code = 200
             st.request_sign_out()
 
     def test_request_sign_out_exception(self):
         """
         If a sign-out request to a service raises an exception,
-        it should be handled.
+        it should be propagated, so the manager can handle it.
         """
         st = ServiceTicketFactory()
-        with patch('requests.Session.post') as mock:
+        with patch('requests.post') as mock:
             mock.side_effect = requests.exceptions.RequestException
-            st.request_sign_out()
+            with self.assertRaises(requests.exceptions.RequestException):
+                st.request_sign_out()
 
     def test_request_sign_out_invalid_status(self):
         """
@@ -346,7 +347,7 @@ class ServiceTicketTests(TestCase):
         status code, the resulting exception should be handled.
         """
         st = ServiceTicketFactory()
-        with patch('requests.Session.post') as mock:
+        with patch('requests.post') as mock:
             mock.return_value.status_code = 500
             st.request_sign_out()
 
@@ -356,7 +357,7 @@ class ServiceTicketTests(TestCase):
         request should not be sent.
         """
         st = ServiceTicketFactory(service='http://example.com')
-        with patch('requests.Session.post') as mock:
+        with patch('requests.post') as mock:
             mock.return_value.status_code = 500
             st.request_sign_out()
             self.assertEqual(mock.call_count, 0)
