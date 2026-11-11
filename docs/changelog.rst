@@ -9,6 +9,17 @@ here. For additional detail, read the complete `commit history`_. From
 version 0.4.0 and following, version numbers follow the `semantic
 versioning`_ scheme.
 
+**Unreleased**
+   * Official Django 4.2 support
+   * Add an ``AppConfig`` setting ``default_auto_field``, to avoid the
+     ``models.W042`` warning without a new migration
+   * Update test dependencies and fix tests sending real HTTP requests
+
+   .. warning::
+
+      Support has been dropped for Django 2.2, 3.0 and 3.1, and for
+      Python 3.6 and 3.7.
+
 **django-mama-cas 2.5.0** ``[2021-04-03]``
    * Drop support for unsupported Python versions (thanks @stsewd!)
    * In the ValidationResponse, add support to serialize values of type list (thanks @tarunpaul!)

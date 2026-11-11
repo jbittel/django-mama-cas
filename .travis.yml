@@ -2,9 +2,19 @@ language: python
 
 matrix:
   include:
-    - env: TOX_ENV=py39-djangomain
+    - env: TOX_ENV=py313-djangomain
+      python: "3.13"
+    - env: TOX_ENV=py312-djangomain
+      python: "3.12"
+    - env: TOX_ENV=py312-django42
+      python: "3.12"
+    - env: TOX_ENV=py311-django42
+      python: "3.11"
+    - env: TOX_ENV=py310-django42
+      python: "3.10"
+    - env: TOX_ENV=py39-django42
       python: 3.9
-    - env: TOX_ENV=py38-djangomain
+    - env: TOX_ENV=py38-django42
       python: 3.8
     - env: TOX_ENV=py310-django32
       python: "3.10"
@@ -16,10 +26,10 @@ matrix:
     - env: TOX_ENV=docs
 
   allow_failures:
-    - env: TOX_ENV=py39-djangomain
-      python: 3.9
-    - env: TOX_ENV=py38-djangomain
-      python: 3.8
+    - env: TOX_ENV=py313-djangomain
+      python: "3.13"
+    - env: TOX_ENV=py312-djangomain
+      python: "3.12"
 
 install: pip install tox
 
