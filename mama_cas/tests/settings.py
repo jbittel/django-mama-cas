@@ -1,5 +1,4 @@
 DEBUG = False
-TEMPLATE_DEBUG = DEBUG
 
 TIME_ZONE = 'UTC'
 USE_TZ = True
@@ -26,8 +25,6 @@ MIDDLEWARE = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
 )
-
-MIDDLEWARE_CLASSES = MIDDLEWARE
 
 TEMPLATES = [
     {
