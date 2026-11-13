@@ -2,10 +2,34 @@ language: python
 
 matrix:
   include:
+    - env: TOX_ENV=py314-djangomain
+      python: "3.14"
     - env: TOX_ENV=py313-djangomain
       python: "3.13"
     - env: TOX_ENV=py312-djangomain
       python: "3.12"
+    - env: TOX_ENV=py314-django61
+      python: "3.14"
+    - env: TOX_ENV=py313-django61
+      python: "3.13"
+    - env: TOX_ENV=py312-django61
+      python: "3.12"
+    - env: TOX_ENV=py314-django60
+      python: "3.14"
+    - env: TOX_ENV=py313-django60
+      python: "3.13"
+    - env: TOX_ENV=py312-django60
+      python: "3.12"
+    - env: TOX_ENV=py314-django52
+      python: "3.14"
+    - env: TOX_ENV=py313-django52
+      python: "3.13"
+    - env: TOX_ENV=py312-django52
+      python: "3.12"
+    - env: TOX_ENV=py311-django52
+      python: "3.11"
+    - env: TOX_ENV=py310-django52
+      python: "3.10"
     - env: TOX_ENV=py312-django42
       python: "3.12"
     - env: TOX_ENV=py311-django42
@@ -26,6 +50,8 @@ matrix:
     - env: TOX_ENV=docs
 
   allow_failures:
+    - env: TOX_ENV=py314-djangomain
+      python: "3.14"
     - env: TOX_ENV=py313-djangomain
       python: "3.13"
     - env: TOX_ENV=py312-djangomain

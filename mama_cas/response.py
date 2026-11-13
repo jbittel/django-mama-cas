@@ -141,7 +141,7 @@ class SamlValidationResponse(CasResponseBase):
     confirmation_method = 'urn:oasis:names:tc:SAML:1.0:cm:artifact'
 
     def __init__(self, context, **kwargs):
-        self._instant = datetime.datetime.utcnow()
+        self._instant = datetime.datetime.now(datetime.timezone.utc)
         super(SamlValidationResponse, self).__init__(context, **kwargs)
 
     def instant(self, instant=None, offset=None):

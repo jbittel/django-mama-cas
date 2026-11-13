@@ -24,7 +24,7 @@ class CasRequestBase(object):
         return etree.QName(self.prefixes[prefix], tag)
 
     def instant(self):
-        return datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        return datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
 
 class SingleSignOutRequest(CasRequestBase):
