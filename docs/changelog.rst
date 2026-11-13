@@ -11,6 +11,7 @@ versioning`_ scheme.
 
 **Unreleased**
    * Official Django 4.2 support
+   * Official Django 5.2, 6.0 and 6.1 support
    * Add an ``AppConfig`` setting ``default_auto_field``, to avoid the
      ``models.W042`` warning without a new migration
    * Update test dependencies and fix tests sending real HTTP requests

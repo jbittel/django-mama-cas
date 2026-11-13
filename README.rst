@@ -23,7 +23,7 @@ Documentation is available at `django-mama-cas.readthedocs.org`_.
 Quickstart
 ----------
 
-Django versions 3.2 and 4.2 are supported.
+Django versions 3.2, 4.2, 5.2, 6.0 and 6.1 are supported.
 
 Install with `pip`_::
 
